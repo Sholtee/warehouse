@@ -11,10 +11,9 @@ namespace Warehouse.API
 
             using WebApplication app = builder.Build();
 
-            app.UseHttpsRedirection();
-
-            app.UseAuthorization();
-
+            app
+                .UseHttpsRedirection()
+                .UseAuthorization();
 
             app.MapControllers();
 
