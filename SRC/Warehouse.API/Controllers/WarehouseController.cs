@@ -3,11 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace Warehouse.API.Controllers
 {
     [ApiController, Produces("application/json")]
-    [Route("api/v1/warehouse")]
+    [Route("api/v1")]
     public class WarehouseController(ILogger<WarehouseController> logger) : ControllerBase
     {
-        [HttpGet("healthcheck")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [HttpGet("healthcheck"), ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> HealthCheck(CancellationToken cancellationToken = default)
         {
             //
@@ -17,8 +16,7 @@ namespace Warehouse.API.Controllers
             return NoContent();
         }
 
-        [HttpGet("product/{id}")]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpGet("product/{id}"), ProducesResponseType(StatusCodes.Status404NotFound), BasicAuthentication]
         public async Task<IActionResult> GetProductWithDetailsAsync(int id, CancellationToken cancellationToken = default)
         {
             //

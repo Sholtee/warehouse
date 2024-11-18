@@ -1,4 +1,7 @@
 
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
+
 namespace Warehouse.API
 {
     public class Program
@@ -9,11 +12,13 @@ namespace Warehouse.API
 
             builder.Services.AddControllers();
 
+            builder.Services
+                .AddSingleton<IPasswordHasher<object>>(_ => new PasswordHasher<object>())
+                .AddAuthentication().AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>(BasicAuthenticationHandler.SCHEME, null);
+
             using WebApplication app = builder.Build();
 
-            app
-                .UseHttpsRedirection()
-                .UseAuthorization();
+            app.UseHttpsRedirection();
 
             app.MapControllers();
 
