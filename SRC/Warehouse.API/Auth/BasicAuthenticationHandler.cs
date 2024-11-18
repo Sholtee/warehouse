@@ -7,7 +7,7 @@ using System.Security.Principal;
 using System.Text;
 using System.Text.Encodings.Web;
 
-namespace Warehouse.API
+namespace Warehouse.API.Auth
 {
     public sealed class BasicAuthenticationHandler(IPasswordHasher<object> passwordHasher, IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
     {
@@ -73,7 +73,13 @@ namespace Warehouse.API
                                     IsAuthenticated = true,
                                     Name = clientId
                                 }, 
-                                [new Claim(ClaimTypes.Name, clientId)])),
+                                [
+                                    new Claim(ClaimTypes.Name, clientId),
+                                    new Claim(ClaimTypes.Role, Roles.User.ToString()),
+                                    new Claim(ClaimTypes.Role, Roles.Admin.ToString())
+                                ]
+                            )
+                        ),
                         Scheme.Name
                     )
                 )

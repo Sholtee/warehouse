@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Warehouse.API
 {
+    using Auth;
+
     public class Program
     {
         public static void Main(string[] args)
@@ -13,7 +15,7 @@ namespace Warehouse.API
             builder.Services.AddControllers();
 
             builder.Services
-                .AddSingleton<IPasswordHasher<object>>(_ => new PasswordHasher<object>())
+                .AddScoped<IPasswordHasher<object>>(_ => new PasswordHasher<object>())
                 .AddAuthentication().AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>(BasicAuthenticationHandler.SCHEME, null);
 
             using WebApplication app = builder.Build();

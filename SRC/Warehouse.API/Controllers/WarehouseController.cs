@@ -1,22 +1,24 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Warehouse.API.Controllers
 {
-    [ApiController, Produces("application/json")]
-    [Route("api/v1")]
+    using Auth;
+
+    [ApiController, Produces("application/json"), Route("api/v1"), Authorize]
     public class WarehouseController(ILogger<WarehouseController> logger) : ControllerBase
     {
-        [HttpGet("healthcheck"), ProducesResponseType(StatusCodes.Status204NoContent)]
+        [HttpGet("healthcheck"), ProducesResponseType(StatusCodes.Status204NoContent), AllowAnonymous]
         public async Task<IActionResult> HealthCheck(CancellationToken cancellationToken = default)
         {
             //
-            // TODO: test DB
+            // TODO: test DB connection
             //
 
             return NoContent();
         }
 
-        [HttpGet("product/{id}"), ProducesResponseType(StatusCodes.Status404NotFound), BasicAuthentication]
+        [HttpGet("product/{id}"), ProducesResponseType(StatusCodes.Status404NotFound), BasicAuthorize(Roles.Admin)]
         public async Task<IActionResult> GetProductWithDetailsAsync(int id, CancellationToken cancellationToken = default)
         {
             //
