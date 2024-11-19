@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -24,6 +25,12 @@ namespace Warehouse.API.Auth
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
+            Endpoint? endpoint = Context.GetEndpoint();
+            if (endpoint?.Metadata?.GetMetadata<IAllowAnonymous>() is not null)
+            {
+                return Task.FromResult(AuthenticateResult.NoResult());
+            }
+
             if (!Request.Headers.TryGetValue("Authorization", out StringValues value))
             {
                 return Task.FromResult(AuthenticateResult.Fail("Missing Authorization header"));
