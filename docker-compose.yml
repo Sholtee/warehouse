@@ -1,8 +1,18 @@
 services:
-   api:
-     restart: always
-     build:
-       context: .
-       dockerfile: ./Dockerfile
-     ports:
-       - 1986:1986
+  localstack:
+    image: localstack/localstack:latest
+    restart: always
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=secretsmanager
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  localstack-setup:
+    depends_on:
+      - localstack
+    build: ./LocalStack
+    environment:
+      - LOCALSTACK_ENDPOINT_URL=http://localstack:4566
+      - ADMIN_USER=admin
+      - ADMIN_PW=cica

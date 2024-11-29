@@ -1,0 +1,21 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /build
+
+ENV DOTNET_NOLOGO=true
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=true
+
+COPY LocalStack.Setup.csproj Program.cs .
+
+RUN dotnet build LocalStack.Setup.csproj -o ./bin
+
+# ---------------------------------------------------
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS base
+WORKDIR /app
+
+COPY --from=build /build/bin .
+
+ENV DOTNET_NOLOGO=true
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=true
+
+ENTRYPOINT ["dotnet", "LocalStack.Setup.dll"]
