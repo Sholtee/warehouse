@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /build
 
 ENV DOTNET_NOLOGO=true
@@ -10,7 +10,7 @@ RUN dotnet build Warehouse.API/Warehouse.API.csproj -o ./bin
 
 # ---------------------------------------------------
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
 EXPOSE 1986
 
