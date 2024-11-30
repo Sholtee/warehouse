@@ -1,23 +1,34 @@
+using Amazon.SecretsManager;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 
 namespace Warehouse.API
-{
+{  
     using Auth;
 
     public class Startup(IConfiguration configuration)
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();  
-            services.AddAuthentication()
+            services.AddControllers();
+
+            services
+                .AddAuthentication()
                 .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>(BasicAuthenticationHandler.SCHEME, null);
 
-            services.AddScoped<IPasswordHasher<object>>(static _ => new PasswordHasher<object>());
+            services
+                .AddScoped<IPasswordHasher<object>>(static _ => new PasswordHasher<object>())
+                .AddMemoryCache()
+
+                //
+                // All AmazonServiceClient objects are thread safe
+                // 
+
+                .AddAWSService<IAmazonSecretsManager>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
+        {         
             app.UseHttpsRedirection();
 
             app.UseRouting().UseAuthorization().UseEndpoints(static endpoints => endpoints.MapControllers());

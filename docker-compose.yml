@@ -11,8 +11,24 @@ services:
   localstack-setup:
     depends_on:
       - localstack
-    build: ./LocalStack
+    build: ./Tools/LocalStack
     environment:
       - LOCALSTACK_ENDPOINT_URL=http://localstack:4566
       - ADMIN_USER=admin
       - ADMIN_PW=cica
+  api:
+    depends_on:
+      localstack-setup:
+        condition: service_completed_successfully
+    restart: always
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - 1986:1986
+    environment:
+      - ASPNETCORE_ENVIRONMENT=development
+      - AWS_DEFAULT_REGION=us-west-2
+      - AWS_ACCESS_KEY_ID=local
+      - AWS_SECRET_ACCESS_KEY=local
+      - PREFIX=local 

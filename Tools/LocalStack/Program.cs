@@ -50,7 +50,7 @@ namespace LocalStack.Setup
                     LocalStackStatus? status = await resp.Content.ReadFromJsonAsync<LocalStackStatus>(serializerOpts);
                     foreach (string service in services)
                     {
-                        if (status?.Services.TryGetValue(service, out string? serviceStatus) is not true || serviceStatus != "running")
+                        if (status?.Services.TryGetValue(service, out string? serviceStatus) is not true || serviceStatus != "available")
                         {
                             Console.WriteLine($"Service not available: {service}");
                             goto again;
@@ -96,6 +96,12 @@ namespace LocalStack.Setup
             await SetupSecret("local-api-users", new Dictionary<string, string>
             {
                 [GetEnvironmentVariable("ADMIN_USER") ?? "admin"] = new PasswordHasher<object>().HashPassword(null!, GetEnvironmentVariable("ADMIN_PW") ?? "admin")
+            });
+
+            await SetupSecret("local-api-certificate", new Dictionary<string, string>
+            {
+                ["privateKey"] = File.ReadAllText(Path.Combine("Cert", "private.key")),
+                ["certificate"] = File.ReadAllText(Path.Combine("Cert", "certificate.crt"))
             });
 
             async Task SetupSecret(string name, Dictionary<string, string> value)
