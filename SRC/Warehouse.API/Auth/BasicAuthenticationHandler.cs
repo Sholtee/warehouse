@@ -1,16 +1,29 @@
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Text;
 using System.Text.Encodings.Web;
+using System.Text.Json;
+
+using Amazon.SecretsManager;
+using Amazon.SecretsManager.Model;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 
 namespace Warehouse.API.Auth
 {
-    public sealed class BasicAuthenticationHandler(IPasswordHasher<object> passwordHasher, IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
+    public sealed class BasicAuthenticationHandler
+    (
+        IPasswordHasher<object> passwordHasher,
+        IOptionsMonitor<AuthenticationSchemeOptions> options,
+        ILoggerFactory logger,
+        IAmazonSecretsManager secretsManager,
+        IMemoryCache cache,
+        UrlEncoder encoder
+    ) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
     {
         public const string SCHEME = "Basic";
 
@@ -23,24 +36,24 @@ namespace Warehouse.API.Auth
             public required string Name { get; init; }
         }
 
-        protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+        protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
             Endpoint? endpoint = Context.GetEndpoint();
             if (endpoint?.Metadata?.GetMetadata<IAllowAnonymous>() is not null)
             {
-                return Task.FromResult(AuthenticateResult.NoResult());
+                return AuthenticateResult.NoResult();
             }
 
             if (!Request.Headers.TryGetValue("Authorization", out StringValues value))
             {
-                return Task.FromResult(AuthenticateResult.Fail("Missing Authorization header"));
+                return AuthenticateResult.Fail("Missing Authorization header");
             }
 
             string authorizationHeader = value.ToString();
 
             if (!authorizationHeader.StartsWith(PREFIX, StringComparison.OrdinalIgnoreCase))
             {
-                return Task.FromResult(AuthenticateResult.Fail("Authorization header does not start with 'Basic'"));
+                return AuthenticateResult.Fail("Authorization header does not start with 'Basic'");
             }
 
             //
@@ -51,44 +64,68 @@ namespace Warehouse.API.Auth
 
             if (!Convert.TryFromBase64String(authorizationHeader[PREFIX.Length..], rawData, out int bytesWritten))
             {
-                return Task.FromResult(AuthenticateResult.Fail("Invalid Base64 string"));
+                return AuthenticateResult.Fail("Invalid Base64 string");
             }
 
             if (Encoding.UTF8.GetString(rawData.Slice(0, bytesWritten)).Split(':', 2) is not [string clientId, string clientSecret])
             {
-                return Task.FromResult(AuthenticateResult.Fail("Invalid Authorization header format"));
+                return AuthenticateResult.Fail("Invalid Authorization header format");
             }
 
-            if (clientId != "test" || passwordHasher.VerifyHashedPassword(null!, passwordHasher.HashPassword(null!, "test"), clientSecret) != PasswordVerificationResult.Success)
+            //
+            // Grab the available user list (preferably from cache)
+            //
+
+            string usersKey = $"{Environment.GetEnvironmentVariable("PREFIX")}-api-users";
+            IReadOnlyDictionary<string, string> users = (await cache.GetOrCreateAsync<IReadOnlyDictionary<string, string>>(usersKey, async entry =>
             {
-                return Task.FromResult(AuthenticateResult.Fail(string.Format("The secret is incorrect for the client '{0}'", clientId)));
+                entry.AbsoluteExpiration = DateTimeOffset.UtcNow.AddMinutes
+                (
+                    int.Parse
+                    (
+                        Environment.GetEnvironmentVariable("API_USERS_CACHE_EXPIRATION") ?? "30"
+                    )
+                );
+
+                GetSecretValueResponse resp = await secretsManager.GetSecretValueAsync(new GetSecretValueRequest
+                {
+                    SecretId = usersKey
+                });
+
+                return JsonSerializer.Deserialize<Dictionary<string, string>>(resp.SecretString)!.AsReadOnly();
+            }))!;
+
+            //
+            // Verify the client id - client secret pair
+            //
+
+            if (!users.TryGetValue(clientId, out string? secretHash) || passwordHasher.VerifyHashedPassword(null!, secretHash, clientSecret) != PasswordVerificationResult.Success)
+            {
+                return AuthenticateResult.Fail(string.Format("The secret is incorrect for the client '{0}'", clientId));
             }
 
-            return Task.FromResult
+            return AuthenticateResult.Success
             (
-                AuthenticateResult.Success
+                new AuthenticationTicket
                 (
-                    new AuthenticationTicket
+                    new ClaimsPrincipal
                     (
-                        new ClaimsPrincipal
+                        new ClaimsIdentity
                         (
-                            new ClaimsIdentity
-                            (
-                                new BasicAuthenticationClient
-                                {
-                                    AuthenticationType = SCHEME,
-                                    IsAuthenticated = true,
-                                    Name = clientId
-                                }, 
-                                [
-                                    new Claim(ClaimTypes.Name, clientId),
-                                    new Claim(ClaimTypes.Role, Roles.User.ToString()),
-                                    new Claim(ClaimTypes.Role, Roles.Admin.ToString())
-                                ]
-                            )
-                        ),
-                        Scheme.Name
-                    )
+                            new BasicAuthenticationClient
+                            {
+                                AuthenticationType = SCHEME,
+                                IsAuthenticated = true,
+                                Name = clientId
+                            }, 
+                            [
+                                new Claim(ClaimTypes.Name, clientId),
+                                new Claim(ClaimTypes.Role, Roles.User.ToString()),
+                                new Claim(ClaimTypes.Role, Roles.Admin.ToString())
+                            ]
+                        )
+                    ),
+                    Scheme.Name
                 )
             );
         }
