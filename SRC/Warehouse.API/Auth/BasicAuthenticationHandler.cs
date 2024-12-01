@@ -15,6 +15,8 @@ using Microsoft.Extensions.Primitives;
 
 namespace Warehouse.API.Auth
 {
+    using static Helpers;
+
     public sealed class BasicAuthenticationHandler
     (
         IPasswordHasher<object> passwordHasher,
@@ -76,15 +78,12 @@ namespace Warehouse.API.Auth
             // Grab the available user list (preferably from cache)
             //
 
-            string usersKey = $"{Environment.GetEnvironmentVariable("PREFIX")}-api-users";
+            string usersKey = $"{GetEnvironmentVariable("PREFIX", "local")}-api-users";
             IReadOnlyDictionary<string, string> users = (await cache.GetOrCreateAsync<IReadOnlyDictionary<string, string>>(usersKey, async entry =>
             {
                 entry.AbsoluteExpiration = DateTimeOffset.UtcNow.AddMinutes
                 (
-                    int.Parse
-                    (
-                        Environment.GetEnvironmentVariable("API_USERS_CACHE_EXPIRATION") ?? "30"
-                    )
+                    GetEnvironmentVariable("API_USERS_CACHE_EXPIRATION", 30)
                 );
 
                 GetSecretValueResponse resp = await secretsManager.GetSecretValueAsync(new GetSecretValueRequest

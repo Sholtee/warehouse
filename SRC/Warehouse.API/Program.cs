@@ -8,12 +8,14 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 namespace Warehouse.API
 {
+    using static Helpers;
+
     public static class Program
     {
         private static void UsingHttps(KestrelServerOptions serverOpts) => serverOpts.Listen
         (
             IPAddress.Any,
-            int.Parse(Environment.GetEnvironmentVariable("API_PORT") ?? "1986"),
+            GetEnvironmentVariable("API_PORT", 1986),
             static listenOpts =>
             {
                 IServiceProvider services = listenOpts.ApplicationServices;
@@ -26,7 +28,7 @@ namespace Warehouse.API
                         (
                             new GetSecretValueRequest
                             {
-                                SecretId = $"{Environment.GetEnvironmentVariable("PREFIX")}-api-certificate"
+                                SecretId = $"{GetEnvironmentVariable("PREFIX", "local")}-api-certificate"
                             }
                         )
                         .GetAwaiter()

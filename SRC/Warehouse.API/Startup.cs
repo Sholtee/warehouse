@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 
 namespace Warehouse.API
-{  
+{
     using Auth;
 
     public class Startup(IConfiguration configuration)
