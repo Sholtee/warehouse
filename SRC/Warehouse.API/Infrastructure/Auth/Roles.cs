@@ -1,4 +1,4 @@
-namespace Warehouse.API.Auth
+namespace Warehouse.API.Infrastructure.Auth
 {
     [Flags]
     public enum Roles

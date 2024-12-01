@@ -1,16 +1,22 @@
+using System.Text.Json.Serialization;
+
 using Amazon.SecretsManager;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 
 namespace Warehouse.API
 {
-    using Auth;
+    using Infrastructure.Auth;
 
     public class Startup(IConfiguration configuration)
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                options.JsonSerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow;
+            });
 
             services
                 .AddAuthentication()
@@ -30,6 +36,11 @@ namespace Warehouse.API
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {         
             app.UseHttpsRedirection();
+
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
 
             app.UseRouting().UseAuthorization().UseEndpoints(static endpoints => endpoints.MapControllers());
         }
