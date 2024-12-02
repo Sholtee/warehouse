@@ -5,6 +5,7 @@ using System.Text.Json;
 using Amazon.SecretsManager.Model;
 using Amazon.SecretsManager;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Serilog;
 
 namespace Warehouse.API
 {
@@ -45,9 +46,19 @@ namespace Warehouse.API
 
         public static void Main(string[] args) => Host
             .CreateDefaultBuilder(args)
+            .ConfigureLogging(static (context, loggerConfiguration) =>
+            {
+                loggerConfiguration.ClearProviders();
+                loggerConfiguration.AddSerilog
+                (
+                    new LoggerConfiguration()
+                        .ReadFrom.Configuration(context.Configuration)
+                        .CreateLogger()
+                );
+            })
             .ConfigureWebHostDefaults
             (
-                static webBuilder => webBuilder.UseStartup<Startup>().ConfigureKestrel(UsingHttps)             
+                static webBuilder => webBuilder.UseStartup<Startup>().ConfigureKestrel(UsingHttps)    
             )
             .Build()
             .Run();

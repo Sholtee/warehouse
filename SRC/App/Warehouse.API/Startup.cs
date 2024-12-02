@@ -9,6 +9,7 @@ namespace Warehouse.API
 {
     using Infrastructure.Auth;
     using Infrastructure.Filters;
+    using Infrastructure.Middlewares;
 
     public class Startup(IConfiguration configuration)
     {
@@ -53,7 +54,7 @@ namespace Warehouse.API
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseRouting().UseAuthorization().UseEndpoints(static endpoints => endpoints.MapControllers());
+            app.UseRouting().UseAuthorization().UseMiddleware<LoggingMiddleware>().UseEndpoints(static endpoints => endpoints.MapControllers());
         }
     }
 }

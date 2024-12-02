@@ -4,9 +4,13 @@ namespace Warehouse.API.Infrastructure.Filters
 {
     using Controllers.Exceptions;
 
-    public sealed class ValidateModelStateFilter : ActionFilterAttribute
+    public sealed class ValidateModelStateFilter : IActionFilter
     {
-        public override void OnActionExecuting(ActionExecutingContext context)
+        public void OnActionExecuted(ActionExecutedContext context)
+        {
+        }
+
+        public void OnActionExecuting(ActionExecutingContext context)
         {
             if (!context.ModelState.IsValid)
             {
