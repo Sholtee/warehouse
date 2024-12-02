@@ -13,7 +13,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 
-namespace Warehouse.API.Auth
+namespace Warehouse.API.Infrastructure.Auth
 {
     using static Helpers;
 
@@ -83,7 +83,7 @@ namespace Warehouse.API.Auth
             {
                 entry.AbsoluteExpiration = DateTimeOffset.UtcNow.AddMinutes
                 (
-                    GetEnvironmentVariable("API_USERS_CACHE_EXPIRATION", 30)
+                    GetEnvironmentVariable("API_USERS_CACHE_EXPIRATION", 5)
                 );
 
                 GetSecretValueResponse resp = await secretsManager.GetSecretValueAsync(new GetSecretValueRequest
@@ -116,9 +116,14 @@ namespace Warehouse.API.Auth
                                 AuthenticationType = SCHEME,
                                 IsAuthenticated = true,
                                 Name = clientId
-                            }, 
+                            },
                             [
                                 new Claim(ClaimTypes.Name, clientId),
+
+                                //
+                                // TODO: get the assignable roles from SSM
+                                //
+
                                 new Claim(ClaimTypes.Role, Roles.User.ToString()),
                                 new Claim(ClaimTypes.Role, Roles.Admin.ToString())
                             ]

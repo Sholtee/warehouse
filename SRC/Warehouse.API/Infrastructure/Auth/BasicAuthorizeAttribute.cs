@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 
-namespace Warehouse.API.Auth
+namespace Warehouse.API.Infrastructure.Auth
 {
     public sealed class BasicAuthorizeAttribute : AuthorizeAttribute
     {
