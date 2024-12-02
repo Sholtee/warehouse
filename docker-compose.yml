@@ -22,8 +22,8 @@ services:
         condition: service_completed_successfully
     restart: always
     build:
-      context: .
-      dockerfile: ./Dockerfile
+      context: ./SRC/App
+      dockerfile: ./dockerfile
       args:
         - CONFIG=Debug
     ports:

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Configurations>Debug;Release</Configurations>
-    <OutputPath>..\..\BIN\$(Configuration)</OutputPath>
+    <OutputPath>..\..\..\BIN\$(Configuration)</OutputPath>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>

@@ -2,10 +2,17 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <Configurations>Debug;Release</Configurations>
+    <OutputPath>..\..\..\BIN\$(Configuration)</OutputPath>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove=".dockerignore" />
+    <None Remove="dockerfile" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.SecretsManager" Version="3.7.400.58" />
