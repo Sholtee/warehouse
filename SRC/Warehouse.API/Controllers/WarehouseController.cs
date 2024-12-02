@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 namespace Warehouse.API.Controllers
 {
     using Dtos;
+    using Exceptions;
     using Infrastructure.Auth;
 
     [ApiController, Produces("application/json"), Route("api/v1"), Authorize]
@@ -25,7 +26,13 @@ namespace Warehouse.API.Controllers
         [BasicAuthorize(Roles.User)]
         public async Task<IActionResult> ListProducts([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] ProductFilter filter, CancellationToken cancellationToken = default)
         {
-            
+            if (filter.PriceUnder < filter.PriceOver)
+                throw new BadRequestException
+                {
+                    Errors = "Invalid price filter"
+                };
+
+            return Ok(new List<Product>());
         }
 
         [HttpGet("product/{id}")]
@@ -33,6 +40,12 @@ namespace Warehouse.API.Controllers
         [BasicAuthorize(Roles.User)]
         public async Task<IActionResult> GetProductWithDetailsAsync([FromRoute] int id, CancellationToken cancellationToken = default)
         {
+            if (id < 0)
+                throw new BadRequestException
+                {
+                    Errors = new { id = "Value cannot be less then 0" }
+                };
+
             //
             // TODO: implement
             //
