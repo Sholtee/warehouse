@@ -14,7 +14,7 @@ namespace Warehouse.API
         private static void UsingHttps(WebHostBuilderContext context, KestrelServerOptions serverOpts) => serverOpts.Listen
         (
             IPAddress.Any,
-            context.Configuration.Get("ApiPort", 3000),
+            context.Configuration.GetValue("ApiPort", 3000),
             listenOpts =>
             {
                 Dictionary<string, string> cert = JsonSerializer.Deserialize<Dictionary<string, string>>
@@ -26,7 +26,7 @@ namespace Warehouse.API
                         (
                             new GetSecretValueRequest
                             {
-                                SecretId = $"{context.Configuration.Get("Prefix", "local")}-api-certificate"
+                                SecretId = $"{context.Configuration.GetValue("Prefix", "local")}-api-certificate"
                             }
                         )
                         .GetAwaiter()
