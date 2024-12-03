@@ -19,7 +19,7 @@ namespace Warehouse.API.Infrastructure.Auth
 
     public sealed class BasicAuthenticationHandler
     (
-        IPasswordHasher<object> passwordHasher,
+        IPasswordHasher<string> passwordHasher,
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
         IAmazonSecretsManager secretsManager,
@@ -39,10 +39,15 @@ namespace Warehouse.API.Infrastructure.Auth
             public required string Name { get; init; }
         }
 
+        private sealed class UserDescriptor
+        {
+            public required IReadOnlyList<string> Groups { get; init; }
+            public required string PasswordHash { get; init; }
+        }
+
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            Endpoint? endpoint = Context.GetEndpoint();
-            if (endpoint?.Metadata?.GetMetadata<IAllowAnonymous>() is not null)
+            if (Context.GetEndpoint()?.Metadata?.GetMetadata<IAllowAnonymous>() is not null)
             {
                 return AuthenticateResult.NoResult();
             }
@@ -80,7 +85,7 @@ namespace Warehouse.API.Infrastructure.Auth
             //
 
             string usersKey = $"{configuration.Get("Prefix", "local")}-api-users";
-            IReadOnlyDictionary<string, string> users = (await cache.GetOrCreateAsync<IReadOnlyDictionary<string, string>>(usersKey, async entry =>
+            IReadOnlyDictionary<string, UserDescriptor> users = (await cache.GetOrCreateAsync(usersKey, async entry =>
             {
                 entry.AbsoluteExpiration = DateTimeOffset.UtcNow.AddMinutes
                 (
@@ -92,14 +97,14 @@ namespace Warehouse.API.Infrastructure.Auth
                     SecretId = usersKey
                 });
 
-                return JsonSerializer.Deserialize<Dictionary<string, string>>(resp.SecretString)!.AsReadOnly();
+                return (IReadOnlyDictionary<string, UserDescriptor>) JsonSerializer.Deserialize<Dictionary<string, UserDescriptor>>(resp.SecretString)!.AsReadOnly();
             }))!;
 
             //
             // Verify the client id - client secret pair
             //
 
-            if (!users.TryGetValue(clientId, out string? secretHash) || passwordHasher.VerifyHashedPassword(null!, secretHash, clientSecret) != PasswordVerificationResult.Success)
+            if (!users.TryGetValue(clientId, out UserDescriptor? userDescriptor) || passwordHasher.VerifyHashedPassword(clientId, userDescriptor.PasswordHash, clientSecret) != PasswordVerificationResult.Success)
             {
                 return AuthenticateResult.Fail(string.Format("The secret is incorrect for the client '{0}'", clientId));
             }

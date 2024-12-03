@@ -14,8 +14,6 @@ services:
     build: ./SRC/Tools/LocalStack
     environment:
       - LOCALSTACK_ENDPOINT_URL=http://localstack:4566
-      - ADMIN_USER=admin
-      - ADMIN_PW=cica
   api:
     depends_on:
       localstack-setup:
