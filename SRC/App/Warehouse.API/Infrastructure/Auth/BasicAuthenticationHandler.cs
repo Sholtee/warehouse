@@ -30,6 +30,7 @@ namespace Warehouse.API.Infrastructure.Auth
     {
         public const string SCHEME = "Basic";
 
+        #region Private
         private const string PREFIX = $"{SCHEME} ";
 
         private sealed class BasicAuthenticationClient : IIdentity
@@ -41,9 +42,36 @@ namespace Warehouse.API.Infrastructure.Auth
 
         private sealed class UserDescriptor
         {
-            public required IReadOnlyList<string> Groups { get; init; }
+            public required List<string> Groups { get; init; }
             public required string PasswordHash { get; init; }
         }
+
+        private sealed class GroupRoles
+        {
+            public required List<string> Roles { get; init; }
+            public List<string>? Includes { get; init; }
+        }
+
+        private HashSet<string> GetAvailableRoles(List<string> groups)
+        {
+            HashSet<string> roles = [];
+
+            Dictionary<string, GroupRoles> groupRoles = [];
+            configuration.GetRequiredSection("AuthenticationHanlder:GroupRoles").Bind(groupRoles);
+            groups.ForEach(ExtendRoles);
+
+            return roles;
+
+            void ExtendRoles(string group)
+            {
+                if (groupRoles.TryGetValue(group, out GroupRoles? gr))
+                {
+                    roles.UnionWith(gr.Roles);
+                    gr.Includes?.ForEach(ExtendRoles);
+                }
+            }
+        }
+        #endregion
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
@@ -125,13 +153,7 @@ namespace Warehouse.API.Infrastructure.Auth
                             },
                             [
                                 new Claim(ClaimTypes.Name, clientId),
-
-                                //
-                                // TODO: get the assignable roles from SSM
-                                //
-
-                                new Claim(ClaimTypes.Role, Roles.User.ToString()),
-                                new Claim(ClaimTypes.Role, Roles.Admin.ToString())
+                                ..GetAvailableRoles(userDescriptor.Groups).Select(static role => new Claim(ClaimTypes.Role, role))
                             ]
                         )
                     ),
