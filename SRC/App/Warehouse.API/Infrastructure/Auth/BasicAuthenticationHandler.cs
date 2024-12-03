@@ -17,7 +17,7 @@ namespace Warehouse.API.Infrastructure.Auth
 {
     public sealed class BasicAuthenticationHandler
     (
-        IPasswordHasher<object> passwordHasher,
+        IPasswordHasher<string> passwordHasher,
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
         IAmazonSecretsManager secretsManager,
@@ -28,6 +28,7 @@ namespace Warehouse.API.Infrastructure.Auth
     {
         public const string SCHEME = "Basic";
 
+        #region Private
         private const string PREFIX = $"{SCHEME} ";
 
         private sealed class BasicAuthenticationClient : IIdentity
@@ -37,10 +38,42 @@ namespace Warehouse.API.Infrastructure.Auth
             public required string Name { get; init; }
         }
 
+        private sealed class UserDescriptor
+        {
+            public required List<string> Groups { get; init; }
+            public required string PasswordHash { get; init; }
+        }
+
+        private sealed class GroupRoles
+        {
+            public required List<string> Roles { get; init; }
+            public List<string>? Includes { get; init; }
+        }
+
+        private HashSet<string> GetAvailableRoles(List<string> groups)
+        {
+            HashSet<string> roles = [];
+
+            Dictionary<string, GroupRoles> groupRoles = [];
+            configuration.GetRequiredSection("AuthenticationHanlder:GroupRoles").Bind(groupRoles);
+            groups.ForEach(ExtendRoles);
+
+            return roles;
+
+            void ExtendRoles(string group)
+            {
+                if (groupRoles.TryGetValue(group, out GroupRoles? gr))
+                {
+                    roles.UnionWith(gr.Roles);
+                    gr.Includes?.ForEach(ExtendRoles);
+                }
+            }
+        }
+        #endregion
+
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            Endpoint? endpoint = Context.GetEndpoint();
-            if (endpoint?.Metadata?.GetMetadata<IAllowAnonymous>() is not null)
+            if (Context.GetEndpoint()?.Metadata?.GetMetadata<IAllowAnonymous>() is not null)
             {
                 return AuthenticateResult.NoResult();
             }
@@ -78,7 +111,7 @@ namespace Warehouse.API.Infrastructure.Auth
             //
 
             string usersKey = $"{configuration.GetValue("Prefix", "local")}-api-users";
-            IReadOnlyDictionary<string, string> users = (await cache.GetOrCreateAsync<IReadOnlyDictionary<string, string>>(usersKey, async entry =>
+            IReadOnlyDictionary<string, UserDescriptor> users = (await cache.GetOrCreateAsync(usersKey, async entry =>
             {
                 entry.AbsoluteExpiration = DateTimeOffset.UtcNow.AddMinutes
                 (
@@ -90,14 +123,14 @@ namespace Warehouse.API.Infrastructure.Auth
                     SecretId = usersKey
                 });
 
-                return JsonSerializer.Deserialize<Dictionary<string, string>>(resp.SecretString)!.AsReadOnly();
+                return (IReadOnlyDictionary<string, UserDescriptor>) JsonSerializer.Deserialize<Dictionary<string, UserDescriptor>>(resp.SecretString)!.AsReadOnly();
             }))!;
 
             //
             // Verify the client id - client secret pair
             //
 
-            if (!users.TryGetValue(clientId, out string? secretHash) || passwordHasher.VerifyHashedPassword(null!, secretHash, clientSecret) != PasswordVerificationResult.Success)
+            if (!users.TryGetValue(clientId, out UserDescriptor? userDescriptor) || passwordHasher.VerifyHashedPassword(clientId, userDescriptor.PasswordHash, clientSecret) != PasswordVerificationResult.Success)
             {
                 return AuthenticateResult.Fail(string.Format("The secret is incorrect for the client '{0}'", clientId));
             }
@@ -118,13 +151,7 @@ namespace Warehouse.API.Infrastructure.Auth
                             },
                             [
                                 new Claim(ClaimTypes.Name, clientId),
-
-                                //
-                                // TODO: get the assignable roles from SSM
-                                //
-
-                                new Claim(ClaimTypes.Role, Roles.User.ToString()),
-                                new Claim(ClaimTypes.Role, Roles.Admin.ToString())
+                                ..GetAvailableRoles(userDescriptor.Groups).Select(static role => new Claim(ClaimTypes.Role, role))
                             ]
                         )
                     ),

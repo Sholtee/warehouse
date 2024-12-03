@@ -1,0 +1,6 @@
+{
+  "admin": {
+    "Groups": ["Admins"],
+    "Password": "test"
+  }
+}

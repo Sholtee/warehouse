@@ -20,6 +20,12 @@ namespace LocalStack.Setup
             public required string Version { get; init; }
         }
 
+        private sealed class UserDescriptor
+        {
+            public required List<string> Groups { get; init; }
+            public required string Password { get; init; }
+        }
+
         private static async Task WiatForServices(string endPoint, params string[] services)
         {
             //
@@ -94,35 +100,55 @@ namespace LocalStack.Setup
 
             Dictionary<string, SecretListEntry> secrets = (await client.ListSecretsAsync(new ListSecretsRequest { })).SecretList.ToDictionary(static s => s.Name);
 
-            await SetupSecret("local-api-users", new Dictionary<string, string>
-            {
-                [GetEnvironmentVariable("ADMIN_USER") ?? "admin"] = new PasswordHasher<object>().HashPassword(null!, GetEnvironmentVariable("ADMIN_PW") ?? "admin")
-            });
+            PasswordHasher<string> pwHasher = new();
 
-            await SetupSecret("local-api-certificate", new Dictionary<string, string>
+            await SetupSecret
+            (
+                "local-api-users",
+                JsonSerializer
+                    .Deserialize<Dictionary<string, UserDescriptor>>
+                    (
+                        File.ReadAllText("users.json")
+                    )!
+                    .ToDictionary
+                    (
+                        static e => e.Key,
+                        e => (object) new
+                        {
+                            e.Value.Groups,
+                            PasswordHash = pwHasher.HashPassword(e.Key, e.Value.Password)
+                        }
+                    )     
+            );
+
+            await SetupSecret("local-api-certificate", new Dictionary<string, object>
             {
                 ["privateKey"] = File.ReadAllText(Path.Combine("Cert", "private.key")),
                 ["certificate"] = File.ReadAllText(Path.Combine("Cert", "certificate.crt"))
             });
 
-            async Task SetupSecret(string name, Dictionary<string, string> value)
+            async Task SetupSecret(string name, Dictionary<string, object> value)
             {
                 Console.WriteLine($"Setup {name}...");
 
                 if (secrets.ContainsKey(name))
-                {
-                    Console.WriteLine($"{name} already exists");
-                    return;
-                }
-
-                await client.CreateSecretAsync
-                (
-                    new CreateSecretRequest
-                    {
-                        Name = name,
-                        SecretString = JsonSerializer.Serialize(value)
-                    }
-                );
+                    await client.PutSecretValueAsync
+                    (
+                        new PutSecretValueRequest
+                        {
+                            SecretId = name,
+                            SecretString = JsonSerializer.Serialize(value)
+                        }
+                    );
+                else
+                    await client.CreateSecretAsync
+                    (
+                        new CreateSecretRequest
+                        {
+                            Name = name,
+                            SecretString = JsonSerializer.Serialize(value)
+                        }
+                    );
             }
 
             Console.WriteLine("All OK :)");

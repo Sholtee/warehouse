@@ -35,7 +35,7 @@ namespace Warehouse.API
                 .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>(BasicAuthenticationHandler.SCHEME, null);
 
             services
-                .AddScoped<IPasswordHasher<object>>(static _ => new PasswordHasher<object>())
+                .AddScoped(typeof(IPasswordHasher<>), typeof(PasswordHasher<>))
                 .AddMemoryCache()
 
                 //
