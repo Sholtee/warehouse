@@ -9,27 +9,24 @@ using Serilog;
 
 namespace Warehouse.API
 {
-    using static Helpers;
-
     public static class Program
     {
-        private static void UsingHttps(KestrelServerOptions serverOpts) => serverOpts.Listen
+        private static void UsingHttps(WebHostBuilderContext context, KestrelServerOptions serverOpts) => serverOpts.Listen
         (
             IPAddress.Any,
-            GetEnvironmentVariable("API_PORT", 1986),
-            static listenOpts =>
+            context.Configuration.Get("ApiPort", 3000),
+            listenOpts =>
             {
-                IServiceProvider services = listenOpts.ApplicationServices;
-
                 Dictionary<string, string> cert = JsonSerializer.Deserialize<Dictionary<string, string>>
                 (
-                    services
+                    listenOpts
+                        .ApplicationServices
                         .GetRequiredService<IAmazonSecretsManager>()
                         .GetSecretValueAsync
                         (
                             new GetSecretValueRequest
                             {
-                                SecretId = $"{GetEnvironmentVariable("PREFIX", "local")}-api-certificate"
+                                SecretId = $"{context.Configuration.Get("Prefix", "local")}-api-certificate"
                             }
                         )
                         .GetAwaiter()

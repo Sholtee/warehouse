@@ -15,7 +15,7 @@ using Microsoft.Extensions.Primitives;
 
 namespace Warehouse.API.Infrastructure.Auth
 {
-    using static Helpers;
+    using static IConfigurationExtensions;
 
     public sealed class BasicAuthenticationHandler
     (
@@ -24,6 +24,7 @@ namespace Warehouse.API.Infrastructure.Auth
         ILoggerFactory logger,
         IAmazonSecretsManager secretsManager,
         IMemoryCache cache,
+        IConfiguration configuration,
         UrlEncoder encoder
     ) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
     {
@@ -78,12 +79,12 @@ namespace Warehouse.API.Infrastructure.Auth
             // Grab the available user list (preferably from cache)
             //
 
-            string usersKey = $"{GetEnvironmentVariable("PREFIX", "local")}-api-users";
+            string usersKey = $"{configuration.Get("Prefix", "local")}-api-users";
             IReadOnlyDictionary<string, string> users = (await cache.GetOrCreateAsync<IReadOnlyDictionary<string, string>>(usersKey, async entry =>
             {
                 entry.AbsoluteExpiration = DateTimeOffset.UtcNow.AddMinutes
                 (
-                    GetEnvironmentVariable("API_USERS_CACHE_EXPIRATION", 5)
+                    configuration.Get("AuthenticationHanlder:CacheExpirationMinutes", 30)
                 );
 
                 GetSecretValueResponse resp = await secretsManager.GetSecretValueAsync(new GetSecretValueRequest
