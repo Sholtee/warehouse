@@ -26,6 +26,12 @@ namespace LocalStack.Setup
             public required string Password { get; init; }
         }
 
+        private static BasicAWSCredentials AWSCreds { get; } = new
+        (
+            GetEnvironmentVariable("LOCALSTACK_ACCESS_KEY") ?? "LOCAL",
+            GetEnvironmentVariable("LOCALSTACK_SECRET_KEY") ?? "LOCAL"
+        );
+
         private static async Task WiatForServices(string endPoint, params string[] services)
         {
             //
@@ -79,26 +85,21 @@ namespace LocalStack.Setup
             throw new InvalidOperationException("Failed to setup LocalStack");
         }
 
-        public static async Task Main()
+        private static async Task SetupSecrets(string endPoint)
         {
-            string endPoint = GetEnvironmentVariable("LOCALSTACK_ENDPOINT_URL") ?? "http://localhost:4566";
-
-            await WiatForServices(endPoint, "secretsmanager");
-
             using IAmazonSecretsManager client = new AmazonSecretsManagerClient
             (
-                new BasicAWSCredentials
-                (
-                    GetEnvironmentVariable("LOCALSTACK_ACCESS_KEY") ?? "LOCAL",
-                    GetEnvironmentVariable("LOCALSTACK_SECRET_KEY") ?? "LOCAL"
-                ),
+                AWSCreds,
                 new AmazonSecretsManagerConfig
                 {
                     ServiceURL = endPoint
                 }
             );
 
-            Dictionary<string, SecretListEntry> secrets = (await client.ListSecretsAsync(new ListSecretsRequest { })).SecretList.ToDictionary(static s => s.Name);
+            Dictionary<string, SecretListEntry> secrets = 
+            (
+                await client.ListSecretsAsync(new ListSecretsRequest { })
+            ).SecretList.ToDictionary(static s => s.Name);
 
             PasswordHasher<string> pwHasher = new();
 
@@ -113,12 +114,12 @@ namespace LocalStack.Setup
                     .ToDictionary
                     (
                         static e => e.Key,
-                        e => (object) new
+                        e => (object)new
                         {
                             e.Value.Groups,
                             PasswordHash = pwHasher.HashPassword(e.Key, e.Value.Password)
                         }
-                    )     
+                    )
             );
 
             await SetupSecret("local-api-certificate", new Dictionary<string, object>
@@ -127,7 +128,7 @@ namespace LocalStack.Setup
                 ["certificate"] = File.ReadAllText(Path.Combine("Cert", "certificate.crt"))
             });
 
-            async Task SetupSecret(string name, Dictionary<string, object> value)
+            async Task SetupSecret(string name, object value)
             {
                 Console.WriteLine($"Setup {name}...");
 
@@ -150,6 +151,15 @@ namespace LocalStack.Setup
                         }
                     );
             }
+        }
+
+        public static async Task Main()
+        {
+            string endPoint = GetEnvironmentVariable("LOCALSTACK_ENDPOINT_URL") ?? "http://localhost:4566";
+
+            await WiatForServices(endPoint, "secretsmanager");
+
+            await SetupSecrets(endPoint);
 
             Console.WriteLine("All OK :)");
         }
