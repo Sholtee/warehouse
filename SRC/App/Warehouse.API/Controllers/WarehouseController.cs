@@ -20,7 +20,6 @@ namespace Warehouse.API.Controllers
         /// <returns>No content</returns>
         /// <response code="204">If the health check was successful</response>
         [HttpGet("healthcheck")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [AllowAnonymous]
         [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> HealthCheck()
@@ -38,10 +37,10 @@ namespace Warehouse.API.Controllers
         /// <param name="filter">Filter object</param>
         /// <returns>Product list matching the given criteria.</returns>
         /// <response code="200">Returns the list</response>
+        /// <response code="401">The client is unathorized to execute the operation.</response>
         [HttpPost("products")]
-        [ProducesResponseType(typeof(List<ProductOverview>), StatusCodes.Status200OK)]
         [BasicAuthorize(Roles.User)]
-        public async Task<IActionResult> ListProducts([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] ProductFilter filter)
+        public async Task<List<ProductOverview>> ListProducts([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] ProductFilter filter)
         {
             if (filter.PriceUnder < filter.PriceOver)
                 throw new BadRequestException
@@ -49,7 +48,7 @@ namespace Warehouse.API.Controllers
                     Errors = "Invalid price filter"
                 };
 
-            return Ok(new List<ProductOverview>());
+            return [];
         }
 
         /// <summary>
@@ -58,23 +57,23 @@ namespace Warehouse.API.Controllers
         /// <param name="id">The product id</param>
         /// <returns>Product list matching the given criteria.</returns>
         /// <response code="200">The prpduct details</response>
+        /// <response code="401">The client is unathorized to execute the operation.</response>
         /// <response code="404">The provided <paramref name="id"/> is not a valid product id</response>
         [HttpGet("product/{id}")]
-        [ProducesResponseType(typeof(ProductDetails), StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status404NotFound)]
         [BasicAuthorize(Roles.User)]
-        public async Task<IActionResult> GetProductWithDetailsAsync([FromRoute] int id)
+        public async Task<ProductDetails> GetProductWithDetailsAsync([FromRoute] int id)
         {
             if (id < 0)
-                throw new BadRequestException
+                throw new NotFoundException
                 {
-                    Errors = new { id = "Value cannot be less then 0" }
+                    Errors = new { id = "No item found with the given id" }
                 };
 
             //
             // TODO: implement
             //
 
-            return Ok(new ProductDetails
+            return new ProductDetails
             {
                 Name = "Samsung Galaxy Tab A9+",
                 Types = ["tablet"],
@@ -82,7 +81,7 @@ namespace Warehouse.API.Controllers
                 Description = "The Samsung Galaxy Tab A9 is a budget Android tablet computer and part of the Samsung Galaxy Tab series designed by Samsung Electronics.",
                 Quantity = 10,
                 Price = 10000
-            });
+            };
         }
     }
 }
