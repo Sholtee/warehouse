@@ -29,6 +29,10 @@ namespace Warehouse.API
                     options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
                     options.JsonSerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow;
                     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                })
+                .ConfigureApiBehaviorOptions(static options =>
+                {
+                    options.SuppressModelStateInvalidFilter = true;  // we want to use our own ValidateModelStateFilter
                 });
 
             services.AddBasicAuth();
