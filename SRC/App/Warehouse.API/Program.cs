@@ -9,7 +9,7 @@ using Serilog;
 
 namespace Warehouse.API
 {
-    public static class Program
+    internal static class Program
     {
         private static void UsingHttps(WebHostBuilderContext context, KestrelServerOptions serverOpts) => serverOpts.Listen
         (

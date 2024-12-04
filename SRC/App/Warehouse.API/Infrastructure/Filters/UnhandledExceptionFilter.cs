@@ -8,7 +8,7 @@ namespace Warehouse.API.Infrastructure.Filters
 {
     using Controllers.Exceptions;
 
-    public sealed class UnhandledExceptionFilter(IWebHostEnvironment env, ILogger<UnhandledExceptionFilter> logger) : IExceptionFilter
+    internal sealed class UnhandledExceptionFilter(IWebHostEnvironment env, ILogger<UnhandledExceptionFilter> logger) : IExceptionFilter
     {
         private sealed record ErrorDescriptor(string Title, int Status, string TraceId, object? Errors)
         {
