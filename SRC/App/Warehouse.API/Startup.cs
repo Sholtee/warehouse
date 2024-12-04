@@ -39,27 +39,25 @@ namespace Warehouse.API
 
             services.AddAWSService<IAmazonSecretsManager>();
 
-            services.AddEndpointsApiExplorer().AddSwaggerGen(static options =>
+            services.AddEndpointsApiExplorer().AddSwaggerGen(options =>
             {
-                options.SwaggerDoc("v1", new OpenApiInfo
-                {
-                    Version = "v1",
-                    Title = "Warehouse API",
-                    Description = "Warehouse management API",
-                    Contact = new OpenApiContact
-                    {
-                        Name = "Denes Solti",
-                        Email = "sodnaatx@gmail.com"
-                    }
-                });
+                OpenApiInfo info = new();
+                configuration.GetSection("Swagger").Bind(info);
 
+                options.SwaggerDoc(info.Version, info);
                 options.AddSecurityDefinition(BasicAuth.Scheme.Scheme, BasicAuth.Scheme);
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     {BasicAuth.Scheme, []}
                 });
-
-                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
+                options.IncludeXmlComments
+                (
+                    Path.Combine
+                    (
+                        AppContext.BaseDirectory,
+                        $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"
+                    )
+                );
             });
         }
 
@@ -74,9 +72,9 @@ namespace Warehouse.API
 
             app.UseRouting().UseAuthorization().UseMiddleware<LoggingMiddleware>().UseEndpoints(static endpoints => endpoints.MapControllers());
 
-            app.UseSwagger().UseSwaggerUI(static options =>
+            app.UseSwagger().UseSwaggerUI(options =>
             {
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", configuration["Swagger:Version"]);
                 options.RoutePrefix = string.Empty;
             });
         }

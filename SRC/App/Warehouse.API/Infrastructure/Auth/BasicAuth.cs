@@ -29,7 +29,7 @@ namespace Warehouse.API.Infrastructure.Auth
                 .AddScheme<AuthenticationSchemeOptions, Handler>(Scheme.Scheme, null);
         }
 
-        public static OpenApiSecurityScheme Scheme { get; } = new()
+        public static OpenApiSecurityScheme Scheme => new()
         {
             Name = "Authorization",
             Type = SecuritySchemeType.Http,
