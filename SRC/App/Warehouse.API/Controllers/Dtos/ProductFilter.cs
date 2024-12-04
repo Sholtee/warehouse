@@ -20,16 +20,19 @@ namespace Warehouse.API.Dtos
         /// <summary>
         /// If provided, sets the lower price limit.
         /// </summary>
+        [Range(0, int.MaxValue)]
         public decimal? PriceOver { get; init; }
 
         /// <summary>
         /// If procided, sets the upper price limit.
         /// </summary>
+        [Range(0, int.MaxValue)]
         public decimal? PriceUnder { get; init; }
 
         /// <summary>
         /// Pages to skip.
         /// </summary>
+        [Range(0, uint.MaxValue)]
         public uint? SkipPages { get; init; } = 0;
 
         /// <summary>
