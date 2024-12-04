@@ -3,8 +3,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using Amazon.SecretsManager;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
 
 namespace Warehouse.API
@@ -33,19 +31,13 @@ namespace Warehouse.API
                     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                 });
 
-            services
-                .AddAuthentication()
-                .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>(BasicAuthenticationHandler.SCHEME, null);
+            services.AddBasicAuth();
 
-            services
-                .AddScoped(typeof(IPasswordHasher<>), typeof(PasswordHasher<>))
-                .AddMemoryCache()
+            //
+            // All AmazonServiceClient objects are thread safe
+            // 
 
-                //
-                // All AmazonServiceClient objects are thread safe
-                // 
-
-                .AddAWSService<IAmazonSecretsManager>();
+            services.AddAWSService<IAmazonSecretsManager>();
 
             services.AddEndpointsApiExplorer().AddSwaggerGen(static options =>
             {
@@ -61,27 +53,10 @@ namespace Warehouse.API
                     }
                 });
 
-                options.AddSecurityDefinition("basic", new OpenApiSecurityScheme
-                {
-                    Name = "Authorization",
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "basic",
-                    In = ParameterLocation.Header,
-                    Description = "Basic Authorization header using the Bearer scheme."
-                });
+                options.AddSecurityDefinition(BasicAuth.Scheme.Scheme, BasicAuth.Scheme);
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
-                    {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "basic"
-                            }
-                        },
-                        []
-                    }
+                    {BasicAuth.Scheme, []}
                 });
 
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));

@@ -2,11 +2,11 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Warehouse.API.Infrastructure.Auth
 {
-    internal sealed class BasicAuthorizeAttribute : AuthorizeAttribute
+    internal sealed class RequiredRolesAttribute : AuthorizeAttribute
     {
-        public BasicAuthorizeAttribute(Roles roles)
+        public RequiredRolesAttribute(Roles roles)
         {
-            AuthenticationSchemes = BasicAuthenticationHandler.SCHEME;
+            AuthenticationSchemes = BasicAuth.Scheme.Scheme;
             Roles = string.Join(',', Enum.GetValues<Roles>().Where(role => role > 0 && roles.HasFlag(role)));
         }
     }

@@ -39,7 +39,7 @@ namespace Warehouse.API.Controllers
         /// <response code="200">Returns the list</response>
         /// <response code="401">The client is unathorized to execute the operation.</response>
         [HttpPost("products")]
-        [BasicAuthorize(Roles.User)]
+        [RequiredRoles(Roles.User)]
         public async Task<List<ProductOverview>> ListProducts([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] ProductFilter filter)
         {
             if (filter.PriceUnder < filter.PriceOver)
@@ -60,7 +60,7 @@ namespace Warehouse.API.Controllers
         /// <response code="401">The client is unathorized to execute the operation.</response>
         /// <response code="404">The provided <paramref name="id"/> is not a valid product id</response>
         [HttpGet("product/{id}")]
-        [BasicAuthorize(Roles.User)]
+        [RequiredRoles(Roles.User)]
         public async Task<ProductDetails> GetProductWithDetailsAsync([FromRoute] int id)
         {
             if (id < 0)
