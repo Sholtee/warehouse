@@ -4,7 +4,7 @@ namespace Warehouse.API.Infrastructure.Filters
 {
     using Controllers.Exceptions;
 
-    public sealed class ValidateModelStateFilter : IActionFilter
+    internal sealed class ValidateModelStateFilter : IActionFilter
     {
         public void OnActionExecuted(ActionExecutedContext context)
         {

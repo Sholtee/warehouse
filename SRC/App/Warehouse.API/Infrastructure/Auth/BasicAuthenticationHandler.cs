@@ -15,7 +15,7 @@ using Microsoft.Extensions.Primitives;
 
 namespace Warehouse.API.Infrastructure.Auth
 {
-    public sealed class BasicAuthenticationHandler
+    internal sealed class BasicAuthenticationHandler
     (
         IPasswordHasher<string> passwordHasher,
         IOptionsMonitor<AuthenticationSchemeOptions> options,

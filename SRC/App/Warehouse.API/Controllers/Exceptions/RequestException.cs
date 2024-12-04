@@ -1,6 +1,6 @@
 namespace Warehouse.API.Controllers.Exceptions
 {
-    public abstract class RequestException : Exception
+    internal abstract class RequestException : Exception
     {
         /// <summary>
         /// Additional information regarding the error that might contain sensitive data.

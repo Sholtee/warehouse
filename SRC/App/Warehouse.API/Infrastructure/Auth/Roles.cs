@@ -1,7 +1,7 @@
 namespace Warehouse.API.Infrastructure.Auth
 {
     [Flags]
-    public enum Roles
+    internal enum Roles
     {
         None = 0,
         User = 1 << 0,

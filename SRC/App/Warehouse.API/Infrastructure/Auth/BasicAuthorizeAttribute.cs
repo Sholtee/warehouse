@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Warehouse.API.Infrastructure.Auth
 {
-    public sealed class BasicAuthorizeAttribute : AuthorizeAttribute
+    internal sealed class BasicAuthorizeAttribute : AuthorizeAttribute
     {
         public BasicAuthorizeAttribute(Roles roles)
         {
