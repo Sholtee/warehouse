@@ -5,13 +5,13 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 namespace Warehouse.API.Controllers
 {
     using Dtos;
-    using Exceptions;
     using Infrastructure.Auth;
+    using Infrastructure.Exceptions;
 
     /// <summary>
     /// API endpoints.
     /// </summary>
-    [ApiController, Produces("application/json"), Route("api/v1"), Authorize]
+    [ApiController, Consumes("application/json"), Produces("application/json"), Route("api/v1"), Authorize]
     public sealed class WarehouseController(ILogger<WarehouseController> logger) : ControllerBase
     {
         /// <summary>
@@ -37,6 +37,7 @@ namespace Warehouse.API.Controllers
         /// <param name="filter">Filter object</param>
         /// <returns>Product list matching the given criteria.</returns>
         /// <response code="200">Returns the list</response>
+        /// <response code="400">The provided <paramref name="filter"/> is not in a valid form</response>
         /// <response code="401">The client is unathorized to execute the operation.</response>
         [HttpPost("products")]
         [RequiredRoles(Roles.User)]
@@ -55,19 +56,17 @@ namespace Warehouse.API.Controllers
         /// Gets a product associated with the given <paramref name="id"/>
         /// </summary>
         /// <param name="id">The product id</param>
-        /// <returns>Product list matching the given criteria.</returns>
-        /// <response code="200">The prpduct details</response>
+        /// <returns>The product details./returns>
+        /// <response code="200">The product details</response>
+        /// <response code="400">The provided <paramref name="id"/> is not in a valid form</response>
         /// <response code="401">The client is unathorized to execute the operation.</response>
         /// <response code="404">The provided <paramref name="id"/> is not a valid product id</response>
         [HttpGet("product/{id}")]
         [RequiredRoles(Roles.User)]
-        public async Task<ProductDetails> GetProductWithDetailsAsync([FromRoute] int id)
+        public async Task<ProductDetails> GetProductDetailsAsync([FromRoute] int id)
         {
             if (id < 0)
-                throw new NotFoundException
-                {
-                    Errors = new { id = "No item found with the given id" }
-                };
+                throw new NotFoundException();
 
             //
             // TODO: implement

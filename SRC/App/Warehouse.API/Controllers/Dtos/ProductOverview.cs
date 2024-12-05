@@ -1,4 +1,4 @@
-namespace Warehouse.API.Dtos
+namespace Warehouse.API.Controllers.Dtos
 {
     /// <summary>
     /// Describes a product overview
@@ -14,7 +14,7 @@ namespace Warehouse.API.Dtos
         /// The condition of the product
         /// </summary>
         public required ProductCondition Condition { get; init; }
-        
+
         /// <summary>
         /// Available quantity
         /// </summary>

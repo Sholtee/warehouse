@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Warehouse.API.Dtos
+namespace Warehouse.API.Controllers.Dtos
 {
     /// <summary>
     /// Product filter, used in queries.

@@ -1,4 +1,4 @@
-namespace Warehouse.API.Dtos
+namespace Warehouse.API.Controllers.Dtos
 {
     /// <summary>
     /// Product condition

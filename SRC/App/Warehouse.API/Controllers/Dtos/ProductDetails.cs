@@ -1,9 +1,9 @@
-namespace Warehouse.API.Dtos
+namespace Warehouse.API.Controllers.Dtos
 {
     /// <summary>
     /// Product details
     /// </summary>
-    public class ProductDetails: ProductOverview
+    public class ProductDetails : ProductOverview
     {
         /// <summary>
         /// Product types associated with this item.

@@ -63,6 +63,7 @@ namespace Warehouse.API
                         $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"
                     )
                 );
+                options.DocumentFilter<CustomModelDocumentFilter<ErrorDetails>>();
             });
         }
 

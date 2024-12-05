@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Warehouse.API.Infrastructure.Filters
 {
-    using Controllers.Exceptions;
+    using Exceptions;
 
     internal sealed class ValidateModelStateFilter : IActionFilter
     {
