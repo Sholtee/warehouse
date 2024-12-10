@@ -6,7 +6,7 @@ namespace Warehouse.API.Infrastructure.Auth
     {
         public RequiredRolesAttribute(Roles roles)
         {
-            AuthenticationSchemes = BasicAuth.Scheme.Scheme;
+            AuthenticationSchemes = CookieAuthentication.SCHEME;
             Roles = string.Join(',', Enum.GetValues<Roles>().Where(role => role > 0 && roles.HasFlag(role)));
         }
     }

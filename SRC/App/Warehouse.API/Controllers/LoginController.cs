@@ -1,73 +1,50 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Text;
 
-using Amazon.SecretsManager;
-using Amazon.SecretsManager.Model;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Warehouse.API.Controllers
 {
+    using Infrastructure.Auth;
+    using Infrastructure.Extensions;
+
     /// <summary>
     /// Login endpoints.
     /// </summary>
     [ApiController, Route("api/v1")]
-    public sealed class LoginController(IMemoryCache cache, IConfiguration configuration, IAmazonSecretsManager secretsManager, ILogger<LoginController> logger) : ControllerBase
+    public sealed class LoginController(IConfiguration configuration, IJwtService jwtService, ILogger<LoginController> logger) : ControllerBase
     {
-        internal UnauthorizedResult Unauthorized(string reason)
+        private UnauthorizedResult Unauthorized(string reason)
         {
             logger.LogInformation(reason);
             Response.Headers.Append("WWW-Authenticate", "Basic");
             return Unauthorized();
         }
 
-        internal async Task<string> CreateJWT(string user, IEnumerable<string> roles, string domain, DateTime expires)
+        private sealed class GroupRoles
         {
-            //
-            // Get the secret key to create a new JWT
-            //
+            public required List<string> Roles { get; init; }
+            public List<string>? Includes { get; init; }
+        }
 
-            string secretKey = (await cache.GetOrCreateAsync("jwt-secret-key", async entry =>
+        private HashSet<string> GetAvailableRoles(List<string> groups)
+        {
+            HashSet<string> roles = [];
+
+            Dictionary<string, GroupRoles> groupRoles = [];
+            configuration.GetRequiredSection("Auth:GroupRoles").Bind(groupRoles);
+            groups.ForEach(ExtendRoles);
+
+            return roles;
+
+            void ExtendRoles(string group)
             {
-                entry.AbsoluteExpiration = DateTimeOffset.UtcNow.AddMinutes
-                (
-                    configuration.GetValue("LoginController:CacheExpirationMinutes", 30)
-                );
-
-                GetSecretValueResponse resp = await secretsManager.GetSecretValueAsync(new GetSecretValueRequest
+                if (groupRoles.TryGetValue(group, out GroupRoles? gr))
                 {
-                    SecretId = $"{configuration.GetValue("Prefix", "local")}-jwt-secret-key"
-                });
-
-                return resp.SecretString;
-            }))!;
-
-            JwtSecurityToken token = new
-            (
-                issuer: domain,
-                audience: domain,
-                claims:
-                [
-                    new Claim(ClaimTypes.Name, user),
-                    ..roles.Select(static role => new Claim(ClaimTypes.Role, role))
-                ],
-                expires: expires,
-                signingCredentials: new SigningCredentials
-                (
-                    new SymmetricSecurityKey
-                    (
-                        Encoding.UTF8.GetBytes(secretKey)
-                    ),
-                    SecurityAlgorithms.HmacSha256
-                )
-            );
-
-            logger.LogInformation("Token created for user: {user}", user);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
+                    roles.UnionWith(gr.Roles);
+                    gr.Includes?.ForEach(ExtendRoles);
+                }
+            }
         }
 
         /// <summary>
@@ -119,21 +96,19 @@ namespace Warehouse.API.Controllers
             // Set the session cookie
             //
 
-            string domain = configuration["LoginController:AppDomain"] ?? throw new InvalidOperationException("Domain must be specified");
-
-            DateTime expires =  DateTime.Now.AddMinutes
+            DateTime expires = DateTime.Now.AddMinutes
             (
-                configuration.GetValue("LoginController:TokenExpirationMinutes", 1440)
+                configuration.GetValue("Auth:SessionExpirationMinutes", 1440)
             );
 
             Response.Cookies.Append
             (
-                "warehouse-session",
-                await CreateJWT(clientId, ["Admin"], domain, expires),
+                configuration.GetRequiredValue<string>("Auth:SessionCookieName"),
+                await jwtService.CreateToken(clientId, ["Admin"], expires),
                 new CookieOptions
                 {
                     Expires = expires,
-                    Domain = domain,
+                    Domain = configuration.GetRequiredValue<string>("AppDomain"),
                     Path = "/",
                     HttpOnly = true,
                     SameSite = SameSiteMode.Strict
@@ -153,9 +128,11 @@ namespace Warehouse.API.Controllers
         [HttpGet("logout")]
         public IActionResult Logout()
         {
-            if (Request.Cookies["warehouse-session"] is not null)
+            string sessionCookie = configuration.GetRequiredValue<string>("Auth:SessionCookieName");
+
+            if (Request.Cookies[sessionCookie] is not null)
             {
-                Response.Cookies.Delete("warehouse-session");
+                Response.Cookies.Delete(sessionCookie);
             }
 
             return NoContent();

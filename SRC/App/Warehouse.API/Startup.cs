@@ -2,12 +2,12 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-using Amazon.SecretsManager;
 using Microsoft.OpenApi.Models;
 
 namespace Warehouse.API
 {
     using Infrastructure.Auth;
+    using Infrastructure.Extensions;
     using Infrastructure.Filters;
     using Infrastructure.Middlewares;
 
@@ -36,24 +36,26 @@ namespace Warehouse.API
                     options.SuppressModelStateInvalidFilter = true;  // we want to use our own ValidateModelStateFilter
                 });
 
-            services.AddBasicAuth();
-
-            //
-            // All AmazonServiceClient objects are thread safe
-            // 
-
-            services.AddAWSService<IAmazonSecretsManager>();
+            services.AddCookieAuthentication();
 
             services.AddEndpointsApiExplorer().AddSwaggerGen(options =>
             {
                 OpenApiInfo info = new();
                 configuration.GetSection("Swagger").Bind(info);
 
+                OpenApiSecurityScheme scheme = new()
+                {
+                    In = ParameterLocation.Cookie,
+                    Name = configuration.GetRequiredValue<string>("Auth:SessionCookieName"),
+                    Type = SecuritySchemeType.ApiKey,
+                    Description = "JSON Web Token in session cookie."
+                };
+
                 options.SwaggerDoc(info.Version, info);
-                options.AddSecurityDefinition(BasicAuth.Scheme.Scheme, BasicAuth.Scheme);
+                options.AddSecurityDefinition("session-cookie", scheme);
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
-                    {BasicAuth.Scheme, []}
+                    {scheme, []}
                 });
                 options.IncludeXmlComments
                 (
