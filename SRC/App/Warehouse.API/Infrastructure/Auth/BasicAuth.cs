@@ -177,7 +177,7 @@ namespace Warehouse.API.Infrastructure.Auth
                                 },
                                 [
                                     new Claim(ClaimTypes.Name, clientId),
-                                ..GetAvailableRoles(userDescriptor.Groups).Select(static role => new Claim(ClaimTypes.Role, role))
+                                    ..GetAvailableRoles(userDescriptor.Groups).Select(static role => new Claim(ClaimTypes.Role, role))
                                 ]
                             )
                         ),
