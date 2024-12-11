@@ -128,9 +128,14 @@ namespace LocalStack.Setup
                 ["certificate"] = File.ReadAllText(Path.Combine("Cert", "certificate.crt"))
             });
 
+            await SetupSecret("local-jwt-secret-key", "very-very-very-very-very-very-very-secret-key");
+
             async Task SetupSecret(string name, object value)
             {
                 Console.WriteLine($"Setup {name}...");
+
+                if (value is not string valueStr)
+                    valueStr = JsonSerializer.Serialize(value);
 
                 if (secrets.ContainsKey(name))
                     await client.PutSecretValueAsync
@@ -138,7 +143,7 @@ namespace LocalStack.Setup
                         new PutSecretValueRequest
                         {
                             SecretId = name,
-                            SecretString = JsonSerializer.Serialize(value)
+                            SecretString = valueStr
                         }
                     );
                 else
@@ -147,7 +152,7 @@ namespace LocalStack.Setup
                         new CreateSecretRequest
                         {
                             Name = name,
-                            SecretString = JsonSerializer.Serialize(value)
+                            SecretString = valueStr
                         }
                     );
             }

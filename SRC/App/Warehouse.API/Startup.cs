@@ -2,12 +2,12 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-using Amazon.SecretsManager;
 using Microsoft.OpenApi.Models;
 
 namespace Warehouse.API
 {
     using Infrastructure.Auth;
+    using Infrastructure.Extensions;
     using Infrastructure.Filters;
     using Infrastructure.Middlewares;
 
@@ -36,25 +36,43 @@ namespace Warehouse.API
                     options.SuppressModelStateInvalidFilter = true;  // we want to use our own ValidateModelStateFilter
                 });
 
-            services.AddBasicAuth();
-
-            //
-            // All AmazonServiceClient objects are thread safe
-            // 
-
-            services.AddAWSService<IAmazonSecretsManager>();
+            services.AddSessionCookieAuthentication();
 
             services.AddEndpointsApiExplorer().AddSwaggerGen(options =>
             {
                 OpenApiInfo info = new();
-                configuration.GetSection("Swagger").Bind(info);
+                configuration.GetRequiredSection("Swagger").Bind(info);
 
                 options.SwaggerDoc(info.Version, info);
-                options.AddSecurityDefinition(BasicAuth.Scheme.Scheme, BasicAuth.Scheme);
-                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+
+                options.AddSecurityDefinition("session-cookie", new OpenApiSecurityScheme()
                 {
-                    {BasicAuth.Scheme, []}
+                    In = ParameterLocation.Cookie,
+                    Name = configuration.GetRequiredValue<string>("Auth:SessionCookieName"),
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "session-cookie",
+                    Description = "JSON Web Token in session cookie.",
+                    Reference = new OpenApiReference
+                    {
+                        Id = "session-cookie",
+                        Type = ReferenceType.SecurityScheme
+                    }
                 });
+
+                options.AddSecurityDefinition("basic", new OpenApiSecurityScheme()
+                {
+                    In = ParameterLocation.Header,
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "basic",
+                    Description = "Basic authentication",
+                    Reference = new OpenApiReference
+                    {
+                        Id = "basic",
+                        Type = ReferenceType.SecurityScheme
+                    }
+                });
+
                 options.IncludeXmlComments
                 (
                     Path.Combine
@@ -63,6 +81,8 @@ namespace Warehouse.API
                         $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"
                     )
                 );
+
+                options.OperationFilter<AuthorizationOperationFilter>();
                 options.DocumentFilter<CustomModelDocumentFilter<ErrorDetails>>();
             });
         }

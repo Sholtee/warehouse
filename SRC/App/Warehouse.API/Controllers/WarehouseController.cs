@@ -5,13 +5,15 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 namespace Warehouse.API.Controllers
 {
     using Dtos;
+
+    using Infrastructure.Attributes;
     using Infrastructure.Auth;
     using Infrastructure.Exceptions;
 
     /// <summary>
     /// API endpoints.
     /// </summary>
-    [ApiController, Consumes("application/json"), Produces("application/json"), Route("api/v1"), Authorize]
+    [ApiController, Consumes("application/json"), Produces("application/json"), Route("api/v1"), Authorize, ApiExplorerSessionCookieAuthorization]
     public sealed class WarehouseController(ILogger<WarehouseController> logger) : ControllerBase
     {
         /// <summary>
@@ -38,7 +40,7 @@ namespace Warehouse.API.Controllers
         /// <returns>Product list matching the given criteria.</returns>
         /// <response code="200">Returns the list</response>
         /// <response code="400">The provided <paramref name="filter"/> is not in a valid form</response>
-        /// <response code="401">The client is unathorized to execute the operation.</response>
+        /// <response code="403">The client is unathorized to execute the operation.</response>
         [HttpPost("products")]
         [RequiredRoles(Roles.User)]
         public async Task<List<ProductOverview>> ListProducts([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] ProductFilter filter)
@@ -59,7 +61,7 @@ namespace Warehouse.API.Controllers
         /// <returns>The product details./returns>
         /// <response code="200">The product details</response>
         /// <response code="400">The provided <paramref name="id"/> is not in a valid form</response>
-        /// <response code="401">The client is unathorized to execute the operation.</response>
+        /// <response code="403">The client is unathorized to execute the operation.</response>
         /// <response code="404">The provided <paramref name="id"/> is not a valid product id</response>
         [HttpGet("product/{id}")]
         [RequiredRoles(Roles.User)]
