@@ -41,22 +41,38 @@ namespace Warehouse.API
             services.AddEndpointsApiExplorer().AddSwaggerGen(options =>
             {
                 OpenApiInfo info = new();
-                configuration.GetSection("Swagger").Bind(info);
+                configuration.GetRequiredSection("Swagger").Bind(info);
 
-                OpenApiSecurityScheme scheme = new()
+                options.SwaggerDoc(info.Version, info);
+
+                options.AddSecurityDefinition("session-cookie", new OpenApiSecurityScheme()
                 {
                     In = ParameterLocation.Cookie,
                     Name = configuration.GetRequiredValue<string>("Auth:SessionCookieName"),
                     Type = SecuritySchemeType.ApiKey,
-                    Description = "JSON Web Token in session cookie."
-                };
-
-                options.SwaggerDoc(info.Version, info);
-                options.AddSecurityDefinition("session-cookie", scheme);
-                options.AddSecurityRequirement(new OpenApiSecurityRequirement
-                {
-                    {scheme, []}
+                    Scheme = "session-cookie",
+                    Description = "JSON Web Token in session cookie.",
+                    Reference = new OpenApiReference
+                    {
+                        Id = "session-cookie",
+                        Type = ReferenceType.SecurityScheme
+                    }
                 });
+
+                options.AddSecurityDefinition("basic", new OpenApiSecurityScheme()
+                {
+                    In = ParameterLocation.Header,
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "basic",
+                    Description = "Basic authentication",
+                    Reference = new OpenApiReference
+                    {
+                        Id = "basic",
+                        Type = ReferenceType.SecurityScheme
+                    }
+                });
+
                 options.IncludeXmlComments
                 (
                     Path.Combine
@@ -65,6 +81,8 @@ namespace Warehouse.API
                         $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"
                     )
                 );
+
+                options.OperationFilter<AuthorizationOperationFilter>();
                 options.DocumentFilter<CustomModelDocumentFilter<ErrorDetails>>();
             });
         }

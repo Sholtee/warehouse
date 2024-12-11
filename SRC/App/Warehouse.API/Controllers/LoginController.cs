@@ -5,6 +5,7 @@ using Microsoft.Extensions.Primitives;
 
 namespace Warehouse.API.Controllers
 {
+    using Infrastructure.Attributes;
     using Infrastructure.Auth;
     using Infrastructure.Extensions;
 
@@ -16,7 +17,7 @@ namespace Warehouse.API.Controllers
     {
         private UnauthorizedResult Unauthorized(string reason)
         {
-            logger.LogInformation(reason);
+            logger.LogInformation("Authentication failed: {reason}", reason);
             Response.Headers.Append("WWW-Authenticate", "Basic");
             return Unauthorized();
         }
@@ -50,7 +51,10 @@ namespace Warehouse.API.Controllers
         /// <summary>
         /// Uses Basic Auth to create a new login session
         /// </summary>
+        /// <response code="204">Login was successful, the session cookie is provided via the Set-Cookie header</response>
+        /// <response code="401">The client is unathorized to execute the operation.</response>
         [HttpGet("login")]
+        [ApiExplorerBasicAuthorization]
         public async Task<IActionResult> Login()
         {
             const string HEADER_PREFIX = "Basic ";
@@ -104,14 +108,14 @@ namespace Warehouse.API.Controllers
             Response.Cookies.Append
             (
                 configuration.GetRequiredValue<string>("Auth:SessionCookieName"),
-                await jwtService.CreateToken(clientId, ["Admin"], expires),
+                await jwtService.CreateToken(clientId, ["Admin", "User"], expires),
                 new CookieOptions
                 {
                     Expires = expires,
-                    Domain = configuration.GetRequiredValue<string>("AppDomain"),
                     Path = "/",
                     HttpOnly = true,
-                    SameSite = SameSiteMode.Strict
+                    SameSite = SameSiteMode.Strict,
+                    Secure = true
                 }
             );
 
@@ -125,7 +129,9 @@ namespace Warehouse.API.Controllers
         /// <summary>
         /// Logs out the client
         /// </summary>
+        /// <response code="204">The operation completed successfully</response>
         [HttpGet("logout")]
+        [ApiExplorerSessionCookieAuthorization]
         public IActionResult Logout()
         {
             string sessionCookie = configuration.GetRequiredValue<string>("Auth:SessionCookieName");
