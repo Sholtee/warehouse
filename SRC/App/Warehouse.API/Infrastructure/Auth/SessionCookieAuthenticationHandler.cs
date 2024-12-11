@@ -10,7 +10,7 @@ namespace Warehouse.API.Infrastructure.Auth
 {
     using Extensions;
 
-    internal sealed class CookieAuthenticationHandler
+    internal sealed class SessionCookieAuthenticationHandler
     (
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,

@@ -36,7 +36,7 @@ namespace Warehouse.API
                     options.SuppressModelStateInvalidFilter = true;  // we want to use our own ValidateModelStateFilter
                 });
 
-            services.AddCookieAuthentication();
+            services.AddSessionCookieAuthentication();
 
             services.AddEndpointsApiExplorer().AddSwaggerGen(options =>
             {

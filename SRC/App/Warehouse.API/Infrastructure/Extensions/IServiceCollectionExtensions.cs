@@ -3,13 +3,13 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace Warehouse.API.Infrastructure.Auth
+namespace Warehouse.API.Infrastructure.Extensions
 {
-    internal static class CookieAuthentication
-    {
-        public const string SCHEME = "session-cookie";
+    using Auth;
 
-        public static AuthenticationBuilder AddCookieAuthentication(this IServiceCollection services)
+    internal static class IServiceCollectionExtensions
+    {
+        public static AuthenticationBuilder AddSessionCookieAuthentication(this IServiceCollection services)
         {
             services.TryAddScoped(typeof(IPasswordHasher<>), typeof(PasswordHasher<>));
             services.TryAddScoped<IJwtService, JwtService>();
@@ -18,7 +18,7 @@ namespace Warehouse.API.Infrastructure.Auth
 
             return services
                 .AddAuthentication()
-                .AddScheme<AuthenticationSchemeOptions, CookieAuthenticationHandler>(SCHEME, null);
+                .AddScheme<AuthenticationSchemeOptions, SessionCookieAuthenticationHandler>("session-cookie", null);
         }
     }
 }
