@@ -26,13 +26,7 @@ namespace LocalStack.Setup
             public required string Password { get; init; }
         }
 
-        private static BasicAWSCredentials AWSCreds { get; } = new
-        (
-            GetEnvironmentVariable("LOCALSTACK_ACCESS_KEY") ?? "LOCAL",
-            GetEnvironmentVariable("LOCALSTACK_SECRET_KEY") ?? "LOCAL"
-        );
-
-        private static async Task WiatForServices(string endPoint, params string[] services)
+        private static async Task WiatForServices(params string[] services)
         {
             //
             // Wait for LocalStack to be ready
@@ -40,7 +34,7 @@ namespace LocalStack.Setup
 
             using HttpClient httpClient = new();
 
-            httpClient.BaseAddress = new Uri(endPoint);
+            httpClient.BaseAddress = new Uri(GetEnvironmentVariable("AWS_ENDPOINT_URL")!);
 
             JsonSerializerOptions serializerOpts = new()
             {
@@ -85,16 +79,9 @@ namespace LocalStack.Setup
             throw new InvalidOperationException("Failed to setup LocalStack");
         }
 
-        private static async Task SetupSecrets(string endPoint)
+        private static async Task SetupSecrets()
         {
-            using IAmazonSecretsManager client = new AmazonSecretsManagerClient
-            (
-                AWSCreds,
-                new AmazonSecretsManagerConfig
-                {
-                    ServiceURL = endPoint
-                }
-            );
+            using IAmazonSecretsManager client = new AmazonSecretsManagerClient();
 
             Dictionary<string, SecretListEntry> secrets = 
             (
@@ -122,13 +109,21 @@ namespace LocalStack.Setup
                     )
             );
 
-            await SetupSecret("local-api-certificate", new Dictionary<string, object>
+            await SetupSecret("local-api-certificate", new Dictionary<string, string>
             {
                 ["privateKey"] = File.ReadAllText(Path.Combine("Cert", "private.key")),
                 ["certificate"] = File.ReadAllText(Path.Combine("Cert", "certificate.crt"))
             });
 
             await SetupSecret("local-jwt-secret-key", "very-very-very-very-very-very-very-secret-key");
+
+            await SetupSecret("local-db-secret", new Dictionary<string, string>
+            {
+                ["endpoint"] = "aurora",
+                ["database"] = "WarehouseDb",
+                ["username"] = "root",
+                ["password"] = "kerekesfacapa"
+            });
 
             async Task SetupSecret(string name, object value)
             {
@@ -160,11 +155,9 @@ namespace LocalStack.Setup
 
         public static async Task Main()
         {
-            string endPoint = GetEnvironmentVariable("LOCALSTACK_ENDPOINT_URL") ?? "http://localhost:4566";
+            await WiatForServices("secretsmanager");
 
-            await WiatForServices(endPoint, "secretsmanager");
-
-            await SetupSecrets(endPoint);
+            await SetupSecrets();
 
             Console.WriteLine("All OK :)");
         }

@@ -1,9 +1,30 @@
 services:
+  aurora:
+    image: mysql:9.1.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: kerekesfacapa
+      MYSQL_DATABASE: WarehouseDb
+    ports:
+      - 3306:3306
+  db-migrator:
+    depends_on:
+      aurora:
+        condition: service_started
+      localstack-setup:
+        condition: service_completed_successfully
+    build: ./SRC/Tools/DbMigrator
+    environment:
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      - AWS_DEFAULT_REGION=us-west-2
+      - AWS_ACCESS_KEY_ID=local
+      - AWS_SECRET_ACCESS_KEY=local
+      - PREFIX=local
   localstack:
-    image: localstack/localstack:latest
+    image: localstack/localstack:4.0.3
     restart: always
     ports:
-      - "4566:4566"
+      - 4566:4566
     environment:
       - SERVICES=secretsmanager
     volumes:
@@ -13,22 +34,25 @@ services:
       - localstack
     build: ./SRC/Tools/LocalStack
     environment:
-      - LOCALSTACK_ENDPOINT_URL=http://localstack:4566
-  api:
-    depends_on:
-      localstack-setup:
-        condition: service_completed_successfully
-    restart: always
-    build:
-      context: ./SRC/App
-      dockerfile: ./dockerfile
-      args:
-        - CONFIG=Debug
-    ports:
-      - 1986:1986
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - AWS_ENDPOINT_URL=http://localstack:4566
       - AWS_DEFAULT_REGION=us-west-2
       - AWS_ACCESS_KEY_ID=local
       - AWS_SECRET_ACCESS_KEY=local
-      - PREFIX=local 
+  # api:
+  #   depends_on:
+  #     localstack-setup:
+  #       condition: service_completed_successfully
+  #   restart: always
+  #   build:
+  #     context: ./SRC/App
+  #     dockerfile: ./dockerfile
+  #     args:
+  #       - CONFIG=Debug
+  #   ports:
+  #     - 1986:1986
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=Development
+  #     - AWS_ENDPOINT_URL=http://localstack:4566
+  #     - AWS_DEFAULT_REGION=us-west-2
+  #     - AWS_ACCESS_KEY_ID=local
+  #     - AWS_SECRET_ACCESS_KEY=local
