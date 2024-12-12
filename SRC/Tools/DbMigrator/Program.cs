@@ -2,17 +2,19 @@ using System.Text.Json;
 
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
+using DbUp;
+using DbUp.Engine;
 using MySqlConnector;
 
 using static System.Environment;
 
 namespace DbMigrator
 {
-    internal class Program
+    internal static class Program
     {
         private sealed record DbSecret(string Endpoint, string Database, string UserName, string Password);
 
-        private static async Task WaitForServer(string connectionString)
+        private static async Task<bool> WaitForServer(string connectionString)
         {
             using MySqlConnection connection = new(connectionString);
 
@@ -25,23 +27,23 @@ namespace DbMigrator
                     await connection.OpenAsync();
 
                     Console.WriteLine($"Connection to MySQL {connection.ServerVersion} successful");
-                    return;
+                    return true;
                 }
                 catch (MySqlException ex)
                 {
-                    Console.WriteLine(ex.Message);
+                    Console.WriteLine($"Failed to connect to MySQL: {ex.Message}");
                     continue;
                 }
             }
 
-            throw new InvalidOperationException("Failed to connect to MySQL");
+            return false;
         }
 
-        static async Task Main()
+        static async Task<int> Main()
         {
             DbSecret secret;
 
-            using (IAmazonSecretsManager client = new AmazonSecretsManagerClient())
+            using (AmazonSecretsManagerClient client = new())
             {
                 secret = JsonSerializer.Deserialize<DbSecret>
                 (
@@ -61,17 +63,49 @@ namespace DbMigrator
                 )!;
             }
 
-            string connectionString = new MySqlConnectionStringBuilder
+            MySqlConnectionStringBuilder connectionStringBuilder = new()
             {
                 Server = secret.Endpoint,
                 UserID = secret.UserName,
-                Password = secret.Password,
-                Database = secret.Database
-            }.ConnectionString;
+                Password = secret.Password
+            };
 
-            await WaitForServer(connectionString);
+            //
+            // Wait for the server to be ready
+            //
 
+            if (!await WaitForServer(connectionStringBuilder.ConnectionString))
+                return -1;
 
+            connectionStringBuilder.Database = secret.Database;
+
+            //
+            // Create the database if necessary
+            //
+
+            EnsureDatabase.For.MySqlDatabase(connectionStringBuilder.ConnectionString);
+
+            //
+            // Perform the upgrade
+            //
+
+            UpgradeEngine upgrader = DeployChanges
+                .To
+                .MySqlDatabase(connectionStringBuilder.ConnectionString)
+                .WithScriptsFromFileSystem("Evaluations")
+                .LogToConsole()
+                .Build();
+
+            DatabaseUpgradeResult result = upgrader.PerformUpgrade();
+
+            if (!result.Successful)
+            {
+                Console.WriteLine(result.Error);
+                return -1;
+            }
+
+            Console.WriteLine("Migration successful :)");
+            return 0;
         }
     }
 }

@@ -4,7 +4,6 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: kerekesfacapa
-      MYSQL_DATABASE: WarehouseDb
     ports:
       - 3306:3306
   db-migrator:
