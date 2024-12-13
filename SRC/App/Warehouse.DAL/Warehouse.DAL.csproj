@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+      <Configurations>Debug;Release</Configurations>
+      <OutputPath>..\..\..\BIN\$(Configuration)</OutputPath>
+      <TargetFramework>net9.0</TargetFramework>
+      <Nullable>enable</Nullable>
+      <ImplicitUsings>enable</ImplicitUsings>
+      <LangVersion>13</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ServiceStack.OrmLite.MySql" Version="8.5.2" />
+  </ItemGroup>
+
+</Project>
