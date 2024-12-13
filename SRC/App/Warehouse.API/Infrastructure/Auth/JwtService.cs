@@ -33,13 +33,13 @@ namespace Warehouse.API.Infrastructure.Auth
 
         private readonly string 
             _domain = configuration.GetRequiredValue<string>("AppDomain"),
-            _algorithm = configuration.GetValue("JwtService:Algorithm", SecurityAlgorithms.HmacSha256);
+            _algorithm = configuration.GetValue($"{nameof(JwtService)}:Algorithm", SecurityAlgorithms.HmacSha256);
 
         private Task<SymmetricSecurityKey?> SecurityKey => cache.GetOrCreateAsync("jwt-secret-key", async entry =>
         {
             entry.AbsoluteExpiration = DateTimeOffset.UtcNow.AddMinutes
             (
-                configuration.GetValue("JwtService:CacheExpirationMinutes", 30)
+                configuration.GetValue($"{nameof(JwtService)}:CacheExpirationMinutes", 30)
             );
 
             GetSecretValueResponse resp = await secretsManager.GetSecretValueAsync(new GetSecretValueRequest
