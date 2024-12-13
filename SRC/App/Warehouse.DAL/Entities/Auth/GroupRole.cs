@@ -1,4 +1,4 @@
-﻿using ServiceStack.DataAnnotations;
+using ServiceStack.DataAnnotations;
 
 namespace Warehouse.DAL.Entities.Auth
 {
