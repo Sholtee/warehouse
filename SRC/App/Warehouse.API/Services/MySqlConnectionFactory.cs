@@ -56,6 +56,6 @@ namespace Warehouse.API.Services
             return conn;
         }
 
-        public IDbConnection CreateConnection() => CreateConnectionAsync().Result;
+        public IDbConnection CreateConnection() => CreateConnectionAsync().GetAwaiter().GetResult();
     }
 }
