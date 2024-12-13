@@ -7,7 +7,7 @@ using Amazon.SecretsManager.Model;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Warehouse.API.Infrastructure.Auth
+namespace Warehouse.API.Services
 {
     using Extensions;
 

@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 
-namespace Warehouse.API.Infrastructure.Attributes
+namespace Warehouse.API.Attributes
 {
-    using Auth;
-
     internal sealed class RequiredRolesAttribute : AuthorizeAttribute
     {
         public RequiredRolesAttribute(Roles roles)

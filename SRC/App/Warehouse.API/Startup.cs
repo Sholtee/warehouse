@@ -6,10 +6,11 @@ using Microsoft.OpenApi.Models;
 
 namespace Warehouse.API
 {
-    using Infrastructure.Auth;
-    using Infrastructure.Extensions;
+    using Extensions;
+
     using Infrastructure.Filters;
     using Infrastructure.Middlewares;
+    using Infrastructure.Registrations;
 
     internal sealed class Startup(IConfiguration configuration)
     {
@@ -37,7 +38,7 @@ namespace Warehouse.API
                 });
 
             services.AddSessionCookieAuthentication();
-            services.AddMySQL();
+            services.AddDbConnection();
 
             services.AddEndpointsApiExplorer().AddSwaggerGen(options =>
             {

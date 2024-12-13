@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace Warehouse.API.Infrastructure.Extensions
+namespace Warehouse.API.Infrastructure.Registrations
 {
     using Auth;
-    using Db;
+    using Services;
 
-    internal static class IServiceCollectionExtensions
+    internal static partial class Registrations
     {
         public static AuthenticationBuilder AddSessionCookieAuthentication(this IServiceCollection services)
         {
@@ -20,16 +20,6 @@ namespace Warehouse.API.Infrastructure.Extensions
             return services
                 .AddAuthentication()
                 .AddScheme<AuthenticationSchemeOptions, SessionCookieAuthenticationHandler>("session-cookie", null);
-        }
-
-        public static IServiceCollection AddMySQL(this IServiceCollection services)
-        {
-            services.TryAddAWSService<IAmazonSecretsManager>();
-            services.AddMemoryCache();
-            services.TryAddScoped<MySqlConnectionFactory>();
-            services.TryAddScoped(static serviceProvider => serviceProvider.GetRequiredService<MySqlConnectionFactory>().CreateConnection());
-
-            return services;
         }
     }
 }

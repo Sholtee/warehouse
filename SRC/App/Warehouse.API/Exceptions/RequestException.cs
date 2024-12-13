@@ -1,4 +1,4 @@
-namespace Warehouse.API.Infrastructure.Exceptions
+namespace Warehouse.API.Exceptions
 {
     internal abstract class RequestException : Exception
     {

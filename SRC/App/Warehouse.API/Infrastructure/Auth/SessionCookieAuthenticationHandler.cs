@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace Warehouse.API.Infrastructure.Auth
 {
     using Extensions;
+    using Services;
 
     internal sealed class SessionCookieAuthenticationHandler
     (

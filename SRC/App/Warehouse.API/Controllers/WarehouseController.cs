@@ -6,11 +6,9 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Warehouse.API.Controllers
 {
+    using Attributes;
     using Dtos;
-
-    using Infrastructure.Attributes;
-    using Infrastructure.Auth;
-    using Infrastructure.Exceptions;
+    using Exceptions;
 
     /// <summary>
     /// API endpoints.
@@ -26,7 +24,7 @@ namespace Warehouse.API.Controllers
         [HttpGet("healthcheck")]
         [AllowAnonymous]
         [ApiExplorerSettings(IgnoreApi = true)]
-        public async Task<IActionResult> HealthCheck()
+        public IActionResult HealthCheck()
         {
             if (dbConnection.State != ConnectionState.Open)
                 throw new Exception("Connection is not in Open state");
@@ -59,7 +57,7 @@ namespace Warehouse.API.Controllers
         /// Gets a product associated with the given <paramref name="id"/>
         /// </summary>
         /// <param name="id">The product id</param>
-        /// <returns>The product details./returns>
+        /// <returns>The product details.</returns>
         /// <response code="200">The product details</response>
         /// <response code="400">The provided <paramref name="id"/> is not in a valid form</response>
         /// <response code="403">The client is unathorized to execute the operation.</response>

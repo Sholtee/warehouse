@@ -5,9 +5,9 @@ using Microsoft.Extensions.Primitives;
 
 namespace Warehouse.API.Controllers
 {
-    using Infrastructure.Attributes;
-    using Infrastructure.Auth;
-    using Infrastructure.Extensions;
+    using Attributes;
+    using Extensions;
+    using Services;
 
     /// <summary>
     /// Login endpoints.
@@ -20,32 +20,6 @@ namespace Warehouse.API.Controllers
             logger.LogInformation("Authentication failed: {reason}", reason);
             Response.Headers.Append("WWW-Authenticate", "Basic");
             return Unauthorized();
-        }
-
-        private sealed class GroupRoles
-        {
-            public required List<string> Roles { get; init; }
-            public List<string>? Includes { get; init; }
-        }
-
-        private HashSet<string> GetAvailableRoles(List<string> groups)
-        {
-            HashSet<string> roles = [];
-
-            Dictionary<string, GroupRoles> groupRoles = [];
-            configuration.GetRequiredSection("Auth:GroupRoles").Bind(groupRoles);
-            groups.ForEach(ExtendRoles);
-
-            return roles;
-
-            void ExtendRoles(string group)
-            {
-                if (groupRoles.TryGetValue(group, out GroupRoles? gr))
-                {
-                    roles.UnionWith(gr.Roles);
-                    gr.Includes?.ForEach(ExtendRoles);
-                }
-            }
         }
 
         /// <summary>

@@ -1,6 +1,6 @@
 using Microsoft.OpenApi.Models;
 
-namespace Warehouse.API.Infrastructure.Attributes
+namespace Warehouse.API.Attributes
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false)]
     internal abstract class ApiExplorerAuthorizationAttribute : Attribute

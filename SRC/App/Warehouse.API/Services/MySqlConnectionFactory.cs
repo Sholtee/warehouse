@@ -6,7 +6,7 @@ using Amazon.SecretsManager.Model;
 using Microsoft.Extensions.Caching.Memory;
 using MySqlConnector;
 
-namespace Warehouse.API.Infrastructure.Db
+namespace Warehouse.API.Services
 {
     using Extensions;
 

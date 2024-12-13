@@ -9,7 +9,7 @@ using Serilog;
 
 namespace Warehouse.API
 {
-    using Infrastructure.Extensions;
+    using Extensions;
 
     internal static class Program
     {
