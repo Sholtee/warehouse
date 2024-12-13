@@ -12,6 +12,7 @@
   <ItemGroup>
     <None Remove=".dockerignore" />
     <None Remove="dockerfile" />
+    <None Remove="README.md" />
   </ItemGroup>
 
   <ItemGroup>
