@@ -51,7 +51,8 @@ namespace Warehouse.API
                 loggerConfiguration.AddSerilog
                 (
                     new LoggerConfiguration()
-                        .ReadFrom.Configuration(context.Configuration)
+                        .ReadFrom
+                        .Configuration(context.Configuration)
                         .CreateLogger()
                 );
             })
