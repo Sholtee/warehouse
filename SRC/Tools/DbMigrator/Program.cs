@@ -26,7 +26,7 @@ namespace DbMigrator
                 {
                     await connection.OpenAsync();
 
-                    Console.WriteLine($"Connection to MySQL {connection.ServerVersion} successful");
+                    Console.WriteLine($"MySQL {connection.ServerVersion} is READY");
                     return true;
                 }
                 catch (MySqlException ex)

@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 
-using Amazon.Runtime;
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using Microsoft.AspNetCore.Identity;
@@ -115,15 +114,9 @@ namespace LocalStack.Setup
                 ["certificate"] = File.ReadAllText(Path.Combine("Cert", "certificate.crt"))
             });
 
-            await SetupSecret("local-jwt-secret-key", "very-very-very-very-very-very-very-secret-key");
+            await SetupSecret("local-jwt-secret-key", GetEnvironmentVariable("JWT_SECRET")!);
 
-            await SetupSecret("local-db-secret", new Dictionary<string, string>
-            {
-                ["endpoint"] = "aurora",
-                ["database"] = "WarehouseDb",
-                ["username"] = "root",
-                ["password"] = "kerekesfacapa"
-            });
+            await SetupSecret("local-db-secret", GetEnvironmentVariable("DB_SECRET")!);
 
             async Task SetupSecret(string name, object value)
             {
@@ -159,7 +152,7 @@ namespace LocalStack.Setup
 
             await SetupSecrets();
 
-            Console.WriteLine("Stack initialized successfully :)");
+            Console.WriteLine("LocalStack initialized successfully :)");
         }
     }
 }
