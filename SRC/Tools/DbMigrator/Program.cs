@@ -92,7 +92,7 @@ namespace DbMigrator
             UpgradeEngine upgrader = DeployChanges
                 .To
                 .MySqlDatabase(connectionStringBuilder.ConnectionString)
-                .WithScriptsFromFileSystem("Evaluations")
+                .WithScriptsFromFileSystem("Evolutions")
                 .LogToConsole()
                 .Build();
 

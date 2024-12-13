@@ -159,7 +159,7 @@ namespace LocalStack.Setup
 
             await SetupSecrets();
 
-            Console.WriteLine("All OK :)");
+            Console.WriteLine("Stack initialized successfully :)");
         }
     }
 }
