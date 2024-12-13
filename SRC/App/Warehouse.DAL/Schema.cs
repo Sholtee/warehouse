@@ -23,7 +23,7 @@ namespace Warehouse.DAL
         /// </example>
         public static string Dump(string namespaceSuffix)
         {
-            IOrmLiteDialectProvider mysqlDialect = MySqlDialect.Instance;
+            IOrmLiteDialectProvider dialectProvider = OrmLiteConfig.DialectProvider;
 
             StringBuilder sb = new();
 
@@ -58,8 +58,8 @@ namespace Warehouse.DAL
                         ProcessEntity(references.Type);
                     }
 
-                    sb.AppendLine(mysqlDialect.ToCreateTableStatement(entity));
-                    sb.AppendLine(string.Join("\n", mysqlDialect.ToCreateIndexStatements(entity)));
+                    sb.AppendLine(dialectProvider.ToCreateTableStatement(entity));
+                    sb.AppendLine(string.Join("\n", dialectProvider.ToCreateIndexStatements(entity)));
                 }
             }
         }

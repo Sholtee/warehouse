@@ -1,5 +1,7 @@
 using Amazon.SecretsManager;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using ServiceStack.OrmLite;
+
 
 namespace Warehouse.API.Infrastructure.Registrations
 {
@@ -13,6 +15,9 @@ namespace Warehouse.API.Infrastructure.Registrations
             services.AddMemoryCache();
             services.TryAddScoped<MySqlConnectionFactory>();
             services.TryAddScoped(static serviceProvider => serviceProvider.GetRequiredService<MySqlConnectionFactory>().CreateConnection());
+
+            OrmLiteConfig.DialectProvider = MySqlDialect.Provider;
+            services.TryAddSingleton<IOrmLiteDialectProvider>(MySqlDialect.Provider);
 
             return services;
         }
