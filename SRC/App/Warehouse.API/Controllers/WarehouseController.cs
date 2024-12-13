@@ -1,3 +1,5 @@
+using System.Data;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -14,7 +16,7 @@ namespace Warehouse.API.Controllers
     /// API endpoints.
     /// </summary>
     [ApiController, Consumes("application/json"), Produces("application/json"), Route("api/v1"), Authorize, ApiExplorerSessionCookieAuthorization]
-    public sealed class WarehouseController(ILogger<WarehouseController> logger) : ControllerBase
+    public sealed class WarehouseController(ILogger<WarehouseController> logger, IDbConnection dbConnection) : ControllerBase
     {
         /// <summary>
         /// Healthcheck endpoint
@@ -26,9 +28,8 @@ namespace Warehouse.API.Controllers
         [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> HealthCheck()
         {
-            //
-            // TODO: test DB connection
-            //
+            if (dbConnection.State != ConnectionState.Open)
+                throw new Exception("Connection is not in Open state");
 
             return NoContent();
         }

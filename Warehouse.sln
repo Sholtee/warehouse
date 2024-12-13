@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalStack.Setup", "SRC\Too
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{D6E112D7-9669-469B-983C-8B37DF328BF9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbMigrator", "SRC\Tools\DbMigrator\DbMigrator.csproj", "{FE6F7940-C4CF-444E-9937-B50E5E96DB1C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,11 +23,16 @@ Global
 		{12B4CC9B-1645-44D8-A231-9927586B6BFE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BA285C95-E4A0-48DA-A8C5-43F6D3C1BA07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BA285C95-E4A0-48DA-A8C5-43F6D3C1BA07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE6F7940-C4CF-444E-9937-B50E5E96DB1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE6F7940-C4CF-444E-9937-B50E5E96DB1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE6F7940-C4CF-444E-9937-B50E5E96DB1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE6F7940-C4CF-444E-9937-B50E5E96DB1C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{BA285C95-E4A0-48DA-A8C5-43F6D3C1BA07} = {D6E112D7-9669-469B-983C-8B37DF328BF9}
+		{FE6F7940-C4CF-444E-9937-B50E5E96DB1C} = {D6E112D7-9669-469B-983C-8B37DF328BF9}
 	EndGlobalSection
 EndGlobal

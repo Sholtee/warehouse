@@ -9,12 +9,14 @@ using Serilog;
 
 namespace Warehouse.API
 {
+    using Infrastructure.Extensions;
+
     internal static class Program
     {
         private static void UsingHttps(WebHostBuilderContext context, KestrelServerOptions serverOpts) => serverOpts.Listen
         (
             IPAddress.Any,
-            context.Configuration.GetValue("ApiPort", 3000),
+            context.Configuration.GetRequiredValue<int>("ApiPort"),
             listenOpts =>
             {
                 Dictionary<string, string> cert = JsonSerializer.Deserialize<Dictionary<string, string>>
@@ -26,7 +28,7 @@ namespace Warehouse.API
                         (
                             new GetSecretValueRequest
                             {
-                                SecretId = $"{context.Configuration.GetValue("Prefix", "local")}-api-certificate"
+                                SecretId = $"{context.Configuration.GetRequiredValue<string>("Prefix")}-api-certificate"
                             }
                         )
                         .GetAwaiter()

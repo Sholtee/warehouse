@@ -37,6 +37,7 @@ namespace Warehouse.API
                 });
 
             services.AddSessionCookieAuthentication();
+            services.AddMySQL();
 
             services.AddEndpointsApiExplorer().AddSwaggerGen(options =>
             {
