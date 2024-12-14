@@ -1,0 +1,7 @@
+INSERT INTO `Role` (`Name`,`Description`,`Id`,`CreatedUtc`,`DeletedUtc`) VALUES ('Admin',NULL,'332b22e4-2fd5-4561-b9e2-7bbc17511f13','2024-12-14 08:19:01',NULL);
+INSERT INTO `Role` (`Name`,`Description`,`Id`,`CreatedUtc`,`DeletedUtc`) VALUES ('User',NULL,'47d864e1-3211-456a-93f5-52aba3bd46ec','2024-12-14 08:19:01',NULL);
+INSERT INTO `Group` (`Name`,`Description`,`Id`,`CreatedUtc`,`DeletedUtc`) VALUES ('Admins','Administrators group','a84fc8ed-fc5a-4038-98aa-fb4445ddac3d','2024-12-14 08:19:01',NULL);
+INSERT INTO `GroupRole` (`GroupId`,`RoleId`,`Id`,`CreatedUtc`,`DeletedUtc`) VALUES ('a84fc8ed-fc5a-4038-98aa-fb4445ddac3d','332b22e4-2fd5-4561-b9e2-7bbc17511f13','ed9336a4-a825-4b81-ba98-0b0ea0dbb77f','2024-12-14 08:19:01',NULL);
+INSERT INTO `GroupRole` (`GroupId`,`RoleId`,`Id`,`CreatedUtc`,`DeletedUtc`) VALUES ('a84fc8ed-fc5a-4038-98aa-fb4445ddac3d','47d864e1-3211-456a-93f5-52aba3bd46ec','fcde7a79-4f30-45b9-92b8-317116475816','2024-12-14 08:19:01',NULL);
+INSERT INTO `Group` (`Name`,`Description`,`Id`,`CreatedUtc`,`DeletedUtc`) VALUES ('Users','Users group','754f366f-8a43-475a-af83-94676238f27a','2024-12-14 08:19:01',NULL);
+INSERT INTO `GroupRole` (`GroupId`,`RoleId`,`Id`,`CreatedUtc`,`DeletedUtc`) VALUES ('754f366f-8a43-475a-af83-94676238f27a','47d864e1-3211-456a-93f5-52aba3bd46ec','eadfe9b6-6284-4fea-9cd5-1c17fa6b4c2d','2024-12-14 08:19:01',NULL);

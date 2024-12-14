@@ -6,9 +6,9 @@ namespace Warehouse.DAL.Entities.Auth
     internal sealed class UserGroup : EntityBase
     {
         [References(typeof(User)), Required]
-        public required string ClientId { get; init; }
+        public required Guid ClientId { get; init; }
 
         [References(typeof(Group)), Required]
-        public required string GroupId { get; init; }
+        public required Guid GroupId { get; init; }
     }
 }

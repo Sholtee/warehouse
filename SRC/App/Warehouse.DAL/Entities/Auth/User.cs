@@ -4,7 +4,7 @@ namespace Warehouse.DAL.Entities.Auth
 {
     internal sealed class User : EntityBase
     {
-        [PrimaryKey]
+        [Index(Unique = true)]
         public required string ClientId { get; init; }
 
         [Required, StringLength(1024)]

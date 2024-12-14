@@ -4,8 +4,8 @@ namespace Warehouse.DAL.Entities.Auth
 {
     internal sealed class Role : EntityBase
     {
-        [PrimaryKey]
-        public required string RoleId { get; init; }
+        [Index(Unique = true)]
+        public required string Name { get; init; }
 
         [StringLength(1024)]
         public string? Description { get; init; }

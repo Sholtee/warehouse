@@ -63,5 +63,69 @@ namespace Warehouse.DAL
                 }
             }
         }
+
+        /// <summary>
+        /// Dumps the script to initialize the group-role relations.
+        /// </summary>
+        public static string Dump(params Dtos.Auth.Group[] groups)
+        {
+            IOrmLiteDialectProvider dialectProvider = OrmLiteConfig.DialectProvider;
+
+            List<string> lines = [];
+
+            IReadOnlyDictionary<string, Guid> roles = groups.SelectMany(static grp => grp.Roles).Distinct().ToDictionary(static role => role, role =>
+            {
+                Guid id = Guid.NewGuid();
+
+                lines.Add
+                (
+                    dialectProvider.ToInsertRowSql
+                    (
+                        new Entities.Auth.Role
+                        {
+                            Id = id,
+                            Name = role
+                        }
+                    )
+                );
+
+                return id;
+            });
+
+            foreach (Dtos.Auth.Group group in groups)
+            {
+                Guid groupId = Guid.NewGuid();
+
+                lines.Add
+                (
+                    dialectProvider.ToInsertRowSql
+                    (
+                        new Entities.Auth.Group
+                        {
+                            Id = groupId,
+                            Name = group.Name,
+                            Description = group.Description
+                        }
+                    )
+                );
+
+                foreach (string role in group.Roles)
+                {
+                    lines.Add
+                    (
+                        dialectProvider.ToInsertRowSql
+                        (
+                            new Entities.Auth.GroupRole
+                            {
+                                GroupId = groupId,
+                                RoleId = roles[role]
+                            }
+                        )
+                    );
+                }
+            }
+
+            return string.Join($";{Environment.NewLine}", lines);
+        }
     }
 }
