@@ -1,6 +1,8 @@
+using System;
+
 using ServiceStack.DataAnnotations;
 
-namespace Warehouse.DAL.Entities.Auth
+namespace Warehouse.DAL.Entities
 {
     [CompositeIndex(nameof(GroupId), nameof(RoleId), Unique = true)]
     internal sealed class GroupRole : EntityBase

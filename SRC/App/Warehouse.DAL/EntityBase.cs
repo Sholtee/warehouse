@@ -1,3 +1,5 @@
+using System;
+
 using ServiceStack.DataAnnotations;
 
 namespace Warehouse.DAL.Entities
@@ -9,8 +11,5 @@ namespace Warehouse.DAL.Entities
 
         [Required]
         public DateTime CreatedUtc { get; init; } = DateTime.UtcNow;
-
-        [Index]
-        public DateTime? DeletedUtc { get; init; }
     }
 }

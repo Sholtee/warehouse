@@ -1,6 +1,8 @@
+using System;
+
 using ServiceStack.DataAnnotations;
 
-namespace Warehouse.DAL.Entities.Auth
+namespace Warehouse.DAL.Entities
 {
     internal sealed class User : EntityBase
     {
@@ -9,5 +11,8 @@ namespace Warehouse.DAL.Entities.Auth
 
         [Required, StringLength(1024)]
         public required string ClientSecretHash { get; init; }
+
+        [Index]
+        public DateTime? DeletedUtc { get; init; }
     }
 }

@@ -5,7 +5,6 @@
       <OutputPath>..\..\..\BIN\$(Configuration)</OutputPath>
       <TargetFramework>net9.0</TargetFramework>
       <Nullable>enable</Nullable>
-      <ImplicitUsings>enable</ImplicitUsings>
       <LangVersion>13</LangVersion>
   </PropertyGroup>
 

@@ -1,6 +1,6 @@
 using ServiceStack.DataAnnotations;
 
-namespace Warehouse.DAL.Entities.Auth
+namespace Warehouse.DAL.Entities
 {
     internal sealed class Group : EntityBase
     {

@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -21,7 +24,7 @@ namespace Warehouse.DAL
         /// Schema.Dump("Auth");
         /// </code>
         /// </example>
-        public static string Dump(string namespaceSuffix)
+        public static string Dump()
         {
             IOrmLiteDialectProvider dialectProvider = OrmLiteConfig.DialectProvider;
 
@@ -31,9 +34,6 @@ namespace Warehouse.DAL
 
             foreach (Type t in typeof(Schema).Assembly.GetTypes())
             {
-                if (t.Namespace?.EndsWith($".{namespaceSuffix}") is not true)
-                    continue;
-
                 if (t.BaseType != typeof(EntityBase))
                     continue;
 
@@ -67,7 +67,7 @@ namespace Warehouse.DAL
         /// <summary>
         /// Dumps the script to initialize the group-role relations.
         /// </summary>
-        public static string Dump(params Dtos.Auth.Group[] groups)
+        public static string Dump(params CreateGroupParam[] groups)
         {
             IOrmLiteDialectProvider dialectProvider = OrmLiteConfig.DialectProvider;
 
@@ -81,7 +81,7 @@ namespace Warehouse.DAL
                 (
                     dialectProvider.ToInsertRowSql
                     (
-                        new Entities.Auth.Role
+                        new Role
                         {
                             Id = id,
                             Name = role
@@ -92,7 +92,7 @@ namespace Warehouse.DAL
                 return id;
             });
 
-            foreach (Dtos.Auth.Group group in groups)
+            foreach (CreateGroupParam group in groups)
             {
                 Guid groupId = Guid.NewGuid();
 
@@ -100,7 +100,7 @@ namespace Warehouse.DAL
                 (
                     dialectProvider.ToInsertRowSql
                     (
-                        new Entities.Auth.Group
+                        new Group
                         {
                             Id = groupId,
                             Name = group.Name,
@@ -115,7 +115,7 @@ namespace Warehouse.DAL
                     (
                         dialectProvider.ToInsertRowSql
                         (
-                            new Entities.Auth.GroupRole
+                            new GroupRole
                             {
                                 GroupId = groupId,
                                 RoleId = roles[role]
@@ -125,7 +125,7 @@ namespace Warehouse.DAL
                 }
             }
 
-            return string.Join($";{Environment.NewLine}", lines);
+            return $"{string.Join($";{Environment.NewLine}", lines)};";
         }
     }
 }

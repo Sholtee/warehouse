@@ -1,12 +1,14 @@
+using System;
+
 using ServiceStack.DataAnnotations;
 
-namespace Warehouse.DAL.Entities.Auth
+namespace Warehouse.DAL.Entities
 {
-    [CompositeIndex(nameof(ClientId), nameof(GroupId), Unique = true)]
+    [CompositeIndex(nameof(UserId), nameof(GroupId), Unique = true)]
     internal sealed class UserGroup : EntityBase
     {
         [References(typeof(User)), Required]
-        public required Guid ClientId { get; init; }
+        public required Guid UserId { get; init; }
 
         [References(typeof(Group)), Required]
         public required Guid GroupId { get; init; }

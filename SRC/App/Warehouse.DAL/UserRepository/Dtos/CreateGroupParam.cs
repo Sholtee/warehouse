@@ -1,9 +1,11 @@
-namespace Warehouse.DAL.Dtos.Auth
+using System.Collections.Generic;
+
+namespace Warehouse.DAL
 {
     /// <summary>
     /// Describes an user group.
     /// </summary>
-    public sealed class Group
+    public sealed class CreateGroupParam
     {
         /// <summary>
         /// The group id
