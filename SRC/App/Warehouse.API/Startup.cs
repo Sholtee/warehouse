@@ -40,6 +40,7 @@ namespace Warehouse.API
             services.AddSessionCookieAuthentication();
             services.AddDbConnection();
             services.AddRepositories();
+            services.AddRootUserRegistrar();
 
             services.AddEndpointsApiExplorer().AddSwaggerGen(options =>
             {
@@ -98,6 +99,8 @@ namespace Warehouse.API
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.AddRootUser();
 
             app.UseRouting().UseAuthorization().UseMiddleware<LoggingMiddleware>().UseEndpoints(static endpoints => endpoints.MapControllers());
 
