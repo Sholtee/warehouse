@@ -15,7 +15,7 @@ services:
     build: ./SRC/Tools/DbMigrator
     environment:
       - AWS_ENDPOINT_URL=http://localstack:4566
-      - AWS_DEFAULT_REGION=us-west-2
+      - AWS_DEFAULT_REGION=eu-west-2
       - AWS_ACCESS_KEY_ID=local
       - AWS_SECRET_ACCESS_KEY=local
       - PREFIX=local
@@ -34,7 +34,7 @@ services:
     build: ./SRC/Tools/LocalStack
     environment:
       - AWS_ENDPOINT_URL=http://localstack:4566
-      - AWS_DEFAULT_REGION=us-west-2
+      - AWS_DEFAULT_REGION=eu-west-2
       - AWS_ACCESS_KEY_ID=local
       - AWS_SECRET_ACCESS_KEY=local
       - 'DB_SECRET={"Endpoint": "aurora", "Database": "WarehouseDb", "Password": "kerekesfacapa", "UserName": "root"}'
@@ -56,6 +56,6 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - AWS_ENDPOINT_URL=http://localstack:4566
-      - AWS_DEFAULT_REGION=us-west-2
+      - AWS_DEFAULT_REGION=eu-west-2
       - AWS_ACCESS_KEY_ID=local
       - AWS_SECRET_ACCESS_KEY=local

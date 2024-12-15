@@ -53,7 +53,7 @@ namespace Warehouse.API.Services
                     }
                 );
 
-                logger.LogInformation("'root' user has been created. Change the password ASAP! Initial creds stored in '{secret}'", secret);
+                logger.LogInformation("{root} user has been created. Change the password ASAP! Initial creds stored in {secret}", ROOT_USER, secret);
             }
         }
 
