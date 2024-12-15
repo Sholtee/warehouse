@@ -1,11 +1,13 @@
 using System.Text;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Primitives;
 
 namespace Warehouse.API.Controllers
 {
     using Attributes;
+    using DAL;
     using Extensions;
     using Services;
 
@@ -13,7 +15,7 @@ namespace Warehouse.API.Controllers
     /// Login endpoints.
     /// </summary>
     [ApiController, Route("api/v1")]
-    public sealed class LoginController(IConfiguration configuration, IJwtService jwtService, ILogger<LoginController> logger) : ControllerBase
+    public sealed class LoginController(IUserRepository userRepository, IConfiguration configuration, IJwtService jwtService, IPasswordHasher<string> passwordHasher, ILogger<LoginController> logger) : ControllerBase
     {
         private UnauthorizedResult Unauthorized(string reason)
         {
@@ -62,16 +64,17 @@ namespace Warehouse.API.Controllers
             }
 
             //
-            // TODO: implement once we'll have DB
+            // Verify the credentials
             //
 
-            if (clientId != "admin" || clientSecret != "test")
+            QueryUserResult? user = await userRepository.QueryUser(clientId);
+            if (user is null || passwordHasher.VerifyHashedPassword(user.ClientId, user.ClientSecretHash, clientSecret) != PasswordVerificationResult.Success)
             {
                 return Unauthorized("Invalid credentials");
             }
 
             //
-            // Set the session cookie
+            // Set up the session cookie
             //
 
             DateTime expires = DateTime.Now.AddMinutes
@@ -82,7 +85,7 @@ namespace Warehouse.API.Controllers
             Response.Cookies.Append
             (
                 configuration.GetRequiredValue<string>("Auth:SessionCookieName"),
-                await jwtService.CreateToken(clientId, ["Admin", "User"], expires),
+                await jwtService.CreateToken(clientId, user.Roles, expires),
                 new CookieOptions
                 {
                     Expires = expires,

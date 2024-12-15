@@ -5,7 +5,7 @@ namespace Warehouse.API.Extensions
         public static T GetRequiredValue<T>(this IConfiguration self, string key)
         {
             string val = self[key] ?? throw new InvalidOperationException("Required configuration value not found");
-            return (T)Convert.ChangeType(val, typeof(T));
+            return (T) Convert.ChangeType(val, typeof(T));
         }
     }
 }

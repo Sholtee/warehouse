@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{D6E112D7
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbMigrator", "SRC\Tools\DbMigrator\DbMigrator.csproj", "{FE6F7940-C4CF-444E-9937-B50E5E96DB1C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warehouse.DAL", "SRC\App\Warehouse.DAL\Warehouse.DAL.csproj", "{92EA20D1-99F3-4CAB-AF58-C204745F2402}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{FE6F7940-C4CF-444E-9937-B50E5E96DB1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE6F7940-C4CF-444E-9937-B50E5E96DB1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FE6F7940-C4CF-444E-9937-B50E5E96DB1C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92EA20D1-99F3-4CAB-AF58-C204745F2402}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92EA20D1-99F3-4CAB-AF58-C204745F2402}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92EA20D1-99F3-4CAB-AF58-C204745F2402}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92EA20D1-99F3-4CAB-AF58-C204745F2402}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
