@@ -11,6 +11,9 @@ namespace Warehouse.DAL
 {
     using Entities;
 
+    /// <summary>
+    /// Abstract user repository.
+    /// </summary>
     public interface IUserRepository
     {
         /// <summary>
@@ -29,6 +32,9 @@ namespace Warehouse.DAL
         Task<bool> DeleteUser(string clientId);
     }
 
+    /// <summary>
+    /// <see cref="IUserRepository"/> implementation
+    /// </summary>
     public sealed class UserRepository(IDbConnection connection) : IUserRepository
     {
         private sealed record UserRole(string ClientId, string ClientSecretHash, string RoleName);
@@ -36,39 +42,33 @@ namespace Warehouse.DAL
         /// <inheritdoc/>
         public async Task<bool> CreateUser(CreateUserParam param)
         {
-            User user = new()
-            {
-                ClientId = param.ClientId,
-                ClientSecretHash = param.ClientSecretHash
-            };
+            Guid userId = Guid.NewGuid();
+
+            SqlExpression<User> 
+                userExists = connection
+                    .From<User>()
+                    .Select(static _ => 1)
+                    .Where<User>(user => user.ClientId == param.ClientId),
+                selectNewUser = connection
+                    .From<User>()
+                    .Select(_ => new { param.ClientId, param.ClientSecretHash, Id = userId, CreatedUtc = DateTime.UtcNow })
+                    .UnsafeWhere($"NOT EXISTS ({userExists.ToMergedParamsSelectStatement()})");
+
+            selectNewUser.FromExpression = " ";
 
             using IDbTransaction? transaction = connection.OpenTransactionIfNotExists();
-
             try
             {
-                long rowsInserted = await connection.InsertIntoSelectAsync<User>
-                (
-                    connection
-                        .From<User>()
-                        .Select<User>(_ => user)
-                        .WhereNotExists
-                        (
-                            connection
-                                .From<User>()
-                                .Select<User>(static _ => 1)
-                                .Where<User>(user => user.ClientId == param.ClientId)
-                        )
-                );
+                long rowsInserted = await connection.InsertIntoSelectAsync<User>(selectNewUser);
                 if (rowsInserted is 0)
                     return false;
 
-                rowsInserted = await connection.InsertIntoSelectAsync<UserGroup>
-                (
-                    connection
-                        .From<Group>()
-                        .Select<Group>(grp => new UserGroup { GroupId = grp.Id, UserId = user.Id })
-                        .Where<Group>(grp => Sql.In(grp.Name, param.Groups))
-                );
+                SqlExpression<Group> selectNewUserGroup = connection
+                    .From<Group>()
+                    .Select<Group>(grp => new { GroupId = grp.Id, UserId = userId, Id = Sql.Custom("UUID()"), CreatedUtc = DateTime.UtcNow })
+                    .Where<Group>(grp => Sql.In(grp.Name, param.Groups));
+
+                rowsInserted = await connection.InsertIntoSelectAsync<UserGroup>(selectNewUserGroup);
                 if (rowsInserted != param.Groups.Count)
                     throw new InvalidOperationException("Invalid group");
 
@@ -87,12 +87,20 @@ namespace Warehouse.DAL
         {
             string sql = connection
                 .From<User>()
-                .SelectDistinct<User, Role>(static (user, role) => new { user.ClientId, user.ClientSecretHash, RoleName = role.Name })
+                .SelectDistinct<User, Role>
+                (
+                    static (user, role) => new
+                    {
+                        user.ClientId,
+                        user.ClientSecretHash,
+                        RoleName = role.Name
+                    }
+                )
                 .Join<User, UserGroup>(static (user, ug) => user.Id == ug.UserId)
                 .Join<UserGroup, GroupRole>(static (ug, gr) => ug.GroupId == gr.GroupId)
                 .Join<GroupRole, Role>(static (gr, role) => gr.RoleId == role.Id)
                 .Where<User>(user => user.ClientId == clientId && user.DeletedUtc == null)
-                .ToSelectStatement();
+                .ToMergedParamsSelectStatement();
 
             List<UserRole> tmp = await connection.SelectAsync<UserRole>(sql);
 

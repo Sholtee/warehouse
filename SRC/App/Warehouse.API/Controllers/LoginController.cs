@@ -6,6 +6,7 @@ using Microsoft.Extensions.Primitives;
 namespace Warehouse.API.Controllers
 {
     using Attributes;
+    using DAL;
     using Extensions;
     using Services;
 
@@ -13,7 +14,7 @@ namespace Warehouse.API.Controllers
     /// Login endpoints.
     /// </summary>
     [ApiController, Route("api/v1")]
-    public sealed class LoginController(IConfiguration configuration, IJwtService jwtService, ILogger<LoginController> logger) : ControllerBase
+    public sealed class LoginController(IUserRepository userRepository, IConfiguration configuration, IJwtService jwtService, ILogger<LoginController> logger) : ControllerBase
     {
         private UnauthorizedResult Unauthorized(string reason)
         {
