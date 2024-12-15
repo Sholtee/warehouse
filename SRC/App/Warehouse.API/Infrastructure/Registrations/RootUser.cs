@@ -3,15 +3,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Warehouse.API.Infrastructure.Registrations
-{   
+{
     using Services;
 
     internal static class RootUser
     {
         public static IApplicationBuilder AddRootUser(this IApplicationBuilder self)
         {
-            IHostApplicationLifetime lifetime = self.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
-            lifetime.ApplicationStarted.Register(() =>
+            self.ApplicationServices.GetRequiredService<IHostApplicationLifetime>().ApplicationStarted.Register(() =>
             {
                 using IServiceScope scope = self.ApplicationServices.CreateScope();
 
