@@ -1,3 +1,5 @@
+using System;
+
 using Microsoft.OpenApi.Models;
 
 namespace Warehouse.API.Attributes

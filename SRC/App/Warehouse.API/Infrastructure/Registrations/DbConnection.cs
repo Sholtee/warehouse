@@ -1,4 +1,5 @@
 using Amazon.SecretsManager;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using ServiceStack.OrmLite;
 

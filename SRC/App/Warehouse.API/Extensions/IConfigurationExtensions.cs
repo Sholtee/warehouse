@@ -1,3 +1,7 @@
+using System;
+
+using Microsoft.Extensions.Configuration;
+
 namespace Warehouse.API.Extensions
 {
     internal static class IConfigurationExtensions

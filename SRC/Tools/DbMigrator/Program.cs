@@ -1,4 +1,6 @@
+using System;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;

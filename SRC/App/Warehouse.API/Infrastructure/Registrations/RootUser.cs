@@ -1,6 +1,9 @@
 using Amazon.SecretsManager;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 
 namespace Warehouse.API.Infrastructure.Registrations
 {

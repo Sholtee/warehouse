@@ -1,9 +1,12 @@
+using System;
 using System.Data;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using MySqlConnector;
 
 namespace Warehouse.API.Services

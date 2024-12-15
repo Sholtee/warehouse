@@ -1,7 +1,12 @@
+using System;
 using System.Text;
+using System.Threading.Tasks;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 
 namespace Warehouse.API.Controllers
@@ -15,7 +20,14 @@ namespace Warehouse.API.Controllers
     /// Login endpoints.
     /// </summary>
     [ApiController, Route("api/v1")]
-    public sealed class LoginController(IUserRepository userRepository, IConfiguration configuration, IJwtService jwtService, IPasswordHasher<string> passwordHasher, ILogger<LoginController> logger) : ControllerBase
+    public sealed class LoginController
+    (
+        IUserRepository userRepository,
+        IConfiguration configuration,
+        IJwtService jwtService,
+        IPasswordHasher<string> passwordHasher,
+        ILogger<LoginController> logger
+    ) : ControllerBase
     {
         private UnauthorizedResult Unauthorized(string reason)
         {

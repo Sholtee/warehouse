@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
+
 namespace Warehouse.API.Infrastructure.Registrations
 {
     using DAL;

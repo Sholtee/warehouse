@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http;
+
 namespace Warehouse.API.Exceptions
 {
     internal sealed class BadRequestException : RequestException

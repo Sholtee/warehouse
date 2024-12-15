@@ -1,13 +1,25 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Warehouse.API.Services
 {    
     using DAL;
     using Extensions;
 
-    internal sealed class RootUserRegistrar(IConfiguration configuration, ILogger<RootUserRegistrar> logger, IUserRepository userRepository, IPasswordHasher<string> passwordHasher, IAmazonSecretsManager secretsManager)
+    internal sealed class RootUserRegistrar
+    (
+        IConfiguration configuration,
+        ILogger<RootUserRegistrar> logger,
+        IUserRepository userRepository,
+        IPasswordHasher<string> passwordHasher,
+        IAmazonSecretsManager secretsManager
+    )
     {
         private static string GeneratePassword()
         {

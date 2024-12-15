@@ -1,3 +1,5 @@
+using System;
+
 namespace Warehouse.API.Exceptions
 {
     internal abstract class RequestException : Exception

@@ -5,7 +5,6 @@
     <Configurations>Debug;Release</Configurations>
     <OutputPath>..\..\..\BIN\$(Configuration)</OutputPath>
     <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
