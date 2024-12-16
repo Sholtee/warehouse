@@ -11,6 +11,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using ServiceStack.Logging.Serilog;
+using ServiceStack.OrmLite;
 
 namespace Warehouse.API
 {
@@ -53,13 +55,14 @@ namespace Warehouse.API
             .ConfigureLogging(static (context, loggerConfiguration) =>
             {
                 loggerConfiguration.ClearProviders();
-                loggerConfiguration.AddSerilog
-                (
-                    new LoggerConfiguration()
-                        .ReadFrom
-                        .Configuration(context.Configuration)
-                        .CreateLogger()
-                );
+
+                Serilog.ILogger logger = new LoggerConfiguration()
+                    .ReadFrom
+                    .Configuration(context.Configuration)
+                    .CreateLogger();
+
+                loggerConfiguration.AddSerilog(logger);
+                OrmLiteConfig.ResetLogFactory(new SerilogFactory(logger));
             })
             .ConfigureWebHostDefaults
             (
