@@ -25,7 +25,7 @@ namespace Warehouse.API.Services
         /// <summary>
         /// Creates a new JWT
         /// </summary>
-        Task<string> CreateToken(string user, IEnumerable<string> roles, DateTime expires);
+        Task<string> CreateToken(string user, IEnumerable<string> roles, DateTimeOffset expires);
 
         /// <summary>
         /// Validates the given JWT
@@ -59,7 +59,7 @@ namespace Warehouse.API.Services
             );
         });
 
-        public async Task<string> CreateToken(string user, IEnumerable<string> roles, DateTime expires)
+        public async Task<string> CreateToken(string user, IEnumerable<string> roles, DateTimeOffset expires)
         {
             JwtSecurityToken token = new
             (
@@ -70,7 +70,7 @@ namespace Warehouse.API.Services
                     new Claim(ClaimTypes.Name, user),
                     ..roles.Select(static role => new Claim(ClaimTypes.Role, role))
                 ],
-                expires: expires,
+                expires: expires.DateTime,
                 signingCredentials: new SigningCredentials(await SecurityKey, _algorithm)
             );
 

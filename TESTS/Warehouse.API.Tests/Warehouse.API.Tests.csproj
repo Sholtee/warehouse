@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="..\Common.targets" />
+
+    <PropertyGroup>
+        <AssemblyName>Warehouse.API.Tests</AssemblyName>
+        <RootNamespace>Warehouse.API.Tests</RootNamespace>
+        <NoWarn>CA2007;</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\SRC\App\Warehouse.API\Warehouse.API.csproj" />
+    </ItemGroup>
+
+</Project>

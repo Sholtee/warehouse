@@ -26,7 +26,8 @@ namespace Warehouse.API.Controllers
         IConfiguration configuration,
         IJwtService jwtService,
         IPasswordHasher<string> passwordHasher,
-        ILogger<LoginController> logger
+        ILogger<LoginController> logger,
+        TimeProvider timeProvider
     ) : ControllerBase
     {
         private UnauthorizedResult Unauthorized(string reason)
@@ -89,7 +90,7 @@ namespace Warehouse.API.Controllers
             // Set up the session cookie
             //
 
-            DateTime expires = DateTime.Now.AddMinutes
+            DateTimeOffset expires = timeProvider.GetUtcNow().AddMinutes
             (
                 configuration.GetValue("Auth:SessionExpirationMinutes", 1440)
             );

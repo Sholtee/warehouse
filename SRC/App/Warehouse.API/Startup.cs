@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -37,6 +38,8 @@ namespace Warehouse.API
                 {
                     options.SuppressModelStateInvalidFilter = true;  // we want to use our own ValidateModelStateFilter
                 });
+
+            services.AddSingleton(TimeProvider.System);
 
             services.AddSessionCookieAuthentication();
             services.AddDbConnection();
