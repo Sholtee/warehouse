@@ -13,6 +13,10 @@ namespace Warehouse.DAL.Tests
     [TestFixture]
     internal class UserRepositoryTests
     {
+        private const string 
+            TEST_USER = "test_user",
+            TEST_USER_2 = "test_user_2";
+
         private IDbConnection _connection = null!;
 
         private IUserRepository _userRepository = null!;
@@ -57,36 +61,62 @@ namespace Warehouse.DAL.Tests
         [Test]
         public async Task CreateUser_ShouldCreateANewUser()
         {
-            Assert.That(await _userRepository.CreateUser(new CreateUserParam { ClientId = "test_user", ClientSecretHash = "hash", Groups = ["Admins", "Users"] }));
+            Assert.That(await _userRepository.CreateUser(new CreateUserParam { ClientId = TEST_USER, ClientSecretHash = "hash", Groups = ["Admins", "Users"] }), Is.True);
 
-            QueryUserResult queried = (await _userRepository.QueryUser("test_user"))!;
+            QueryUserResult queried = (await _userRepository.QueryUser(TEST_USER))!;
             
             Assert.Multiple(() =>
             {
                 Assert.That(queried, Is.Not.Null);
-                Assert.That(queried.ClientId, Is.EqualTo("test_user"));
+                Assert.That(queried.ClientId, Is.EqualTo(TEST_USER));
                 Assert.That(queried.ClientSecretHash, Is.EqualTo("hash"));
                 Assert.That(queried.Roles, Is.EquivalentTo(["Admin", "User"]));
             });
         }
 
         [Test]
-        public async Task CreateUser_ShouldReturnFalseIfTheUserAlreadyExists()
+        public async Task CreateUser_ShouldCreateANewUser_Mutiple()
         {
-            Assert.That(await _userRepository.CreateUser(new CreateUserParam { ClientId = "test_user", ClientSecretHash = "hash", Groups = ["Admins", "Users"] }));
-            Assert.That(await _userRepository.CreateUser(new CreateUserParam { ClientId = "test_user", ClientSecretHash = "hash2", Groups = ["Users"] }), Is.False);
+            await _userRepository.CreateUser(new CreateUserParam { ClientId = TEST_USER_2, ClientSecretHash = "hash", Groups = ["Users"] });
+            await CreateUser_ShouldCreateANewUser();
         }
 
         [Test]
-        public async Task CreateUser_ShouldThrowOnInvalidGroup()
+        public void CreateUser_ShouldReturnFalseIfTheUserAlreadyExists() => Assert.MultipleAsync(async () =>
+        {
+            Assert.That(await _userRepository.CreateUser(new CreateUserParam { ClientId = TEST_USER, ClientSecretHash = "hash", Groups = ["Admins", "Users"] }));
+            Assert.That(await _userRepository.CreateUser(new CreateUserParam { ClientId = TEST_USER, ClientSecretHash = "hash2", Groups = ["Users"] }), Is.False);
+        });
+
+        [Test]
+        public Task CreateUser_ShouldThrowOnInvalidGroup() => Assert.MultipleAsync(async () =>
         {
             InvalidOperationException exc = Assert.ThrowsAsync<InvalidOperationException>
             (
-                () => _userRepository.CreateUser(new CreateUserParam { ClientId = "test_user", ClientSecretHash = "hash", Groups = ["Invalid"] })
-            );
-            
+                () => _userRepository.CreateUser(new CreateUserParam { ClientId = TEST_USER, ClientSecretHash = "hash", Groups = ["Invalid"] })
+            )!;
+
             Assert.That(exc.Message, Is.EqualTo("Invalid group"));
-            Assert.That(await _userRepository.QueryUser("test_user"), Is.Null);
+            Assert.That(await _userRepository.QueryUser(TEST_USER), Is.Null);
+        });
+
+        [Test]
+        public async Task DeleteUser_ShouldRemoveTheUser()
+        {
+            await _userRepository.CreateUser(new CreateUserParam { ClientId = TEST_USER, ClientSecretHash = "hash", Groups = ["Admins", "Users"] });
+
+            Assert.That(await _userRepository.DeleteUser(TEST_USER), Is.True);
+            Assert.That(await _userRepository.QueryUser(TEST_USER), Is.Null);
         }
+
+        [Test]
+        public async Task DeleteUser_ShouldRemoveTheUser_Multiple()
+        {
+            await _userRepository.CreateUser(new CreateUserParam { ClientId = TEST_USER_2, ClientSecretHash = "hash", Groups = ["Users"] });
+            await DeleteUser_ShouldRemoveTheUser();
+        }
+
+        [Test]
+        public async Task DeleteUser_ShouldReturnFalseIfTheUserDoesntExist() => Assert.That(await _userRepository.DeleteUser(TEST_USER), Is.False);
     }
 }
