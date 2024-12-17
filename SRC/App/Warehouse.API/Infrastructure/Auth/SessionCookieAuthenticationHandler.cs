@@ -24,6 +24,8 @@ namespace Warehouse.API.Infrastructure.Auth
         UrlEncoder encoder
     ) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
     {
+        public const string SCHEME = "session-cookie";
+
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
             if (Context.GetEndpoint()?.Metadata?.GetMetadata<IAllowAnonymous>() is not null)

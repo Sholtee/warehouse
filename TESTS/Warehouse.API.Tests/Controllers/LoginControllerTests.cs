@@ -12,9 +12,8 @@ using Microsoft.Extensions.Primitives;
 using Moq;
 using NUnit.Framework;
 
-namespace Warehouse.API.Tests
+namespace Warehouse.API.Controllers.Tests
 {
-    using Controllers;
     using DAL;
     using Services;
 
@@ -74,7 +73,7 @@ namespace Warehouse.API.Tests
                 .Returns("30");
             mockExpiration
                 .SetupGet(s => s.Path)
-                .Returns((string) null!);
+                .Returns((string)null!);
 
             Mock<IConfigurationSection> mockCookieName = new(MockBehavior.Strict);
             mockCookieName
@@ -82,7 +81,7 @@ namespace Warehouse.API.Tests
                 .Returns("session-cookie");
             mockCookieName
                 .SetupGet(s => s.Path)
-                .Returns((string) null!);
+                .Returns((string)null!);
 
             _mockConfiguration
                 .Setup(c => c.GetSection("Auth:SessionExpirationMinutes"))
@@ -211,7 +210,7 @@ namespace Warehouse.API.Tests
         {
             _mockUserRepository
                 .Setup(r => r.QueryUser("user"))
-                .ReturnsAsync((QueryUserResult) null!);
+                .ReturnsAsync((QueryUserResult)null!);
 
             _loginController.Request.Headers.Add
             (

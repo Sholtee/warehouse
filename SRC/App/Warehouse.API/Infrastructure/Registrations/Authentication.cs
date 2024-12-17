@@ -20,7 +20,7 @@ namespace Warehouse.API.Infrastructure.Registrations
 
             return services
                 .AddAuthentication()
-                .AddScheme<AuthenticationSchemeOptions, SessionCookieAuthenticationHandler>("session-cookie", null);
+                .AddScheme<AuthenticationSchemeOptions, SessionCookieAuthenticationHandler>(SessionCookieAuthenticationHandler.SCHEME, null);
         }
     }
 }
