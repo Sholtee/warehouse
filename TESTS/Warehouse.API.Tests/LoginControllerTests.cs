@@ -82,7 +82,7 @@ namespace Warehouse.API.Tests
                 .Returns("session-cookie");
             mockCookieName
                 .SetupGet(s => s.Path)
-                .Returns((string)null!);
+                .Returns((string) null!);
 
             _mockConfiguration
                 .Setup(c => c.GetSection("Auth:SessionExpirationMinutes"))
@@ -117,9 +117,213 @@ namespace Warehouse.API.Tests
             );
 
             IActionResult result = await _loginController.Login();
-            
-            Assert.That(result, Is.InstanceOf<NoContentResult>());
-            Assert.That(_loginController.Response.Headers["Set-Cookie"][0], Is.EqualTo("session-cookie=token; expires=Sun, 26 Oct 1986 00:30:00 GMT; path=/; secure; samesite=strict; httponly"));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.InstanceOf<NoContentResult>());
+                Assert.That
+                (
+                    _loginController.Response.Headers.SetCookie.ToString(),
+                    Is.EqualTo("session-cookie=token; expires=Sun, 26 Oct 1986 00:30:00 GMT; path=/; secure; samesite=strict; httponly")
+                );
+            });
+
+            _mockUserRepository.Verify(r => r.QueryUser(CLIENT_ID), Times.Once);
+            _mockPasswordHasher.Verify(h => h.VerifyHashedPassword(CLIENT_ID, "hash", CLIENT_SECRET), Times.Once);
+            _mockIJwtService.Verify(s => s.CreateToken(CLIENT_ID, user.Roles, now.AddMinutes(30)), Times.Once);
+        }
+
+        public static IEnumerable<KeyValuePair<string, StringValues>> InvalidLoginHeaders
+        {
+            get
+            {
+                yield return new KeyValuePair<string, StringValues>
+                (
+                    "Invalid",
+                    new StringValues
+                    (
+                        "Basic " + Convert.ToBase64String
+                        (
+                            Encoding.UTF8.GetBytes($"user:pass")
+                        )
+                    )
+                );
+
+                yield return new KeyValuePair<string, StringValues>
+                (
+                    "Authorization",
+                    new StringValues
+                    (
+                        "Invalid " + Convert.ToBase64String
+                        (
+                            Encoding.UTF8.GetBytes($"user:pass")
+                        )
+                    )
+                );
+
+                yield return new KeyValuePair<string, StringValues>
+                (
+                    "Authorization",
+                    new StringValues
+                    (
+                        "Invalid " + Convert.ToBase64String
+                        (
+                            Encoding.UTF8.GetBytes($"user:pass")
+                        )
+                    )
+                );
+
+                yield return new KeyValuePair<string, StringValues>
+                (
+                    "Authorization",
+                    new StringValues
+                    (
+                        Convert.ToBase64String
+                        (
+                            Encoding.UTF8.GetBytes($"user:pass")
+                        )
+                    )
+                );
+
+                yield return new KeyValuePair<string, StringValues>
+                (
+                    "Authorization",
+                    new StringValues
+                    (
+                        "Invalid " + Convert.ToBase64String
+                        (
+                            Encoding.UTF8.GetBytes($"user:pass")
+                        )
+                    )
+                );
+
+                yield return new KeyValuePair<string, StringValues>
+                (
+                    "Authorization",
+                    new StringValues
+                    (
+                        "Basic invalid"
+                    )
+                );
+
+                yield return new KeyValuePair<string, StringValues>
+                (
+                    "Authorization",
+                    new StringValues
+                    (
+                        "Basic " + Convert.ToBase64String
+                        (
+                            Encoding.UTF8.GetBytes($"no_password")
+                        )
+                    )
+                );
+            }
+        }
+
+        [TestCaseSource(nameof(InvalidLoginHeaders))]
+        public async Task Login_ShouldReturnUnauthorizedOnInvalidLoginRequest(KeyValuePair<string, StringValues> header)
+        {
+            _loginController.Request.Headers.Add(header);
+
+            IActionResult result = await _loginController.Login();
+
+            Assert.That(result, Is.InstanceOf<UnauthorizedResult>());
+        }
+
+        [Test]
+        public async Task Login_ShouldReturnUnauthorizedOnMissingUser()
+        {
+            _mockUserRepository
+                .Setup(r => r.QueryUser("user"))
+                .ReturnsAsync((QueryUserResult) null!);
+
+            _loginController.Request.Headers.Add
+            (
+                new KeyValuePair<string, StringValues>
+                (
+                    "Authorization",
+                    new StringValues
+                    (
+                        "Basic " + Convert.ToBase64String
+                        (
+                            Encoding.UTF8.GetBytes("user:pass")
+                        )
+                    )
+                )
+            );
+
+            IActionResult result = await _loginController.Login();
+
+            Assert.That(result, Is.InstanceOf<UnauthorizedResult>());
+            _mockUserRepository.Verify(r => r.QueryUser("user"), Times.Once);
+        }
+
+        [Test]
+        public async Task Login_ShouldReturnUnauthorizedOnInvalidCreds()
+        {
+            _mockUserRepository
+                .Setup(r => r.QueryUser("user"))
+                .ReturnsAsync(new QueryUserResult() { ClientId = "user", ClientSecretHash = "hash", Roles = ["SomeRole"] });
+
+            _mockPasswordHasher
+                .Setup(h => h.VerifyHashedPassword("user", "hash", "pass"))
+                .Returns(PasswordVerificationResult.Failed);
+
+            _loginController.Request.Headers.Add
+            (
+                new KeyValuePair<string, StringValues>
+                (
+                    "Authorization",
+                    new StringValues
+                    (
+                        "Basic " + Convert.ToBase64String
+                        (
+                            Encoding.UTF8.GetBytes("user:pass")
+                        )
+                    )
+                )
+            );
+
+            IActionResult result = await _loginController.Login();
+
+            Assert.That(result, Is.InstanceOf<UnauthorizedResult>());
+
+            _mockUserRepository.Verify(r => r.QueryUser("user"), Times.Once);
+            _mockPasswordHasher.Verify(h => h.VerifyHashedPassword("user", "hash", "pass"), Times.Once);
+        }
+
+        [Test]
+        public void Logout_ShouldRemoveTheSessionCookie()
+        {
+            Mock<IConfigurationSection> mockCookieName = new(MockBehavior.Strict);
+            mockCookieName
+                .SetupGet(s => s.Value)
+                .Returns("session-cookie");
+
+            _mockConfiguration
+                .Setup(c => c.GetSection("Auth:SessionCookieName"))
+                .Returns(mockCookieName.Object);
+
+            _loginController.Request.Headers.Add
+            (
+                new KeyValuePair<string, StringValues>
+                (
+                    "Cookie",
+                    new StringValues("session-cookie=token")
+                )
+            );
+
+            IActionResult result = _loginController.Logout();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.InstanceOf<NoContentResult>());
+                Assert.That
+                (
+                    _loginController.Response.Headers.SetCookie.ToString(),
+                    Is.EqualTo("session-cookie=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/")
+                );
+            });
         }
     }
 }
