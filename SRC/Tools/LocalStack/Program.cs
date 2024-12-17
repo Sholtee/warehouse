@@ -25,12 +25,6 @@ namespace LocalStack.Setup
             public required string Version { get; init; }
         }
 
-        private sealed class UserDescriptor
-        {
-            public required List<string> Groups { get; init; }
-            public required string Password { get; init; }
-        }
-
         private static async Task WiatForServices(params string[] services)
         {
             //
@@ -94,25 +88,6 @@ namespace LocalStack.Setup
             ).SecretList.ToDictionary(static s => s.Name);
 
             PasswordHasher<string> pwHasher = new();
-
-            await SetupSecret
-            (
-                "local-api-users",
-                JsonSerializer
-                    .Deserialize<Dictionary<string, UserDescriptor>>
-                    (
-                        File.ReadAllText("users.json")
-                    )!
-                    .ToDictionary
-                    (
-                        static e => e.Key,
-                        e => (object)new
-                        {
-                            e.Value.Groups,
-                            PasswordHash = pwHasher.HashPassword(e.Key, e.Value.Password)
-                        }
-                    )
-            );
 
             await SetupSecret("local-api-certificate", new Dictionary<string, string>
             {
