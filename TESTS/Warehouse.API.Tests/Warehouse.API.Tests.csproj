@@ -5,7 +5,7 @@
     <PropertyGroup>
         <AssemblyName>Warehouse.API.Tests</AssemblyName>
         <RootNamespace>Warehouse.API.Tests</RootNamespace>
-        <NoWarn>CA2007;</NoWarn>
+        <NoWarn>CA2007;CA2201</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>

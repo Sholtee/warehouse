@@ -3,16 +3,19 @@ using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
+using Microsoft.IdentityModel.Tokens;
 using Moq;
 using NUnit.Framework;
 
 namespace Warehouse.API.Infrastructure.Tests
 {
     using Auth;
-    using Microsoft.AspNetCore.Http;
     using Services;
 
     [TestFixture]
@@ -28,7 +31,6 @@ namespace Warehouse.API.Infrastructure.Tests
 
         private HttpContext _context = null!;
         private SessionCookieAuthenticationHandler _handler = null!;
-
 
         [SetUp]
         public async Task SetupTest()
@@ -79,6 +81,26 @@ namespace Warehouse.API.Infrastructure.Tests
         }
 
         [Test]
+        public async Task EndpointAllowingAnonAccess()
+        {
+            _context.SetEndpoint
+            (
+                new Endpoint
+                (
+                    null,
+                    new EndpointMetadataCollection
+                    (
+                        new AllowAnonymousAttribute()
+                    ),
+                    null
+                )
+            );
+
+            AuthenticateResult result = await _handler.AuthenticateAsync();
+            Assert.That(result.None);
+        }
+
+        [Test]
         public async Task NoSessionCookie()
         {
             AuthenticateResult result = await _handler.AuthenticateAsync();
@@ -87,6 +109,26 @@ namespace Warehouse.API.Infrastructure.Tests
             {
                 Assert.That(result.Succeeded, Is.False);
                 Assert.That(result.Failure?.Message, Is.EqualTo("Missing session cookie"));
+            });
+        }
+
+        [Test]
+        public async Task InvalidToken()
+        {
+            _context.Request.Headers.Append("cookie", new StringValues("session-cookie=token"));
+
+            Exception failure = new Exception("Invalid token");
+
+            _mockJwtService
+                .Setup(j => j.ValidateToken("token"))
+                .ReturnsAsync(new TokenValidationResult { IsValid = false, Exception = failure });
+            
+            AuthenticateResult result = await _handler.AuthenticateAsync();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Succeeded, Is.False);
+                Assert.That(result.Failure, Is.EqualTo(failure));
             });
         }
     }
