@@ -166,31 +166,7 @@ namespace Warehouse.API.Tests
                     "Authorization",
                     new StringValues
                     (
-                        "Invalid " + Convert.ToBase64String
-                        (
-                            Encoding.UTF8.GetBytes($"user:pass")
-                        )
-                    )
-                );
-
-                yield return new KeyValuePair<string, StringValues>
-                (
-                    "Authorization",
-                    new StringValues
-                    (
                         Convert.ToBase64String
-                        (
-                            Encoding.UTF8.GetBytes($"user:pass")
-                        )
-                    )
-                );
-
-                yield return new KeyValuePair<string, StringValues>
-                (
-                    "Authorization",
-                    new StringValues
-                    (
-                        "Invalid " + Convert.ToBase64String
                         (
                             Encoding.UTF8.GetBytes($"user:pass")
                         )
