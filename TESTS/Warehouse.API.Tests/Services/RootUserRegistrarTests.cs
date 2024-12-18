@@ -15,7 +15,7 @@ namespace Warehouse.API.Services.Tests
     using DAL;
 
     [TestFixture]
-    internal class RootUserRegistrarTests
+    internal sealed class RootUserRegistrarTests
     {
         private Mock<IConfiguration> _mockConfiguration = null!;
         private Mock<IUserRepository> _mockUserRepository = null!;

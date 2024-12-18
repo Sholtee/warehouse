@@ -27,7 +27,7 @@ namespace Warehouse.API
                     options.Filters.Add<UnhandledExceptionFilter>();
                     options.Filters.Add<ValidateModelStateFilter>();
                 })
-                .AddApiExplorer()  // for swagger
+                .AddApiExplorer()  // for Swagger
                 .AddDataAnnotations()  // support for System.ComponentModel.DataAnnotations
                 .AddAuthorization()
                 .AddJsonOptions(static options =>

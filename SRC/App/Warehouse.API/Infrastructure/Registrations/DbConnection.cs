@@ -14,7 +14,7 @@ namespace Warehouse.API.Infrastructure.Registrations
         {
             services.TryAddAWSService<IAmazonSecretsManager>();
             services.AddMemoryCache();
-            services.TryAddScoped<MySqlConnectionFactory>();
+            services.TryAddSingleton<MySqlConnectionFactory>();
             services.TryAddScoped(static serviceProvider => serviceProvider.GetRequiredService<MySqlConnectionFactory>().CreateConnection());
 
             OrmLiteConfig.DialectProvider = MySqlDialect.Provider;

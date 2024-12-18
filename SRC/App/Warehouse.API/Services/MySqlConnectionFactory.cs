@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Data.Common;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -7,7 +8,7 @@ using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
-using MySqlConnector;
+using MySql.Data.MySqlClient;
 
 namespace Warehouse.API.Services
 {
@@ -16,6 +17,8 @@ namespace Warehouse.API.Services
     internal sealed class MySqlConnectionFactory(IConfiguration configuration, IMemoryCache cache, IAmazonSecretsManager secretsManager)
     {
         private sealed record DbSecret(string Endpoint, string Database, string UserName, string Password);
+
+        public Func<string, DbConnection> CreateConnectionCore { get; init; } = connectionString => new MySqlConnection(connectionString); // for tests
 
         public async Task<IDbConnection> CreateConnectionAsync()
         {
@@ -44,7 +47,7 @@ namespace Warehouse.API.Services
                 )!;
             }))!;
 
-            MySqlConnection conn = new
+            DbConnection conn = CreateConnectionCore
             (
                 new MySqlConnectionStringBuilder
                 {
