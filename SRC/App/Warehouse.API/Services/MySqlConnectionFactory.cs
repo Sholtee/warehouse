@@ -18,7 +18,7 @@ namespace Warehouse.API.Services
     {
         private sealed record DbSecret(string Endpoint, string Database, string UserName, string Password);
 
-        public Func<string, DbConnection> CreateConnectionCore { get; init; } = connectionString => new MySqlConnection(connectionString); // for tests
+        public Func<string, DbConnection> CreateConnectionCore { get; init; } = static connectionString => new MySqlConnection(connectionString); // for tests
 
         public async Task<IDbConnection> CreateConnectionAsync()
         {
