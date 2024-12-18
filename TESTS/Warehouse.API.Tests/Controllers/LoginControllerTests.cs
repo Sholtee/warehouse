@@ -97,7 +97,7 @@ namespace Warehouse.API.Controllers.Tests
                 .Returns(now);
 
             _mockIJwtService
-                .Setup(s => s.CreateToken(CLIENT_ID, user.Roles, now.AddMinutes(30)))
+                .Setup(s => s.CreateTokenAsync(CLIENT_ID, user.Roles, now.AddMinutes(30)))
                 .ReturnsAsync("token");
 
             _loginController.Request.Headers.Add
@@ -129,7 +129,7 @@ namespace Warehouse.API.Controllers.Tests
 
             _mockUserRepository.Verify(r => r.QueryUser(CLIENT_ID), Times.Once);
             _mockPasswordHasher.Verify(h => h.VerifyHashedPassword(CLIENT_ID, "hash", CLIENT_SECRET), Times.Once);
-            _mockIJwtService.Verify(s => s.CreateToken(CLIENT_ID, user.Roles, now.AddMinutes(30)), Times.Once);
+            _mockIJwtService.Verify(s => s.CreateTokenAsync(CLIENT_ID, user.Roles, now.AddMinutes(30)), Times.Once);
         }
 
         public static IEnumerable<KeyValuePair<string, StringValues>> InvalidLoginHeaders

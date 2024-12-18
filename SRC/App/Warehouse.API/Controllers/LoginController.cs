@@ -98,7 +98,7 @@ namespace Warehouse.API.Controllers
             Response.Cookies.Append
             (
                 configuration.GetRequiredValue<string>("Auth:SessionCookieName"),
-                await jwtService.CreateToken(clientId, user.Roles, expires),
+                await jwtService.CreateTokenAsync(clientId, user.Roles, expires),
                 new CookieOptions
                 {
                     Expires = expires,

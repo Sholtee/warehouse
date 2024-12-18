@@ -38,7 +38,7 @@ namespace Warehouse.API.Infrastructure.Auth
                 return AuthenticateResult.Fail("Missing session cookie");
             }
 
-            TokenValidationResult validationResult = await jwtService.ValidateToken(token);
+            TokenValidationResult validationResult = await jwtService.ValidateTokenAsync(token);
             if (!validationResult.IsValid)
             {
                 return AuthenticateResult.Fail(validationResult.Exception);

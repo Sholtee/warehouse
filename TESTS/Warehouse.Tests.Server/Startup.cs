@@ -8,8 +8,9 @@ namespace Warehouse.Tests.Server
     {
         public void ConfigureServices(IServiceCollection services) => services.AddRouting();
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env) => app
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env) => app  
             .UseRouting()
+            .UseAuthorization()
             .UseEndpoints(static endpoints => endpoints.MapControllers());
     }
 }

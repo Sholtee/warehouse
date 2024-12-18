@@ -25,12 +25,12 @@ namespace Warehouse.API.Services
         /// <summary>
         /// Creates a new JWT
         /// </summary>
-        Task<string> CreateToken(string user, IEnumerable<string> roles, DateTimeOffset expires);
+        Task<string> CreateTokenAsync(string user, IEnumerable<string> roles, DateTimeOffset expires);
 
         /// <summary>
         /// Validates the given JWT
         /// </summary>
-        Task<TokenValidationResult> ValidateToken(string token);
+        Task<TokenValidationResult> ValidateTokenAsync(string token);
     }
 
     internal sealed class JwtService(IMemoryCache cache, IConfiguration configuration, IAmazonSecretsManager secretsManager, ILogger<JwtService> logger): IJwtService
@@ -59,7 +59,7 @@ namespace Warehouse.API.Services
             );
         });
 
-        public async Task<string> CreateToken(string user, IEnumerable<string> roles, DateTimeOffset expires)
+        public async Task<string> CreateTokenAsync(string user, IEnumerable<string> roles, DateTimeOffset expires)
         {
             JwtSecurityToken token = new
             (
@@ -79,7 +79,7 @@ namespace Warehouse.API.Services
             return _handler.WriteToken(token);
         }
 
-        public async Task<TokenValidationResult> ValidateToken(string token) => await _handler.ValidateTokenAsync
+        public async Task<TokenValidationResult> ValidateTokenAsync(string token) => await _handler.ValidateTokenAsync
         (
             token,
             new TokenValidationParameters

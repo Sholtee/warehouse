@@ -1,5 +1,6 @@
 using System;
-using System.Data;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
@@ -9,13 +10,15 @@ using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -27,8 +30,9 @@ using Warehouse.Tests.Server;
 
 namespace Warehouse.API.Infrastructure.Tests
 {
+    using Attributes;
     using Auth;
-    using Controllers;
+    using Registrations;
     using Services;
 
     [TestFixture]
@@ -133,7 +137,7 @@ namespace Warehouse.API.Infrastructure.Tests
             Exception failure = new Exception("Invalid token");
 
             _mockJwtService
-                .Setup(j => j.ValidateToken("token"))
+                .Setup(j => j.ValidateTokenAsync("token"))
                 .ReturnsAsync(new TokenValidationResult { IsValid = false, Exception = failure });
             
             AuthenticateResult result = await _handler.AuthenticateAsync();
@@ -153,7 +157,7 @@ namespace Warehouse.API.Infrastructure.Tests
             ClaimsIdentity identity = new();
 
             _mockJwtService
-                .Setup(j => j.ValidateToken("token"))
+                .Setup(j => j.ValidateTokenAsync("token"))
                 .ReturnsAsync(new TokenValidationResult { IsValid = true, ClaimsIdentity = identity });
 
             AuthenticateResult result = await _handler.AuthenticateAsync();
@@ -166,57 +170,71 @@ namespace Warehouse.API.Infrastructure.Tests
         }
     }
 
+    [ApiController, Authorize]
+    public sealed class AuthTestController : ControllerBase
+    {
+        [HttpGet("anonaccess")]
+        [AllowAnonymous]
+        public IActionResult AnonAccess() => Ok();
+
+        [HttpPost("adminaccess")]
+        [RequiredRoles(Roles.Admin)]
+        public IActionResult AdminAccess() => Ok();
+    }
+
     [TestFixture]
     internal class SessionCookieAuthenticationHandlerIntegrationTests
     {
-        //private JwtService _jwtService = null!;
-
-        private WebApplicationFactory<TestHost> _appFactory = null!;
-
-        [SetUp]
-        public void SetupTest()
+        private sealed class TestHostFactory : WebApplicationFactory<TestHost>
         {
-            object? ret;
+            protected override IHost CreateHost(IHostBuilder builder)
+            {
+                builder.ConfigureHostConfiguration(config =>
+                {
+                    config.AddJsonFile("appsettings.json");
+                    config.AddJsonFile("appsettings.Development.json");
+                });
 
-            Mock<IMemoryCache> mockMemoryCache = new(MockBehavior.Strict);
-            mockMemoryCache
-                .Setup(c => c.CreateEntry(It.IsAny<object>()))
-                .Returns(() => new Mock<ICacheEntry>(MockBehavior.Loose).Object);
-            mockMemoryCache
-                .Setup(c => c.TryGetValue(It.IsAny<object>(), out ret))
-                .Returns(false);
+                return base.CreateHost(builder);
+            }
 
-            Mock<IAmazonSecretsManager> mockSecretsManager = new(MockBehavior.Strict);
-            mockSecretsManager
-                .Setup(s => s.GetSecretValueAsync(It.Is<GetSecretValueRequest>(r => r.SecretId == "local-jwt-secret-key"), default))
-                .ReturnsAsync(new GetSecretValueResponse { SecretString = "very-very-very-very-very-secure-secret-key" });
-            /*
-            _jwtService = new
-            (
-                mockMemoryCache.Object,
-                new Mock<IConfiguration>(MockBehavior.Loose).Object,
-                mockSecretsManager.Object,
-                new Mock<ILogger<JwtService>>(MockBehavior.Loose).Object
-            );
-            */
-            _appFactory = new WebApplicationFactory<TestHost>().WithWebHostBuilder(builder =>
+            protected override void ConfigureWebHost(IWebHostBuilder builder)
             {
                 builder.ConfigureTestServices(services =>
                 {
+                    Mock<IMemoryCache> mockMemoryCache = new(MockBehavior.Strict);
+                    mockMemoryCache
+                        .Setup(c => c.CreateEntry(It.IsAny<object>()))
+                        .Returns(() => new Mock<ICacheEntry>(MockBehavior.Loose).Object);
+
+                    object? ret;
+                    mockMemoryCache
+                        .Setup(c => c.TryGetValue(It.IsAny<object>(), out ret))
+                        .Returns(false);
+
+                    services.AddSingleton(mockMemoryCache.Object);
+
+                    Mock<IAmazonSecretsManager> mockSecretsManager = new(MockBehavior.Strict);
+                    mockSecretsManager
+                        .Setup(s => s.GetSecretValueAsync(It.Is<GetSecretValueRequest>(r => r.SecretId == "local-jwt-secret-key"), default))
+                        .ReturnsAsync(new GetSecretValueResponse { SecretString = "very-very-very-very-very-secure-secret-key" });
+
+                    services.AddSingleton(mockSecretsManager.Object);
+
+                    services.AddSessionCookieAuthentication();
+
                     services
                         .AddMvc()
-                        .AddApplicationPart(typeof(WarehouseController).Assembly)
+                        .AddApplicationPart(typeof(AuthTestController).Assembly)
                         .AddControllersAsServices();
-
-                    services.RemoveAll<LoginController>();  // we just need the WarehouseController
-
-                    services
-                        .AddSingleton<IDbConnection>(new Mock<IDbConnection>(MockBehavior.Strict).Object);
-
-                    //  services.AddSingleton<IJwtService>(_jwtService);
                 });
-            });
+            }
         }
+
+        private TestHostFactory _appFactory = null!;
+
+        [SetUp]
+        public void SetupTest() => _appFactory = new TestHostFactory();
 
         [TearDown]
         public void TeardDownTest()
@@ -230,7 +248,25 @@ namespace Warehouse.API.Infrastructure.Tests
         {
             using HttpClient client = _appFactory.CreateClient();
 
-            HttpResponseMessage resp = await client.GetAsync("api/v1/healthcheck");
+            HttpResponseMessage resp = await client.GetAsync("anonaccess");
+        }
+
+        [Test]
+        public async Task ValidSession()
+        {
+            string token;
+
+            using (IServiceScope scope = _appFactory.Services.CreateScope())
+            {
+                IJwtService jwtService = scope.ServiceProvider.GetRequiredService<IJwtService>();
+                token = await jwtService.CreateTokenAsync("test_user", [Roles.Admin.ToString()], DateTimeOffset.Now.AddMinutes(5));
+            }
+
+            RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/anonaccess");
+            requestBuilder.AddHeader("Cookie", $"warehouse-session={token}");
+            HttpResponseMessage resp = await requestBuilder.GetAsync();
+
+            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         }
 
         /*
