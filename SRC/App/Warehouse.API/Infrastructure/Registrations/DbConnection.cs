@@ -16,8 +16,8 @@ namespace Warehouse.API.Infrastructure.Registrations
             services.TryAddSingleton<MySqlConnectionFactory>();
             services.TryAddScoped(static serviceProvider => serviceProvider.GetRequiredService<MySqlConnectionFactory>().CreateConnection());
 
-            OrmLiteConfig.DialectProvider = MySqlDialect.Provider;
-            services.TryAddSingleton<IOrmLiteDialectProvider>(MySqlDialect.Provider);
+            OrmLiteConfig.DialectProvider = MySqlConnectorDialect.Provider;
+            services.TryAddSingleton<IOrmLiteDialectProvider>(MySqlConnectorDialect.Provider);
 
             return services;
         }
