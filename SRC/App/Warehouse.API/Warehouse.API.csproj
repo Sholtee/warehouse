@@ -12,7 +12,7 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.301" />
     <PackageReference Include="AWSSDK.SecretsManager" Version="3.7.400.58" />
-    <PackageReference Include="MySql.Data" Version="9.1.0" />
+    <PackageReference Include="MySqlConnector" Version="2.4.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
     <PackageReference Include="ServiceStack.OrmLite.MySql" Version="8.5.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.1.0" />

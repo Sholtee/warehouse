@@ -1,14 +1,13 @@
-using System;
+using System.Data;
 using System.Data.Common;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Moq;
-using MySql.Data.MySqlClient;
+using Moq.Protected;
 using NUnit.Framework;
 
 
@@ -18,29 +17,17 @@ namespace Warehouse.API.Services.Tests
     internal sealed class MySqlConnectionFactoryTests
     {
         private Mock<IConfiguration> _mockConfiguration = null!;
-        private Mock<IMemoryCache> _mockMemoryCache = null!;
         private Mock<IAmazonSecretsManager> _mockSecretsManager = null!;
-        private Mock<Func<string, DbConnection>> _mockCreateConnection = null!;
-
-        MySqlConnectionFactory _connectionFactory = null!;
+        private Mock<ILoggerFactory> _mockLoggerFactory = null!;
+        private Mock<DbDataSource> _mockDataSource = null!;
 
         [SetUp]
         public void SetupTest()
         {
             _mockConfiguration = new Mock<IConfiguration>(MockBehavior.Strict);
-            _mockMemoryCache = new Mock<IMemoryCache>(MockBehavior.Strict);
             _mockSecretsManager = new Mock<IAmazonSecretsManager>(MockBehavior.Strict);
-            _mockCreateConnection = new Mock<Func<string, DbConnection>>(MockBehavior.Strict);
-
-            _connectionFactory = new MySqlConnectionFactory
-            (
-                _mockConfiguration.Object,
-                _mockMemoryCache.Object,
-                _mockSecretsManager.Object
-            )
-            {
-                CreateConnectionCore = _mockCreateConnection.Object
-            };
+            _mockLoggerFactory = new Mock<ILoggerFactory>(MockBehavior.Strict);
+            _mockDataSource = new Mock<DbDataSource>(MockBehavior.Strict);
         }
 
         [Test]
@@ -57,19 +44,6 @@ namespace Warehouse.API.Services.Tests
             _mockConfiguration
                 .Setup(c => c.GetSection("Prefix"))
                 .Returns(mockPrefix.Object);
-            _mockConfiguration
-                .Setup(c => c.GetSection($"{nameof(MySqlConnectionFactory)}:CacheExpirationMinutes"))
-                .Returns(new Mock<IConfigurationSection>(MockBehavior.Loose).Object);
-
-            object? result;
-            _mockMemoryCache
-                .Setup(c => c.TryGetValue("db-secret", out result))
-                .Returns(false);
-
-            Mock<ICacheEntry> mockCacheEntry = new(MockBehavior.Loose);
-            _mockMemoryCache
-                .Setup(c => c.CreateEntry("db-secret"))
-                .Returns(mockCacheEntry.Object);
 
             _mockSecretsManager
                 .Setup(s => s.GetSecretValueAsync(It.Is<GetSecretValueRequest>(r => r.SecretId == "local-db-secret"), default))
@@ -90,32 +64,29 @@ namespace Warehouse.API.Services.Tests
                     }
                 );
 
-            Mock<DbConnection> mockDbConnection = new(MockBehavior.Strict);
-            mockDbConnection
-                .Setup(c => c.OpenAsync(default))
-                .Returns(Task.CompletedTask);
+            _mockLoggerFactory
+                .Setup(l => l.CreateLogger(It.IsAny<string>()))
+                .Returns(new Mock<ILogger>(MockBehavior.Loose).Object);
 
-            _mockCreateConnection
-                .Setup
-                (
-                    c => c.Invoke
-                    (
-                        new MySqlConnectionStringBuilder
-                        {
-                            Server = "endpoint",
-                            UserID = "user",
-                            Password = "pass",
-                            Database = "db"
-                        }.ConnectionString
-                    )
-                )
-                .Returns( mockDbConnection.Object );
+            MySqlConnectionFactory connectionFactory = new
+            (
+                _mockConfiguration.Object,
+                _mockSecretsManager.Object,
+                _mockLoggerFactory.Object
+            );
 
-            Assert.That(_connectionFactory.CreateConnection(), Is.EqualTo(mockDbConnection.Object));
+            Assert.That(connectionFactory.DataSource.ConnectionString, Is.EqualTo("Server=endpoint;User ID=user;Password=pass;Database=db"));
+            _mockSecretsManager.Verify(s => s.GetSecretValueAsync(It.IsAny<GetSecretValueRequest>(), default), Times.Once);
 
-            _mockCreateConnection.Verify(c => c.Invoke(It.IsAny<string>()), Times.Once);
-            _mockMemoryCache.Verify(c => c.TryGetValue(It.IsAny<string>(), out result), Times.Once);
-            _mockSecretsManager.Verify(s => s.GetSecretValueAsync(It.IsAny<GetSecretValueRequest>(), default), Times.Once); 
+            DbConnection mockConnection = new Mock<DbConnection>().Object;
+            _mockDataSource
+                .Protected()
+                .Setup<DbConnection>("CreateDbConnection")
+                .Returns(mockConnection);
+
+            connectionFactory.DataSource = _mockDataSource.Object;
+
+            Assert.That(connectionFactory.CreateConnection(), Is.EqualTo(mockConnection));
         }
     }
 }
