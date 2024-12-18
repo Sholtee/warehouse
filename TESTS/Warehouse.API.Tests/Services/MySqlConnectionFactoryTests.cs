@@ -68,7 +68,7 @@ namespace Warehouse.API.Services.Tests
                 .Setup(l => l.CreateLogger(It.IsAny<string>()))
                 .Returns(new Mock<ILogger>(MockBehavior.Loose).Object);
 
-            MySqlConnectionFactory connectionFactory = new
+            using MySqlConnectionFactory connectionFactory = new
             (
                 _mockConfiguration.Object,
                 _mockSecretsManager.Object,
@@ -83,6 +83,9 @@ namespace Warehouse.API.Services.Tests
                 .Protected()
                 .Setup<DbConnection>("CreateDbConnection")
                 .Returns(mockConnection);
+            _mockDataSource
+                .Protected()
+                .Setup("Dispose", ItExpr.IsAny<bool>());
 
             connectionFactory.DataSource = _mockDataSource.Object;
 
