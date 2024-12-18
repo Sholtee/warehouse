@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -15,6 +16,7 @@ namespace Warehouse.API
     using Infrastructure.Middlewares;
     using Infrastructure.Registrations;
 
+    [ExcludeFromCodeCoverage]
     internal sealed class Startup(IConfiguration configuration)
     {
         public void ConfigureServices(IServiceCollection services)

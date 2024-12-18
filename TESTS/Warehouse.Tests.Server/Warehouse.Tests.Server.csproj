@@ -7,7 +7,6 @@
       <OutputPath>..\..\BIN\$(Configuration)</OutputPath>
       <Nullable>enable</Nullable>
       <IsPackable>false</IsPackable>
-      <IsTestProject>true</IsTestProject>
       <Optimize>false</Optimize>
       <AnalysisMode>AllEnabledByDefault</AnalysisMode>
       <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
