@@ -1,11 +1,21 @@
 using System;
+using System.Data;
+using System.Net.Http;
+using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 
+using Amazon.SecretsManager;
+using Amazon.SecretsManager.Model;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -13,9 +23,12 @@ using Microsoft.IdentityModel.Tokens;
 using Moq;
 using NUnit.Framework;
 
+using Warehouse.Tests.Server;
+
 namespace Warehouse.API.Infrastructure.Tests
 {
     using Auth;
+    using Controllers;
     using Services;
 
     [TestFixture]
@@ -131,5 +144,120 @@ namespace Warehouse.API.Infrastructure.Tests
                 Assert.That(result.Failure, Is.EqualTo(failure));
             });
         }
+
+        [Test]
+        public async Task ValidToken()
+        {
+            _context.Request.Headers.Append("cookie", new StringValues("session-cookie=token"));
+
+            ClaimsIdentity identity = new();
+
+            _mockJwtService
+                .Setup(j => j.ValidateToken("token"))
+                .ReturnsAsync(new TokenValidationResult { IsValid = true, ClaimsIdentity = identity });
+
+            AuthenticateResult result = await _handler.AuthenticateAsync();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Succeeded);
+                Assert.That(result.Ticket?.Principal.Identity, Is.EqualTo(identity));
+            });
+        }
+    }
+
+    [TestFixture]
+    internal class SessionCookieAuthenticationHandlerIntegrationTests
+    {
+        //private JwtService _jwtService = null!;
+
+        private WebApplicationFactory<TestHost> _appFactory = null!;
+
+        [SetUp]
+        public void SetupTest()
+        {
+            object? ret;
+
+            Mock<IMemoryCache> mockMemoryCache = new(MockBehavior.Strict);
+            mockMemoryCache
+                .Setup(c => c.CreateEntry(It.IsAny<object>()))
+                .Returns(() => new Mock<ICacheEntry>(MockBehavior.Loose).Object);
+            mockMemoryCache
+                .Setup(c => c.TryGetValue(It.IsAny<object>(), out ret))
+                .Returns(false);
+
+            Mock<IAmazonSecretsManager> mockSecretsManager = new(MockBehavior.Strict);
+            mockSecretsManager
+                .Setup(s => s.GetSecretValueAsync(It.Is<GetSecretValueRequest>(r => r.SecretId == "local-jwt-secret-key"), default))
+                .ReturnsAsync(new GetSecretValueResponse { SecretString = "very-very-very-very-very-secure-secret-key" });
+            /*
+            _jwtService = new
+            (
+                mockMemoryCache.Object,
+                new Mock<IConfiguration>(MockBehavior.Loose).Object,
+                mockSecretsManager.Object,
+                new Mock<ILogger<JwtService>>(MockBehavior.Loose).Object
+            );
+            */
+            _appFactory = new WebApplicationFactory<TestHost>().WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureTestServices(services =>
+                {
+                    services
+                        .AddMvc()
+                        .AddApplicationPart(typeof(WarehouseController).Assembly)
+                        .AddControllersAsServices();
+
+                    services.RemoveAll<LoginController>();  // we just need the WarehouseController
+
+                    services
+                        .AddSingleton<IDbConnection>(new Mock<IDbConnection>(MockBehavior.Strict).Object);
+
+                    //  services.AddSingleton<IJwtService>(_jwtService);
+                });
+            });
+        }
+
+        [TearDown]
+        public void TeardDownTest()
+        {
+            _appFactory?.Dispose();
+            _appFactory = null!;
+        }
+
+        [Test]
+        public async Task AnonAccess()
+        {
+            using HttpClient client = _appFactory.CreateClient();
+
+            HttpResponseMessage resp = await client.GetAsync("api/v1/healthcheck");
+        }
+
+        /*
+        [Test]
+        public async Task MissingCookie()
+        {
+        }
+
+        [Test]
+        public async Task MissingCookie()
+        {
+        }
+
+        [Test]
+        public async Task InvalidToken()
+        {
+        }
+
+        [Test]
+        public async Task ExpiredToken()
+        {
+        }
+
+        [Test]
+        public async Task MissingRole()
+        {
+        }
+        */
     }
 }

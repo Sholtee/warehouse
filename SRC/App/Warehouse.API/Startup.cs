@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 
 namespace Warehouse.API
@@ -39,7 +40,7 @@ namespace Warehouse.API
                     options.SuppressModelStateInvalidFilter = true;  // we want to use our own ValidateModelStateFilter
                 });
 
-            services.AddSingleton(TimeProvider.System);
+            services.TryAddSingleton(TimeProvider.System);
 
             services.AddSessionCookieAuthentication();
             services.AddDbConnection();
@@ -54,7 +55,11 @@ namespace Warehouse.API
 
             app.AddRootUser();
 
-            app.UseRouting().UseAuthorization().UseMiddleware<LoggingMiddleware>().UseEndpoints(static endpoints => endpoints.MapControllers());
+            app
+                .UseRouting()
+                .UseAuthorization()
+                .UseMiddleware<LoggingMiddleware>()
+                .UseEndpoints(static endpoints => endpoints.MapControllers());
 
             if (env.IsDevelopment())
             {

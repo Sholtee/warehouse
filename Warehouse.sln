@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warehouse.DAL.Tests", "TEST
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warehouse.API.Tests", "TESTS\Warehouse.API.Tests\Warehouse.API.Tests.csproj", "{DCCCFFC6-9BCD-4878-B695-7C3A792122DE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warehouse.Tests.Server", "TESTS\Warehouse.Tests.Server\Warehouse.Tests.Server.csproj", "{0719B4B5-C7D8-4EE0-86AE-9B63175BB793}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +48,9 @@ Global
 		{DCCCFFC6-9BCD-4878-B695-7C3A792122DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DCCCFFC6-9BCD-4878-B695-7C3A792122DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DCCCFFC6-9BCD-4878-B695-7C3A792122DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0719B4B5-C7D8-4EE0-86AE-9B63175BB793}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0719B4B5-C7D8-4EE0-86AE-9B63175BB793}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0719B4B5-C7D8-4EE0-86AE-9B63175BB793}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -55,5 +60,6 @@ Global
 		{FE6F7940-C4CF-444E-9937-B50E5E96DB1C} = {D6E112D7-9669-469B-983C-8B37DF328BF9}
 		{802A562C-36BA-4FB0-9AA2-CC9D6209FA7B} = {6966C920-E636-40CF-A243-4E2E781427AE}
 		{DCCCFFC6-9BCD-4878-B695-7C3A792122DE} = {6966C920-E636-40CF-A243-4E2E781427AE}
+		{0719B4B5-C7D8-4EE0-86AE-9B63175BB793} = {6966C920-E636-40CF-A243-4E2E781427AE}
 	EndGlobalSection
 EndGlobal
