@@ -177,7 +177,7 @@ namespace Warehouse.API.Infrastructure.Tests
         [AllowAnonymous]
         public IActionResult AnonAccess() => Ok();
 
-        [HttpPost("adminaccess")]
+        [HttpGet("adminaccess")]
         [RequiredRoles(Roles.Admin)]
         public IActionResult AdminAccess() => Ok();
     }
@@ -233,6 +233,14 @@ namespace Warehouse.API.Infrastructure.Tests
 
         private TestHostFactory _appFactory = null!;
 
+        private async Task<string> CreateToken(string user, Roles role, DateTimeOffset expiration)
+        {
+            using IServiceScope scope = _appFactory.Services.CreateScope();
+
+            IJwtService jwtService = scope.ServiceProvider.GetRequiredService<IJwtService>();
+            return await jwtService.CreateTokenAsync(user, [role.ToString()], expiration);
+        }
+
         [SetUp]
         public void SetupTest() => _appFactory = new TestHostFactory();
 
@@ -254,46 +262,51 @@ namespace Warehouse.API.Infrastructure.Tests
         [Test]
         public async Task ValidSession()
         {
-            string token;
-
-            using (IServiceScope scope = _appFactory.Services.CreateScope())
-            {
-                IJwtService jwtService = scope.ServiceProvider.GetRequiredService<IJwtService>();
-                token = await jwtService.CreateTokenAsync("test_user", [Roles.Admin.ToString()], DateTimeOffset.Now.AddMinutes(5));
-            }
-
-            RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/anonaccess");
-            requestBuilder.AddHeader("Cookie", $"warehouse-session={token}");
+            RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/adminaccess");
+            requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("test_user", Roles.Admin, DateTimeOffset.Now.AddMinutes(5))}");
             HttpResponseMessage resp = await requestBuilder.GetAsync();
 
             Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         }
 
-        /*
         [Test]
         public async Task MissingCookie()
         {
-        }
+            using HttpClient client = _appFactory.CreateClient();
 
-        [Test]
-        public async Task MissingCookie()
-        {
+            HttpResponseMessage resp = await client.GetAsync("adminaccess");
+
+            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
         }
 
         [Test]
         public async Task InvalidToken()
         {
+            RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/adminaccess");
+            requestBuilder.AddHeader("Cookie", "warehouse-session=invalid");
+            HttpResponseMessage resp = await requestBuilder.GetAsync();
+
+            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
         }
 
         [Test]
         public async Task ExpiredToken()
         {
+            RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/adminaccess");
+            requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("test_user", Roles.Admin, DateTimeOffset.Now.AddMinutes(-5))}");
+            HttpResponseMessage resp = await requestBuilder.GetAsync();
+
+            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
         }
 
         [Test]
         public async Task MissingRole()
         {
+            RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/adminaccess");
+            requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("test_user", Roles.User, DateTimeOffset.Now.AddMinutes(5))}");
+            HttpResponseMessage resp = await requestBuilder.GetAsync();
+
+            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
         }
-        */
     }
 }
