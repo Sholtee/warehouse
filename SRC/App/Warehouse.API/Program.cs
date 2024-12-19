@@ -1,12 +1,13 @@
+using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 
 using Amazon.SecretsManager.Model;
 using Amazon.SecretsManager;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -15,25 +16,27 @@ using Serilog;
 namespace Warehouse.API
 {
     using Extensions;
+    using Services;
 
     internal class Program
     {
-        private static void UsingHttps(WebHostBuilderContext context, KestrelServerOptions serverOpts) => serverOpts.Listen
+        internal static void UsingHttps(WebHostBuilderContext context, KestrelServerOptions serverOpts) => serverOpts.Listen
         (
             IPAddress.Any,
             context.Configuration.GetRequiredValue<int>("ApiPort"),
-            listenOpts =>
+            static listenOpts =>
             {
+                IServiceProvider serviceProvider = listenOpts.ApplicationServices;
+
                 Dictionary<string, string> cert = JsonSerializer.Deserialize<Dictionary<string, string>>
                 (
-                    listenOpts
-                        .ApplicationServices
+                    serviceProvider
                         .GetRequiredService<IAmazonSecretsManager>()
                         .GetSecretValueAsync
                         (
                             new GetSecretValueRequest
                             {
-                                SecretId = $"{context.Configuration.GetRequiredValue<string>("Prefix")}-api-certificate"
+                                SecretId = $"{serviceProvider.GetRequiredService<IConfiguration>().GetRequiredValue<string>("Prefix")}-api-certificate"
                             }
                         )
                         .GetAwaiter()
@@ -43,7 +46,9 @@ namespace Warehouse.API
 
                 listenOpts.UseHttps
                 (
-                    X509Certificate2.CreateFromPem(cert["certificate"], cert["privateKey"])
+                    serviceProvider
+                        .GetRequiredService<IX509CertificateFactory>()
+                        .CreateFromPem(cert["certificate"], cert["privateKey"])
                 );
             }
         );

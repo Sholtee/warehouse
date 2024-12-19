@@ -15,6 +15,7 @@ namespace Warehouse.API
     using Infrastructure.Filters;
     using Infrastructure.Middlewares;
     using Infrastructure.Registrations;
+    using Services;
 
     internal sealed class Startup(IConfiguration configuration)
     {
@@ -42,6 +43,7 @@ namespace Warehouse.API
                 });
 
             services.TryAddSingleton(TimeProvider.System);
+            services.TryAddSingleton<IX509CertificateFactory, X509CertificateFactory>();
 
             services.AddSessionCookieAuthentication();
             services.AddDbConnection();
