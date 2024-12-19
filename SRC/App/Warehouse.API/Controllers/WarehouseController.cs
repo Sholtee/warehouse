@@ -1,16 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.Extensions.Logging;
 
 namespace Warehouse.API.Controllers
 {
     using Attributes;
+    using DAL;
     using Dtos;
     using Exceptions;
 
@@ -18,7 +17,7 @@ namespace Warehouse.API.Controllers
     /// API endpoints.
     /// </summary>
     [ApiController, Consumes("application/json"), Produces("application/json"), Route("api/v1"), Authorize, ApiExplorerSessionCookieAuthorization]
-    public sealed class WarehouseController(ILogger<WarehouseController> logger, IDbConnection dbConnection) : ControllerBase
+    public sealed class WarehouseController(IWarehouseRepository warehouseRepository) : ControllerBase
     {
         /// <summary>
         /// Healthcheck endpoint
@@ -28,10 +27,10 @@ namespace Warehouse.API.Controllers
         [HttpGet("healthcheck")]
         [AllowAnonymous]
         [ApiExplorerSettings(IgnoreApi = true)]
-        public IActionResult HealthCheck()
+        public async Task<IActionResult> HealthCheck()
         {
-            if (dbConnection.State != ConnectionState.Open)
-                throw new Exception("Connection is not in Open state");
+            if (!await warehouseRepository.IsHealthy())
+                throw new Exception("Repo is not healthy");
 
             return NoContent();
         }

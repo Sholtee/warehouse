@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace Warehouse.API.Infrastructure.Registrations
 {
+    using DAL.Registrations;
     using Services;
 
     internal static class RootUser
@@ -27,7 +28,7 @@ namespace Warehouse.API.Infrastructure.Registrations
             services.TryAddAWSService<IAmazonSecretsManager>();
             services.TryAddScoped(typeof(IPasswordHasher<>), typeof(PasswordHasher<>));
             services.TryAddScoped<RootUserRegistrar>();
-            services.AddRepositories();
+            services.AddWarehouseRepositories();
 
             return services;
         }

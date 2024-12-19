@@ -11,35 +11,10 @@ namespace Warehouse.DAL
 {
     using Entities;
 
-    /// <summary>
-    /// Abstract user repository.
-    /// </summary>
-    public interface IUserRepository
-    {
-        /// <summary>
-        /// Creates a new user entry.
-        /// </summary>
-        Task<bool> CreateUser(CreateUserParam param);
-
-        /// <summary>
-        /// Queries the user associated with the given <paramref name="clientId"/>. Returns null if there is no user with such id
-        /// </summary>
-        Task<QueryUserResult?> QueryUser(string clientId);
-
-        /// <summary>
-        /// Deletes the given user. Removal doesn't mean physical deletion.
-        /// </summary>
-        Task<bool> DeleteUser(string clientId);
-    }
-
-    /// <summary>
-    /// <see cref="IUserRepository"/> implementation
-    /// </summary>
-    public sealed class UserRepository(IDbConnection connection) : IUserRepository
+    internal sealed class UserRepository(IDbConnection connection) : IUserRepository
     {
         private sealed record UserRole(string ClientId, string ClientSecretHash, string RoleName);
 
-        /// <inheritdoc/>
         public async Task<bool> CreateUser(CreateUserParam param)
         {
             Guid userId = Guid.NewGuid();
@@ -82,7 +57,6 @@ namespace Warehouse.DAL
             }
         }
 
-        /// <inheritdoc/>
         public async Task<QueryUserResult?> QueryUser(string clientId)
         {
             string sql = connection
@@ -118,7 +92,6 @@ namespace Warehouse.DAL
                 .SingleOrDefault();
         }
 
-        /// <inheritdoc/>
         public async Task<bool> DeleteUser(string clientId) => await connection.UpdateAsync<User>
         (
             new { DeletedUtc = DateTime.UtcNow },

@@ -9,7 +9,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0" />
     <PackageReference Include="ServiceStack.OrmLite" Version="8.5.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute" Condition="'$(Configuration)'=='Debug'">
+      <_Parameter1>Warehouse.DAL.Tests</_Parameter1>
+    </AssemblyAttribute>
   </ItemGroup>
 
 </Project>

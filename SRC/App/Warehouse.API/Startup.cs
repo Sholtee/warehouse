@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace Warehouse.API
 {
+    using DAL.Registrations;
     using Extensions;
     using Infrastructure.Filters;
     using Infrastructure.Middlewares;
@@ -47,7 +48,7 @@ namespace Warehouse.API
 
             services.AddSessionCookieAuthentication();
             services.AddDbConnection();
-            services.AddRepositories();
+            services.AddWarehouseRepositories();
             services.AddRootUserRegistrar();
             services.AddSwagger(configuration);
         }
