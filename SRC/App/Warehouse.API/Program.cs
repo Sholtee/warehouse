@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
@@ -17,8 +16,7 @@ namespace Warehouse.API
 {
     using Extensions;
 
-    [ExcludeFromCodeCoverage]
-    internal static class Program
+    internal class Program
     {
         private static void UsingHttps(WebHostBuilderContext context, KestrelServerOptions serverOpts) => serverOpts.Listen
         (
