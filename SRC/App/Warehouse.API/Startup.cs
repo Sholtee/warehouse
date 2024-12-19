@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -5,13 +6,16 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 
 namespace Warehouse.API
 {
+    using Extensions;
     using Infrastructure.Filters;
     using Infrastructure.Middlewares;
     using Infrastructure.Registrations;
+    using Services;
 
     internal sealed class Startup(IConfiguration configuration)
     {
@@ -23,7 +27,7 @@ namespace Warehouse.API
                     options.Filters.Add<UnhandledExceptionFilter>();
                     options.Filters.Add<ValidateModelStateFilter>();
                 })
-                .AddApiExplorer()  // for swagger
+                .AddApiExplorer()  // for Swagger
                 .AddDataAnnotations()  // support for System.ComponentModel.DataAnnotations
                 .AddAuthorization()
                 .AddJsonOptions(static options =>
@@ -38,6 +42,9 @@ namespace Warehouse.API
                     options.SuppressModelStateInvalidFilter = true;  // we want to use our own ValidateModelStateFilter
                 });
 
+            services.TryAddSingleton(TimeProvider.System);
+            services.TryAddSingleton<IX509CertificateFactory, X509CertificateFactory>();
+
             services.AddSessionCookieAuthentication();
             services.AddDbConnection();
             services.AddRepositories();
@@ -51,7 +58,11 @@ namespace Warehouse.API
 
             app.AddRootUser();
 
-            app.UseRouting().UseAuthorization().UseMiddleware<LoggingMiddleware>().UseEndpoints(static endpoints => endpoints.MapControllers());
+            app
+                .UseRouting()
+                .UseAuthorization()
+                .UseMiddleware<LoggingMiddleware>()
+                .UseEndpoints(static endpoints => endpoints.MapControllers());
 
             if (env.IsDevelopment())
             {
@@ -59,7 +70,9 @@ namespace Warehouse.API
 
                 app.UseSwagger().UseSwaggerUI(options =>
                 {
-                    options.SwaggerEndpoint("/swagger/v1/swagger.json", configuration["Swagger:Version"]);
+                    string version = configuration.GetRequiredValue<string>("Swagger:Version");
+
+                    options.SwaggerEndpoint($"/swagger/{version}/swagger.json", version);
                     options.RoutePrefix = string.Empty;
                 });
             }

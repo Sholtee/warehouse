@@ -1,50 +1,42 @@
 using System;
 using System.Data;
+using System.Data.Common;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using MySqlConnector;
 
 namespace Warehouse.API.Services
 {
     using Extensions;
 
-    internal sealed class MySqlConnectionFactory(IConfiguration configuration, IMemoryCache cache, IAmazonSecretsManager secretsManager)
+    internal sealed class MySqlConnectionFactory: IDisposable
     {
         private sealed record DbSecret(string Endpoint, string Database, string UserName, string Password);
 
-        public async Task<IDbConnection> CreateConnectionAsync()
+        public MySqlConnectionFactory(IConfiguration configuration, IAmazonSecretsManager secretsManager, ILoggerFactory logger)
         {
-            DbSecret secret = (await cache.GetOrCreateAsync("db-secret", async entry =>
-            {
-                entry.AbsoluteExpiration = DateTimeOffset.UtcNow.AddMinutes
-                (
-                    configuration.GetValue($"{nameof(MySqlConnectionFactory)}:CacheExpirationMinutes", 30)
-                );
+            GetSecretValueResponse resp = secretsManager.GetSecretValueAsync
+            (
+                new GetSecretValueRequest
+                {
+                    SecretId = $"{configuration.GetRequiredValue<string>("Prefix")}-db-secret"
+                }
+            ).GetAwaiter().GetResult();
 
-                GetSecretValueResponse resp = await secretsManager.GetSecretValueAsync
-                (
-                    new GetSecretValueRequest
-                    {
-                        SecretId = $"{configuration.GetRequiredValue<string>("Prefix")}-db-secret"
-                    }
-                );
+            DbSecret secret = JsonSerializer.Deserialize<DbSecret>
+            (
+                resp.SecretString,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                }
+            )!;
 
-                return JsonSerializer.Deserialize<DbSecret>
-                (
-                    resp.SecretString,
-                    new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    }
-                )!;
-            }))!;
-
-            MySqlConnection conn = new
+            DataSource = new MySqlDataSourceBuilder
             (
                 new MySqlConnectionStringBuilder
                 {
@@ -53,12 +45,19 @@ namespace Warehouse.API.Services
                     Password = secret.Password,
                     Database = secret.Database
                 }.ConnectionString
-            );
-
-            await conn.OpenAsync();
-            return conn;
+            )
+            .UseLoggerFactory(logger)
+            .Build();
         }
 
-        public IDbConnection CreateConnection() => CreateConnectionAsync().GetAwaiter().GetResult();
+        public void Dispose()
+        {
+            DataSource?.Dispose();
+            DataSource = null!;
+        }
+
+        public DbDataSource DataSource { get; set; }  // for tests
+
+        public IDbConnection CreateConnection() => DataSource.CreateConnection();
     }
 }

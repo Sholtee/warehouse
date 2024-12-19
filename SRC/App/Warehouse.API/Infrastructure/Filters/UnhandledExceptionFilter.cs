@@ -57,7 +57,7 @@ namespace Warehouse.API.Infrastructure.Filters
             {
                 logger.LogError(new EventId(context.Exception.HResult), context.Exception.ToString());
 
-                context.Result = GetResult(StatusCodes.Status500InternalServerError, null, context.Exception);
+                context.Result = GetResult(StatusCodes.Status500InternalServerError, null, context.Exception.ToString());
             }
 
             context.ExceptionHandled = true;

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    
+  <Import Project="..\Common.targets" />
+    
+  <PropertyGroup>
+      <AssemblyName>Warehouse.DAL.Tests</AssemblyName>
+      <RootNamespace>Warehouse.DAL.Tests</RootNamespace>
+      <NoWarn>CA1859;CA2007;</NoWarn>
+  </PropertyGroup>
+    
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.0" />
+    <PackageReference Include="ServiceStack.OrmLite.Sqlite.Data" Version="8.5.2" />
+  </ItemGroup>
+    
+  <ItemGroup>
+    <ProjectReference Include="..\..\SRC\App\Warehouse.DAL\Warehouse.DAL.csproj" />
+  </ItemGroup>
+
+</Project>

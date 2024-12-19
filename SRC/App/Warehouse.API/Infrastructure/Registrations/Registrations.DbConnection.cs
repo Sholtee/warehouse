@@ -13,12 +13,11 @@ namespace Warehouse.API.Infrastructure.Registrations
         public static IServiceCollection AddDbConnection(this IServiceCollection services)
         {
             services.TryAddAWSService<IAmazonSecretsManager>();
-            services.AddMemoryCache();
-            services.TryAddScoped<MySqlConnectionFactory>();
+            services.TryAddSingleton<MySqlConnectionFactory>();
             services.TryAddScoped(static serviceProvider => serviceProvider.GetRequiredService<MySqlConnectionFactory>().CreateConnection());
 
-            OrmLiteConfig.DialectProvider = MySqlDialect.Provider;
-            services.TryAddSingleton<IOrmLiteDialectProvider>(MySqlDialect.Provider);
+            OrmLiteConfig.DialectProvider = MySqlConnectorDialect.Provider;
+            services.TryAddSingleton<IOrmLiteDialectProvider>(MySqlConnectorDialect.Provider);
 
             return services;
         }

@@ -39,7 +39,7 @@ namespace Warehouse.API.Services
             return string.Join("", chars.Shuffle());
         }
 
-        public async Task EnsureHasRootUserAsync()
+        public async Task<bool> EnsureHasRootUserAsync()
         {
             const string ROOT_USER = "root";
 
@@ -52,23 +52,24 @@ namespace Warehouse.API.Services
                 Groups = ["Admins"]
             };
 
-            if (await userRepository.CreateUser(createUserParam))
-            {
-                string secret = $"{configuration.GetRequiredValue<string>("Prefix")}-root-user-creds";
+            if (!await userRepository.CreateUser(createUserParam))
+                return false;
 
-                await secretsManager.CreateSecretAsync
-                (
-                    new CreateSecretRequest
-                    {
-                        Name = secret,
-                        SecretString = pw
-                    }
-                );
+            string secret = $"{configuration.GetRequiredValue<string>("Prefix")}-root-user-creds";
 
-                logger.LogInformation("{root} user has been created. Change the password ASAP! Initial creds stored in {secret}", ROOT_USER, secret);
-            }
+            await secretsManager.CreateSecretAsync
+            (
+                new CreateSecretRequest
+                {
+                    Name = secret,
+                    SecretString = pw
+                }
+            );
+
+            logger.LogInformation("{root} user has been created. Change the password ASAP! Initial creds stored in {secret}", ROOT_USER, secret);
+            return true;
         }
 
-        public void EnsureHasRootUser() => EnsureHasRootUserAsync().GetAwaiter().GetResult();
+        public bool EnsureHasRootUser() => EnsureHasRootUserAsync().GetAwaiter().GetResult();
     }
 }

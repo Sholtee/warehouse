@@ -24,6 +24,8 @@ namespace Warehouse.API.Infrastructure.Auth
         UrlEncoder encoder
     ) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
     {
+        public const string SCHEME = "session-cookie";
+
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
             if (Context.GetEndpoint()?.Metadata?.GetMetadata<IAllowAnonymous>() is not null)
@@ -36,7 +38,7 @@ namespace Warehouse.API.Infrastructure.Auth
                 return AuthenticateResult.Fail("Missing session cookie");
             }
 
-            TokenValidationResult validationResult = await jwtService.ValidateToken(token);
+            TokenValidationResult validationResult = await jwtService.ValidateTokenAsync(token);
             if (!validationResult.IsValid)
             {
                 return AuthenticateResult.Fail(validationResult.Exception);
