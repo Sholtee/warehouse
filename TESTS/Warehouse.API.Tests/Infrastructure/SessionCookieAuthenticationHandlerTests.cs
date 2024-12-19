@@ -36,7 +36,7 @@ namespace Warehouse.API.Infrastructure.Tests
     using Services;
 
     [TestFixture]
-    internal class SessionCookieAuthenticationHandlerTests
+    internal sealed class SessionCookieAuthenticationHandlerTests
     {
         private Mock<IOptionsMonitor<AuthenticationSchemeOptions>> _mockOptionsMonitor = null!;
         private Mock<ILoggerFactory> _mockLoggerFactory = null!;
@@ -257,6 +257,8 @@ namespace Warehouse.API.Infrastructure.Tests
             using HttpClient client = _appFactory.CreateClient();
 
             HttpResponseMessage resp = await client.GetAsync("anonaccess");
+
+            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         }
 
         [Test]
