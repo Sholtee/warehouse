@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 
 using Warehouse.Tests.Server;
 
@@ -27,8 +28,11 @@ namespace Warehouse.API.Infrastructure.Tests
         [HttpGet("notfound")]
         public IActionResult NoFoundError() => throw new NotFoundException();
 
-        [HttpGet("unknown")]
-        public IActionResult UnknownError() => throw new Exception();
+        [HttpGet("internalerror")]
+        public IActionResult InternalError() => throw new Exception("ooops");
+
+        [HttpGet("modelerror/{id}")]
+        public IActionResult ModelError(int id) => Ok();
     }
 
 
@@ -47,6 +51,7 @@ namespace Warehouse.API.Infrastructure.Tests
                             options.Filters.Add<UnhandledExceptionFilter>();
                             options.Filters.Add<ValidateModelStateFilter>();
                         })
+                        .ConfigureApiBehaviorOptions(static options => options.SuppressModelStateInvalidFilter = true)
                         .AddApplicationPart(typeof(AuthTestController).Assembly)
                         .AddControllersAsServices()
                 );
@@ -65,25 +70,37 @@ namespace Warehouse.API.Infrastructure.Tests
             _appFactory = null!;
         }
 
-        [Test]
-        public async Task BadRequest()
+        private async Task DoTest(string endpoint, HttpStatusCode expectedStatus, string expectedTitle, IResolveConstraint devMessageConstraint, string? expectedErrors = null)
         {
             using HttpClient client = _appFactory.CreateClient();
 
-            HttpResponseMessage resp = await client.GetAsync("badrequest");
+            HttpResponseMessage resp = await client.GetAsync(endpoint);
 
-            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+            Assert.That(resp.StatusCode, Is.EqualTo(expectedStatus));
 
             ErrorDetails? details = await resp.Content.ReadFromJsonAsync<ErrorDetails>();
-            
+
             Assert.Multiple(() =>
             {
                 Assert.That(details, Is.Not.Null);
-                Assert.That(details!.Status, Is.EqualTo(400));
-                Assert.That(details.Title, Is.EqualTo("Bad Request"));
+                Assert.That(details!.Status, Is.EqualTo((int) expectedStatus));
+                Assert.That(details.Title, Is.EqualTo(expectedTitle));
                 Assert.That(details.TraceId, Is.Not.Null);
-                Assert.That(details.DeveloperMessage?.ToString(), Is.EqualTo("dev message"));
+                Assert.That(details.DeveloperMessage?.ToString(), devMessageConstraint);
+                Assert.That(details.Errors?.ToString(), Is.EqualTo(expectedErrors));
             });
         }
+
+        [Test]
+        public Task BadRequest() => DoTest("badrequest", HttpStatusCode.BadRequest, "Bad Request", Is.EqualTo("dev message"));
+
+        [Test]
+        public Task NotFound() => DoTest("notfound", HttpStatusCode.NotFound, "Not Found", Is.Null);
+
+        [Test]
+        public Task InternalError() => DoTest("internalerror", HttpStatusCode.InternalServerError, "Internal Server Error", Does.Contain("ooops"));
+
+        [Test]
+        public Task ModelError() => DoTest("modelerror/invalid", HttpStatusCode.BadRequest, "Bad Request", Is.Null, "{\"id\":[\"The value 'invalid' is not valid.\"]}");
     }
 }
