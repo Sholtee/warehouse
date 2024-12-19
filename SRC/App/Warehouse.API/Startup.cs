@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace Warehouse.API
 {
+    using Extensions;
     using Infrastructure.Filters;
     using Infrastructure.Middlewares;
     using Infrastructure.Registrations;
@@ -67,7 +68,9 @@ namespace Warehouse.API
 
                 app.UseSwagger().UseSwaggerUI(options =>
                 {
-                    options.SwaggerEndpoint("/swagger/v1/swagger.json", configuration["Swagger:Version"]);
+                    string version = configuration.GetRequiredValue<string>("Swagger:Version");
+
+                    options.SwaggerEndpoint($"/swagger/{version}/swagger.json", version);
                     options.RoutePrefix = string.Empty;
                 });
             }
