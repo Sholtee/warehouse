@@ -1,4 +1,6 @@
-namespace Warehouse.API.Controllers.Dtos
+using System;
+
+namespace Warehouse.API.Controllers
 {
     /// <summary>
     /// Describes a product overview
@@ -11,9 +13,9 @@ namespace Warehouse.API.Controllers.Dtos
         public required string Name { get; init; }
 
         /// <summary>
-        /// The condition of the product
+        /// Brand of the product
         /// </summary>
-        public required ProductCondition Condition { get; init; }
+        public required string Brand { get; init; }
 
         /// <summary>
         /// Available quantity
@@ -24,5 +26,10 @@ namespace Warehouse.API.Controllers.Dtos
         /// Price
         /// </summary>
         public required decimal Price { get; init; }
+
+        /// <summary>
+        /// Date first available.
+        /// </summary>
+        public required DateTime ReleaseDate { get; init; }
     }
 }

@@ -12,10 +12,9 @@ namespace Warehouse.API.Controllers
     using Core.Auth;
     using Core.Exceptions;
     using DAL;
-    using Dtos;
 
     /// <summary>
-    /// API endpoints.
+    /// TODO: design
     /// </summary>
     [ApiController, Consumes("application/json"), Produces("application/json"), Route("api/v1"), Authorize, ApiExplorerSessionCookieAuthorization]
     public sealed class WarehouseController(IWarehouseRepository warehouseRepository) : ControllerBase
@@ -46,14 +45,8 @@ namespace Warehouse.API.Controllers
         /// <response code="403">The client is unathorized to execute the operation.</response>
         [HttpPost("products")]
         [RequiredRoles(Roles.User)]
-        public Task<List<ProductOverview>> ListProducts([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] ProductFilter filter)
+        public Task<List<ProductOverview>> ListProductOverviews([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] ProductFilter filter)
         {
-            if (filter.PriceUnder < filter.PriceOver)
-                throw new BadRequestException
-                {
-                    Errors = "Invalid price filter"
-                };
-
             return Task.FromResult<List<ProductOverview>>([]);
         }
 
@@ -79,12 +72,13 @@ namespace Warehouse.API.Controllers
 
             return Task.FromResult(new ProductDetails
             {
-                Name = "Samsung Galaxy Tab A9+",
+                Brand = "Samsung",
+                Name = "Galaxy Tab A9+",
                 Types = ["tablet"],
-                Condition = ProductCondition.New,
                 Description = "The Samsung Galaxy Tab A9 is a budget Android tablet computer and part of the Samsung Galaxy Tab series designed by Samsung Electronics.",
                 Quantity = 10,
-                Price = 10000
+                Price = 10000,
+                ReleaseDate = new DateTime(2023, 10, 17),
             });
         }
     }

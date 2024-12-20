@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 
-namespace Warehouse.API.Controllers.Dtos
+namespace Warehouse.API.Controllers
 {
     /// <summary>
     /// Product details
     /// </summary>
-    public class ProductDetails : ProductOverview
+    public sealed class ProductDetails : ProductOverview
     {
         /// <summary>
         /// Product types associated with this item.
