@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text.Json;
 
+using Amazon;
 using Amazon.SecretsManager.Model;
 using Amazon.SecretsManager;
 using Microsoft.AspNetCore.Hosting;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Events;
 using ServiceStack.Logging.Serilog;
 using ServiceStack.OrmLite;
 
@@ -57,17 +59,22 @@ namespace Warehouse.API
 
         public static void Main(string[] args) => Host
             .CreateDefaultBuilder(args)
-            .ConfigureLogging(static (context, loggerConfiguration) =>
+            .ConfigureLogging(static (context, loggerBuilder) =>
             {
-                loggerConfiguration.ClearProviders();
+                loggerBuilder.ClearProviders();
 
                 Serilog.ILogger logger = new LoggerConfiguration()
                     .ReadFrom
                     .Configuration(context.Configuration)
                     .CreateLogger();
 
-                loggerConfiguration.AddSerilog(logger);
+                loggerBuilder.AddSerilog(logger);
                 OrmLiteConfig.ResetLogFactory(new SerilogFactory(logger));
+
+                if (logger.IsEnabled(LogEventLevel.Debug))
+                {
+                    AWSConfigs.LoggingConfig.LogTo = LoggingOptions.Console;
+                }
             })
             .ConfigureWebHostDefaults
             (

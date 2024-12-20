@@ -64,7 +64,7 @@ namespace Warehouse.API.Services
                     Name = secret,
                     SecretString = pw
                 }
-            );
+            );        
 
             logger.LogInformation("{root} user has been created. Change the password ASAP! Initial creds stored in {secret}", ROOT_USER, secret);
             return true;
