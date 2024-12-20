@@ -58,6 +58,11 @@ namespace Warehouse.API.Services
 
         public DbDataSource DataSource { get; set; }  // for tests
 
-        public IDbConnection CreateConnection() => DataSource.CreateConnection();
+        public IDbConnection CreateConnection()
+        {
+            DbConnection connection = DataSource.CreateConnection();
+            connection.Open();
+            return connection;
+        }
     }
 }

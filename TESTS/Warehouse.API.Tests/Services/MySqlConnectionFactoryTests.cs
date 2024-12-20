@@ -78,18 +78,24 @@ namespace Warehouse.API.Services.Tests
             Assert.That(connectionFactory.DataSource.ConnectionString, Is.EqualTo("Server=endpoint;User ID=user;Password=pass;Database=db"));
             _mockSecretsManager.Verify(s => s.GetSecretValueAsync(It.IsAny<GetSecretValueRequest>(), default), Times.Once);
 
-            DbConnection mockConnection = new Mock<DbConnection>().Object;
+            Mock<DbConnection> mockConnection = new(MockBehavior.Strict);
+            mockConnection.Setup(c => c.Open());
+            mockConnection
+                .Protected()
+                .Setup("Dispose", ItExpr.IsAny<bool>());
+
             _mockDataSource
                 .Protected()
                 .Setup<DbConnection>("CreateDbConnection")
-                .Returns(mockConnection);
+                .Returns(mockConnection.Object);
             _mockDataSource
                 .Protected()
                 .Setup("Dispose", ItExpr.IsAny<bool>());
 
             connectionFactory.DataSource = _mockDataSource.Object;
 
-            Assert.That(connectionFactory.CreateConnection(), Is.EqualTo(mockConnection));
+            Assert.That(connectionFactory.CreateConnection(), Is.EqualTo(mockConnection.Object));
+            mockConnection.Verify(c => c.Open(), Times.Once);
         }
     }
 }
