@@ -1,0 +1,9 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <Configurations>Debug;Release</Configurations>
+        <OutputPath>..\..\..\BIN\$(Configuration)</OutputPath>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <LangVersion>13</LangVersion>
+    </PropertyGroup>
+</Project>

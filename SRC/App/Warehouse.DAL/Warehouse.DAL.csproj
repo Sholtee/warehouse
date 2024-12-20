@@ -1,13 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
+  <Import Project="..\Common.targets" />
+    
   <PropertyGroup>
       <AssemblyName>Warehouse.DAL</AssemblyName>
       <RootNamespace>Warehouse.DAL</RootNamespace>
-      <Configurations>Debug;Release</Configurations>
-      <OutputPath>..\..\..\BIN\$(Configuration)</OutputPath>
-      <TargetFramework>net9.0</TargetFramework>
-      <Nullable>enable</Nullable>
-      <LangVersion>13</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
