@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\Common.targets" />
+
+  <PropertyGroup>
+    <AssemblyName>Warehouse.API</AssemblyName>
+    <RootNamespace>Warehouse.API</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Warehouse.Core\Warehouse.Core.csproj" />
+    <ProjectReference Include="..\Warehouse.DAL\Warehouse.DAL.csproj" />
+  </ItemGroup>
+
+</Project>

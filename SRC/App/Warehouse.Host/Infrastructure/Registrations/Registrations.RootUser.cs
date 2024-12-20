@@ -28,7 +28,7 @@ namespace Warehouse.Host.Infrastructure.Registrations
             services.TryAddAWSService<IAmazonSecretsManager>();
             services.TryAddScoped(typeof(IPasswordHasher<>), typeof(PasswordHasher<>));
             services.TryAddScoped<RootUserRegistrar>();
-            services.AddWarehouseRepositories();
+            services.AddRepositories();
 
             return services;
         }

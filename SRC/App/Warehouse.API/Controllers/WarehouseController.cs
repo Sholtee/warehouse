@@ -46,7 +46,7 @@ namespace Warehouse.API.Controllers
         /// <response code="403">The client is unathorized to execute the operation.</response>
         [HttpPost("products")]
         [RequiredRoles(Roles.User)]
-        public async Task<List<ProductOverview>> ListProducts([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] ProductFilter filter)
+        public Task<List<ProductOverview>> ListProducts([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] ProductFilter filter)
         {
             if (filter.PriceUnder < filter.PriceOver)
                 throw new BadRequestException
@@ -54,7 +54,7 @@ namespace Warehouse.API.Controllers
                     Errors = "Invalid price filter"
                 };
 
-            return [];
+            return Task.FromResult<List<ProductOverview>>([]);
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace Warehouse.API.Controllers
         /// <response code="404">The provided <paramref name="id"/> is not a valid product id</response>
         [HttpGet("product/{id}")]
         [RequiredRoles(Roles.User)]
-        public async Task<ProductDetails> GetProductDetailsAsync([FromRoute] int id)
+        public Task<ProductDetails> GetProductDetailsAsync([FromRoute] int id)
         {
             if (id < 0)
                 throw new NotFoundException();
@@ -77,7 +77,7 @@ namespace Warehouse.API.Controllers
             // TODO: implement
             //
 
-            return new ProductDetails
+            return Task.FromResult(new ProductDetails
             {
                 Name = "Samsung Galaxy Tab A9+",
                 Types = ["tablet"],
@@ -85,7 +85,7 @@ namespace Warehouse.API.Controllers
                 Description = "The Samsung Galaxy Tab A9 is a budget Android tablet computer and part of the Samsung Galaxy Tab series designed by Samsung Electronics.",
                 Quantity = 10,
                 Price = 10000
-            };
+            });
         }
     }
 }

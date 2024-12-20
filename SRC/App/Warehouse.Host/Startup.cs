@@ -11,8 +11,8 @@ using Microsoft.Extensions.Hosting;
 
 namespace Warehouse.Host
 {
+    using API.Registrations;
     using Core.Abstractions;
-    using Core.Extensions;
     using DAL.Registrations;
     using Infrastructure.Filters;
     using Infrastructure.Middlewares;
@@ -29,6 +29,7 @@ namespace Warehouse.Host
                     options.Filters.Add<UnhandledExceptionFilter>();
                     options.Filters.Add<ValidateModelStateFilter>();
                 })
+                .AddControllers()
                 .AddApiExplorer()  // for Swagger
                 .AddDataAnnotations()  // support for System.ComponentModel.DataAnnotations
                 .AddAuthorization()
@@ -49,7 +50,7 @@ namespace Warehouse.Host
 
             services.AddSessionCookieAuthentication();
             services.AddDbConnection();
-            services.AddWarehouseRepositories();
+            services.AddRepositories();
             services.AddRootUserRegistrar();
             services.AddSwagger(configuration);
         }
@@ -57,9 +58,7 @@ namespace Warehouse.Host
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {         
             app.UseHttpsRedirection();
-
             app.AddRootUser();
-
             app
                 .UseRouting()
                 .UseAuthorization()
@@ -68,15 +67,8 @@ namespace Warehouse.Host
 
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
-
-                app.UseSwagger().UseSwaggerUI(options =>
-                {
-                    string version = configuration.GetRequiredValue<string>("Swagger:Version");
-
-                    options.SwaggerEndpoint($"/swagger/{version}/swagger.json", version);
-                    options.RoutePrefix = string.Empty;
-                });
+                app.UseDeveloperExceptionPage();        
+                app.UseSwagger(configuration);
             }
         }
     }

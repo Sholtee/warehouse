@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
@@ -60,5 +61,15 @@ namespace Warehouse.Host.Infrastructure.Registrations
             options.OperationFilter<AuthorizationOperationFilter>();
             options.DocumentFilter<CustomModelDocumentFilter<ErrorDetails>>();
         });
+
+        public static IApplicationBuilder UseSwagger(this IApplicationBuilder applicationBuilder, IConfiguration configuration) => applicationBuilder
+            .UseSwagger()
+            .UseSwaggerUI(options =>
+            {
+                string version = configuration.GetRequiredValue<string>("Swagger:Version");
+
+                options.SwaggerEndpoint($"/swagger/{version}/swagger.json", version);
+                options.RoutePrefix = string.Empty;
+            });
     }
 }

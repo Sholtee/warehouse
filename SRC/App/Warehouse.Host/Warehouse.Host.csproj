@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Warehouse.API\Warehouse.API.csproj" />
     <ProjectReference Include="..\Warehouse.Core\Warehouse.Core.csproj" />
     <ProjectReference Include="..\Warehouse.DAL\Warehouse.DAL.csproj" />
   </ItemGroup>
