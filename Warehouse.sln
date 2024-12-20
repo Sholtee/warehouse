@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35506.116
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warehouse.API", "SRC\App\Warehouse.API\Warehouse.API.csproj", "{12B4CC9B-1645-44D8-A231-9927586B6BFE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warehouse.API", "SRC\App\Warehouse.Host\Warehouse.Host.csproj", "{12B4CC9B-1645-44D8-A231-9927586B6BFE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalStack.Setup", "SRC\Tools\LocalStack\LocalStack.Setup.csproj", "{BA285C95-E4A0-48DA-A8C5-43F6D3C1BA07}"
 EndProject

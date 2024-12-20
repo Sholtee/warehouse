@@ -8,7 +8,7 @@ ENV DOTNET_CLI_TELEMETRY_OPTOUT=true
 
 COPY . .
 
-RUN dotnet build Warehouse.API/Warehouse.API.csproj -c $CONFIG -o ./bin
+RUN dotnet build Warehouse.Host/Warehouse.Host.csproj -c $CONFIG -o ./bin
 
 # ---------------------------------------------------
 
@@ -27,4 +27,4 @@ LABEL author="Denes Solti" title="Warehouse.API"
 
 HEALTHCHECK --interval=5m --timeout=3s --start-period=10s --retries=1 CMD curl --fail --insecure https://localhost:1986/api/v1/healthcheck || exit 1
 
-ENTRYPOINT ["dotnet", "Warehouse.API.dll"]
+ENTRYPOINT ["dotnet", "Warehouse.Host.dll"]
