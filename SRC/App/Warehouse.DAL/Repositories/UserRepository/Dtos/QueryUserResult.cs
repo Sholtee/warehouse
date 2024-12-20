@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Warehouse.DAL
 {
     using Core.Auth;
@@ -20,7 +18,7 @@ namespace Warehouse.DAL
         public required string ClientSecretHash { get; init; }
 
         /// <summary>
-        /// Roles associated to this user
+        /// Roles associated with this user
         /// </summary>
         public required Roles Roles { get; init; }
     }
