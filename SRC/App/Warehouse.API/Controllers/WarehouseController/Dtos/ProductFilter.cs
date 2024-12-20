@@ -8,7 +8,7 @@ namespace Warehouse.API.Controllers
     /// <summary>
     /// Product filter, used in queries.
     /// </summary>
-    public sealed class ProductFilter: FilterBase<IntFilter, DecimalFilter, DateFilter, NameFilter>
+    public sealed class ProductFilter: Filter<IntFilter, DecimalFilter, DateFilter, NameFilter>
     {
         public sealed class DecimalFilter : PropertyFilter<decimal, StructComparisonType>
         {

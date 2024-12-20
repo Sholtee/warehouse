@@ -71,7 +71,7 @@ namespace Warehouse.API.Controllers
     /// }
     /// </code>
     /// </summary>
-    public class FilterBase<TIntFilter, TDecimalFilter, TDateFilter, TStringFilter>: PaginationConfig, IValidatableObject
+    public class Filter<TIntFilter, TDecimalFilter, TDateFilter, TStringFilter>: PaginationConfig, IValidatableObject
         where TIntFilter: PropertyFilter<int, StructComparisonType>
         where TDecimalFilter: PropertyFilter<decimal, StructComparisonType>
         where TDateFilter: PropertyFilter<DateTime, StructComparisonType>
@@ -85,11 +85,11 @@ namespace Warehouse.API.Controllers
 
         public TStringFilter? String { get; init; }
 
-        public FilterBase<TIntFilter, TDecimalFilter, TDateFilter, TStringFilter>? Block { get; init; }
+        public Filter<TIntFilter, TDecimalFilter, TDateFilter, TStringFilter>? Block { get; init; }
 
-        public FilterBase<TIntFilter, TDecimalFilter, TDateFilter, TStringFilter>? And { get; init; }
+        public Filter<TIntFilter, TDecimalFilter, TDateFilter, TStringFilter>? And { get; init; }
 
-        public FilterBase<TIntFilter, TDecimalFilter, TDateFilter, TStringFilter>? Or { get; init; }
+        public Filter<TIntFilter, TDecimalFilter, TDateFilter, TStringFilter>? Or { get; init; }
 
         public virtual IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
