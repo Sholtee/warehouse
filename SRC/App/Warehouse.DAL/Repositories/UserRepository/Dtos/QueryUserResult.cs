@@ -2,6 +2,8 @@ using System.Collections.Generic;
 
 namespace Warehouse.DAL
 {
+    using Core.Auth;
+
     /// <summary>
     /// Describes an user
     /// </summary>
@@ -20,6 +22,6 @@ namespace Warehouse.DAL
         /// <summary>
         /// Roles associated to this user
         /// </summary>
-        public required IReadOnlyList<string> Roles { get; init; }
+        public required Roles Roles { get; init; }
     }
 }

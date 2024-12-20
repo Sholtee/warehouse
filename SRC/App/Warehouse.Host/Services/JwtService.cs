@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -16,6 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace Warehouse.Host.Services
 {
     using Core.Abstractions;
+    using Core.Auth;
     using Core.Extensions;
 
     internal sealed class JwtService(IMemoryCache cache, IConfiguration configuration, IAmazonSecretsManager secretsManager, ILogger<JwtService> logger): IJwtService
@@ -44,7 +44,7 @@ namespace Warehouse.Host.Services
             );
         });
 
-        public async Task<string> CreateTokenAsync(string user, IEnumerable<string> roles, DateTimeOffset expires)
+        public async Task<string> CreateTokenAsync(string user, Roles roles, DateTimeOffset expires)
         {
             JwtSecurityToken token = new
             (
@@ -53,7 +53,7 @@ namespace Warehouse.Host.Services
                 claims:
                 [
                     new Claim(ClaimTypes.Name, user),
-                    ..roles.Select(static role => new Claim(ClaimTypes.Role, role))
+                    ..roles.SetFlags().Select(static role => new Claim(ClaimTypes.Role, role.ToString()))
                 ],
                 expires: expires.DateTime,
                 signingCredentials: new SigningCredentials(await SecurityKey, _algorithm)

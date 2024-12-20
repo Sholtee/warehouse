@@ -237,7 +237,7 @@ namespace Warehouse.Host.Infrastructure.Tests
             using IServiceScope scope = _appFactory.Services.CreateScope();
 
             IJwtService jwtService = scope.ServiceProvider.GetRequiredService<IJwtService>();
-            return await jwtService.CreateTokenAsync(user, [role.ToString()], expiration);
+            return await jwtService.CreateTokenAsync(user, role, expiration);
         }
 
         [SetUp]

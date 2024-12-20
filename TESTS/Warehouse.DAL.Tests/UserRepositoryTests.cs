@@ -72,7 +72,7 @@ namespace Warehouse.DAL.Tests
                 Assert.That(queried, Is.Not.Null);
                 Assert.That(queried.ClientId, Is.EqualTo(TEST_USER));
                 Assert.That(queried.ClientSecretHash, Is.EqualTo("hash"));
-                Assert.That(queried.Roles, Is.EquivalentTo(["Admin", "User"]));
+                Assert.That(queried.Roles, Is.EqualTo(Roles.User | Roles.Admin));
             });
         }
 

@@ -1,11 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Microsoft.IdentityModel.Tokens;
 
 namespace Warehouse.Core.Abstractions
 {
+    using Auth;
+
     /// <summary>
     /// Service to create and validate JSON Web Tokens
     /// </summary>
@@ -14,7 +15,7 @@ namespace Warehouse.Core.Abstractions
         /// <summary>
         /// Creates a new JWT
         /// </summary>
-        Task<string> CreateTokenAsync(string user, IEnumerable<string> roles, DateTimeOffset expires);
+        Task<string> CreateTokenAsync(string user, Roles roles, DateTimeOffset expires);
 
         /// <summary>
         /// Validates the given JWT

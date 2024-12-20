@@ -9,11 +9,12 @@ using ServiceStack.OrmLite;
 
 namespace Warehouse.DAL
 {
+    using Core.Auth;
     using Entities;
 
     internal sealed class UserRepository(IDbConnection connection) : IUserRepository
     {
-        private sealed record UserRole(string ClientId, string ClientSecretHash, string RoleName);
+        private sealed record UserRole(string ClientId, string ClientSecretHash, Roles Role);
 
         public async Task<bool> CreateUser(CreateUserParam param)
         {
@@ -67,7 +68,7 @@ namespace Warehouse.DAL
                     {
                         user.ClientId,
                         user.ClientSecretHash,
-                        RoleName = role.Name
+                        Role = role.Name
                     }
                 )
                 .Join<User, UserGroup>(static (user, ug) => user.Id == ug.UserId)
@@ -86,7 +87,7 @@ namespace Warehouse.DAL
                     {
                         ClientId = grp.Key.ClientId,
                         ClientSecretHash = grp.Key.ClientSecretHash,
-                        Roles = grp.Select(static role => role.RoleName).ToList()
+                        Roles = grp.Aggregate(Roles.None, static (current, role) => current | role.Role)
                     }
                 )
                 .SingleOrDefault();
