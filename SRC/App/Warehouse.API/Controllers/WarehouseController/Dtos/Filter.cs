@@ -104,7 +104,7 @@ namespace Warehouse.API.Controllers
             }
 
             if (notNull is not 1)
-                yield return new ValidationResult("One filter must be provided");
+                yield return new ValidationResult("One filter must be provided", [nameof(Int), nameof(Decimal), nameof(Date), nameof(String), nameof(Block)]);
         }
     }
 }
