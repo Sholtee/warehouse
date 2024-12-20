@@ -2,7 +2,7 @@ using System;
 
 using ServiceStack.DataAnnotations;
 
-namespace Warehouse.DAL
+namespace Warehouse.DAL.Entities
 {
     internal abstract class EntityBase
     {
