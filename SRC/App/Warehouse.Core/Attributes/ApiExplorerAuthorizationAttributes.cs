@@ -2,15 +2,15 @@ using System;
 
 using Microsoft.OpenApi.Models;
 
-namespace Warehouse.API.Attributes
+namespace Warehouse.Core.Attributes
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false)]
-    internal abstract class ApiExplorerAuthorizationAttribute : Attribute
+    public abstract class ApiExplorerAuthorizationAttribute : Attribute
     {
         public abstract OpenApiSecurityRequirement SecurityRequirement { get; }
     }
 
-    internal sealed class ApiExplorerBasicAuthorizationAttribute : ApiExplorerAuthorizationAttribute
+    public sealed class ApiExplorerBasicAuthorizationAttribute : ApiExplorerAuthorizationAttribute
     {
         public override OpenApiSecurityRequirement SecurityRequirement { get; } = new OpenApiSecurityRequirement()
         {
@@ -28,7 +28,7 @@ namespace Warehouse.API.Attributes
         };
     }
 
-    internal sealed class ApiExplorerSessionCookieAuthorizationAttribute : ApiExplorerAuthorizationAttribute
+    public sealed class ApiExplorerSessionCookieAuthorizationAttribute : ApiExplorerAuthorizationAttribute
     {
         public override OpenApiSecurityRequirement SecurityRequirement { get; } = new OpenApiSecurityRequirement()
         {

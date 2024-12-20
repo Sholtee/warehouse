@@ -10,6 +10,8 @@ using ServiceStack.OrmLite;
 
 namespace Warehouse.DAL.Tests
 {
+    using Core.Auth;
+
     [TestFixture]
     internal class UserRepositoryTests
     {
@@ -38,8 +40,8 @@ namespace Warehouse.DAL.Tests
             (
                 Schema.Dump
                 (
-                    new CreateGroupParam { Name = "Admins", Roles = ["Admin", "User"] },
-                    new CreateGroupParam { Name = "Users",  Roles = ["User"] }
+                    new CreateGroupParam { Name = "Admins", Roles = Roles.Admin | Roles.User },
+                    new CreateGroupParam { Name = "Users",  Roles = Roles.User }
                 )
             );
 

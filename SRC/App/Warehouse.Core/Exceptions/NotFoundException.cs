@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Http;
 
-namespace Warehouse.API.Exceptions
+namespace Warehouse.Core.Exceptions
 {
-    internal sealed class NotFoundException : RequestException
+    public sealed class NotFoundException : RequestException
     {
         public override int HttpStatus { get; } = StatusCodes.Status404NotFound;
     }

@@ -4,9 +4,9 @@ using System.Reflection;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace Warehouse.API.Infrastructure.Filters
+namespace Warehouse.Host.Infrastructure.Filters
 {
-    using Attributes;
+    using Core.Attributes;
 
     internal sealed class AuthorizationOperationFilter : IOperationFilter
     {

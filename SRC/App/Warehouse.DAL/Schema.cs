@@ -9,6 +9,8 @@ using ServiceStack.OrmLite;
 
 namespace Warehouse.DAL
 {
+    using Core.Auth;
+    using Core.Extensions;
     using Entities;
 
     /// <summary>
@@ -73,7 +75,7 @@ namespace Warehouse.DAL
 
             List<string> lines = [];
 
-            IReadOnlyDictionary<string, Guid> roles = groups.SelectMany(static grp => grp.Roles).Distinct().ToDictionary(static role => role, role =>
+            IReadOnlyDictionary<Roles, Guid> roles = groups.SelectMany(static grp => grp.Roles.SetFlags()).Distinct().ToDictionary(static role => role, role =>
             {
                 Guid id = Guid.NewGuid();
 
@@ -84,7 +86,7 @@ namespace Warehouse.DAL
                         new Role
                         {
                             Id = id,
-                            Name = role
+                            Name = role.ToString()
                         }
                     )
                 );
@@ -109,7 +111,7 @@ namespace Warehouse.DAL
                     )
                 );
 
-                foreach (string role in group.Roles)
+                foreach (Roles role in group.Roles.SetFlags())
                 {
                     lines.Add
                     (

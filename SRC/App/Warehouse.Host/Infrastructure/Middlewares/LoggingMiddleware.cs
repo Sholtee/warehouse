@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 
-namespace Warehouse.API.Infrastructure.Middlewares
+namespace Warehouse.Host.Infrastructure.Middlewares
 {
     internal class LoggingMiddleware(RequestDelegate next, ILogger<LoggingMiddleware> logger)
     {

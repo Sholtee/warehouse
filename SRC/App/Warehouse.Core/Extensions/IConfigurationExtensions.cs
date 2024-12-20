@@ -2,9 +2,9 @@ using System;
 
 using Microsoft.Extensions.Configuration;
 
-namespace Warehouse.API.Extensions
+namespace Warehouse.Core.Extensions
 {
-    internal static class IConfigurationExtensions
+    public static class IConfigurationExtensions
     {
         public static T GetRequiredValue<T>(this IConfiguration self, string key)
         {

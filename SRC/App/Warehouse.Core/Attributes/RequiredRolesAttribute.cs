@@ -4,15 +4,15 @@ using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 
 
-namespace Warehouse.API.Attributes
+namespace Warehouse.Core.Attributes
 {
-    using Infrastructure.Auth;
+    using Auth;
 
-    internal sealed class RequiredRolesAttribute : AuthorizeAttribute
+    public sealed class RequiredRolesAttribute : AuthorizeAttribute
     {
         public RequiredRolesAttribute(Roles roles)
         {
-            AuthenticationSchemes = SessionCookieAuthenticationHandler.SCHEME;
+            AuthenticationSchemes = Authentication.SCHEME;
             Roles = string.Join(',', Enum.GetValues<Roles>().Where(role => role > 0 && roles.HasFlag(role)));
         }
     }

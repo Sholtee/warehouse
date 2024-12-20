@@ -26,14 +26,13 @@ using Microsoft.IdentityModel.Tokens;
 using Moq;
 using NUnit.Framework;
 
-using Warehouse.Tests.Server;
-
-namespace Warehouse.API.Infrastructure.Tests
+namespace Warehouse.Host.Infrastructure.Tests
 {
-    using Attributes;
     using Auth;
+    using Core.Abstractions;
+    using Core.Attributes;
+    using Core.Auth;
     using Registrations;
-    using Services;
 
     [TestFixture]
     internal sealed class SessionCookieAuthenticationHandlerTests
@@ -60,7 +59,7 @@ namespace Warehouse.API.Infrastructure.Tests
             _mockTimeProvider = new Mock<TimeProvider>(MockBehavior.Strict);
             _mockOptionsMonitor = new Mock<IOptionsMonitor<AuthenticationSchemeOptions>>(MockBehavior.Strict);
             _mockOptionsMonitor
-                .Setup(m => m.Get(SessionCookieAuthenticationHandler.SCHEME))
+                .Setup(m => m.Get(Authentication.SCHEME))
                 .Returns(new AuthenticationSchemeOptions { TimeProvider = _mockTimeProvider.Object });
             _mockLogger = new Mock<ILogger>(MockBehavior.Loose);
             _mockLoggerFactory = new Mock<ILoggerFactory>(MockBehavior.Strict);
@@ -89,7 +88,7 @@ namespace Warehouse.API.Infrastructure.Tests
             (
                 new AuthenticationScheme
                 (
-                    SessionCookieAuthenticationHandler.SCHEME,
+                    Authentication.SCHEME,
                     null,
                     typeof(SessionCookieAuthenticationHandler)
                 ),
@@ -185,7 +184,7 @@ namespace Warehouse.API.Infrastructure.Tests
     [TestFixture]
     internal class SessionCookieAuthenticationHandlerIntegrationTests
     {
-        private sealed class TestHostFactory : WebApplicationFactory<TestHost>
+        private sealed class TestHostFactory : WebApplicationFactory<Warehouse.Tests.Host.Program>
         {
             protected override IHost CreateHost(IHostBuilder builder)
             {

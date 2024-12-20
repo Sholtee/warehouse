@@ -7,10 +7,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace Warehouse.API.Services
-{    
+namespace Warehouse.Host.Services
+{
+    using Core.Extensions;
     using DAL;
-    using Extensions;
 
     internal sealed class RootUserRegistrar
     (

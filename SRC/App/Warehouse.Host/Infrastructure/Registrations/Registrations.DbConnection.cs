@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using ServiceStack.OrmLite;
 
 
-namespace Warehouse.API.Infrastructure.Registrations
+namespace Warehouse.Host.Infrastructure.Registrations
 {
     using Services;
 

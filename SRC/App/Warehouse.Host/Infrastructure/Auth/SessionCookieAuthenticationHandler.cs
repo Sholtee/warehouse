@@ -10,10 +10,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Warehouse.API.Infrastructure.Auth
+namespace Warehouse.Host.Infrastructure.Auth
 {
-    using Extensions;
-    using Services;
+    using Core.Abstractions;
+    using Core.Extensions;
 
     internal sealed class SessionCookieAuthenticationHandler
     (
@@ -24,8 +24,6 @@ namespace Warehouse.API.Infrastructure.Auth
         UrlEncoder encoder
     ) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
     {
-        public const string SCHEME = "session-cookie";
-
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
             if (Context.GetEndpoint()?.Metadata?.GetMetadata<IAllowAnonymous>() is not null)

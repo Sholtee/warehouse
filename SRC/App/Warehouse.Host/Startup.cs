@@ -9,10 +9,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 
-namespace Warehouse.API
+namespace Warehouse.Host
 {
+    using Core.Abstractions;
+    using Core.Extensions;
     using DAL.Registrations;
-    using Extensions;
     using Infrastructure.Filters;
     using Infrastructure.Middlewares;
     using Infrastructure.Registrations;

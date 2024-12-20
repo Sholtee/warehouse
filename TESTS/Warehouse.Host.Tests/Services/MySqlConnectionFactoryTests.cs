@@ -11,7 +11,7 @@ using Moq.Protected;
 using NUnit.Framework;
 
 
-namespace Warehouse.API.Services.Tests
+namespace Warehouse.Host.Services.Tests
 {
     [TestFixture]
     internal sealed class MySqlConnectionFactoryTests

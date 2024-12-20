@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Warehouse.Tests.Server
+namespace Warehouse.Tests.Host
 {
     public sealed class Startup
     {

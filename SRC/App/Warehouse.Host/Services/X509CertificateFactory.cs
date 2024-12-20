@@ -1,17 +1,8 @@
 using System.Security.Cryptography.X509Certificates;
 
-namespace Warehouse.API.Services
+namespace Warehouse.Host.Services
 {
-    /// <summary>
-    /// Contract on how to create certificates.
-    /// </summary>
-    public interface IX509CertificateFactory
-    {
-        /// <summary>
-        /// Creates a new <see cref="X509Certificate"/> from the given <paramref name="certificate"/> and <paramref name="privateKey"/>
-        /// </summary>
-        X509Certificate2 CreateFromPem(string certificate, string privateKey);
-    }
+    using Core.Abstractions;
 
     internal sealed class X509CertificateFactory : IX509CertificateFactory
     {

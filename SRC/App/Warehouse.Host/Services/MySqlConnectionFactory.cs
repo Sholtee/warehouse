@@ -9,9 +9,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
 
-namespace Warehouse.API.Services
+namespace Warehouse.Host.Services
 {
-    using Extensions;
+    using Core.Extensions;
 
     internal sealed class MySqlConnectionFactory: IDisposable
     {

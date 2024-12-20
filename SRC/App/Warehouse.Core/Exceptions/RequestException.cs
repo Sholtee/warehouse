@@ -1,8 +1,8 @@
 using System;
 
-namespace Warehouse.API.Exceptions
+namespace Warehouse.Core.Exceptions
 {
-    internal abstract class RequestException : Exception
+    public abstract class RequestException : Exception
     {
         /// <summary>
         /// Additional information regarding the error that might contain sensitive data.

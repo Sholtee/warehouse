@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Warehouse.API.Extensions
+namespace Warehouse.Core.Extensions
 {
-    internal static class IEnumerableExtensions
+    public static class IEnumerableExtensions
     {
         public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> self)
         {

@@ -10,7 +10,7 @@ using Moq;
 using NUnit.Framework;
 
 
-namespace Warehouse.API.Services.Tests
+namespace Warehouse.Host.Services.Tests
 {
     using DAL;
 

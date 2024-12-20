@@ -6,10 +6,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 
-namespace Warehouse.API.Infrastructure.Registrations
+namespace Warehouse.Host.Infrastructure.Registrations
 {
-    using Extensions;
-    using Infrastructure.Filters;
+    using Core.Extensions;
+    using Filters;
 
     internal static class Swagger
     {

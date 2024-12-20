@@ -13,25 +13,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Warehouse.API.Services
+namespace Warehouse.Host.Services
 {
-    using Extensions;
-
-    /// <summary>
-    /// Service to create and validate JSON Web Tokens
-    /// </summary>
-    public interface IJwtService
-    {
-        /// <summary>
-        /// Creates a new JWT
-        /// </summary>
-        Task<string> CreateTokenAsync(string user, IEnumerable<string> roles, DateTimeOffset expires);
-
-        /// <summary>
-        /// Validates the given JWT
-        /// </summary>
-        Task<TokenValidationResult> ValidateTokenAsync(string token);
-    }
+    using Core.Abstractions;
+    using Core.Extensions;
 
     internal sealed class JwtService(IMemoryCache cache, IConfiguration configuration, IAmazonSecretsManager secretsManager, ILogger<JwtService> logger): IJwtService
     {

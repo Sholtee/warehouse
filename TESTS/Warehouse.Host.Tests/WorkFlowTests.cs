@@ -20,8 +20,9 @@ using Moq;
 using NUnit.Framework;
 using ServiceStack.OrmLite;
 
-namespace Warehouse.API.Tests
+namespace Warehouse.Host.Tests
 {
+    using Core.Auth;
     using DAL;
 
     [TestFixture]
@@ -47,8 +48,8 @@ namespace Warehouse.API.Tests
                 (
                     Schema.Dump
                     (
-                        new CreateGroupParam { Name = "Admins", Roles = ["Admin", "User"] },
-                        new CreateGroupParam { Name = "Users", Roles = ["User"] }
+                        new CreateGroupParam { Name = "Admins", Roles = Roles.Admin | Roles.User },
+                        new CreateGroupParam { Name = "Users", Roles = Roles.User }
                     )
                 );
 

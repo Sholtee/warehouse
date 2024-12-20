@@ -1,9 +1,9 @@
 using System;
 
-namespace Warehouse.API
+namespace Warehouse.Core.Auth
 {
     [Flags]
-    internal enum Roles
+    public enum Roles
     {
         None = 0,
         User = 1 << 0,

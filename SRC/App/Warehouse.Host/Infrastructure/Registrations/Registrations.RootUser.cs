@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 
-namespace Warehouse.API.Infrastructure.Registrations
+namespace Warehouse.Host.Infrastructure.Registrations
 {
     using DAL.Registrations;
     using Services;

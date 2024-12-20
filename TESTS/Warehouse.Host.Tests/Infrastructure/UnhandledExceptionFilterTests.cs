@@ -12,11 +12,9 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
 
-using Warehouse.Tests.Server;
-
-namespace Warehouse.API.Infrastructure.Tests
+namespace Warehouse.Host.Infrastructure.Tests
 {
-    using Exceptions;
+    using Core.Exceptions;
     using Filters;
 
     [ApiController]
@@ -39,7 +37,7 @@ namespace Warehouse.API.Infrastructure.Tests
     [TestFixture]
     internal sealed class UnhandledExceptionFilterTests
     {
-        private sealed class TestHostFactory : WebApplicationFactory<TestHost>
+        private sealed class TestHostFactory : WebApplicationFactory<Warehouse.Tests.Host.Program>
         {
             protected override void ConfigureWebHost(IWebHostBuilder builder)
             {

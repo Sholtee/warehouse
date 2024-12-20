@@ -8,9 +8,9 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Warehouse.API.Infrastructure.Filters
+namespace Warehouse.Host.Infrastructure.Filters
 {
-    using Exceptions;
+    using Core.Exceptions;
 
     /// <summary>
     /// Error details.

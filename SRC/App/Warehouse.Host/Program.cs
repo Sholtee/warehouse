@@ -17,10 +17,10 @@ using Serilog.Events;
 using ServiceStack.Logging.Serilog;
 using ServiceStack.OrmLite;
 
-namespace Warehouse.API
+namespace Warehouse.Host
 {
-    using Extensions;
-    using Services;
+    using Core.Abstractions;
+    using Core.Extensions;
 
     internal class Program
     {
@@ -57,8 +57,8 @@ namespace Warehouse.API
             }
         );
 
-        public static void Main(string[] args) => Host
-            .CreateDefaultBuilder(args)
+        public static void Main(string[] args) => new HostBuilder()
+            .ConfigureDefaults(args)
             .ConfigureLogging(static (context, loggerBuilder) =>
             {
                 loggerBuilder.ClearProviders();

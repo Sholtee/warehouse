@@ -1,7 +1,7 @@
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace Warehouse.API.Infrastructure.Filters
+namespace Warehouse.Host.Infrastructure.Filters
 {
     internal sealed class CustomModelDocumentFilter<T> : IDocumentFilter where T : class
     {

@@ -8,10 +8,11 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Warehouse.API.Controllers
 {
-    using Attributes;
+    using Core.Attributes;
+    using Core.Auth;
+    using Core.Exceptions;
     using DAL;
     using Dtos;
-    using Exceptions;
 
     /// <summary>
     /// API endpoints.

@@ -11,9 +11,9 @@ using Moq;
 using NUnit.Framework;
 
 
-namespace Warehouse.API.Tests
+namespace Warehouse.Host.Tests
 {
-    using Services;
+    using Core.Abstractions;
 
     [TestFixture]
     internal sealed class ProgramTests

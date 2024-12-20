@@ -11,10 +11,10 @@ using Microsoft.Extensions.Primitives;
 
 namespace Warehouse.API.Controllers
 {
-    using Attributes;
+    using Core.Abstractions;
+    using Core.Attributes;
+    using Core.Extensions;
     using DAL;
-    using Extensions;
-    using Services;
 
     /// <summary>
     /// Login endpoints.

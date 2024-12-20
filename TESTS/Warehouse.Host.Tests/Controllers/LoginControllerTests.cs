@@ -14,8 +14,8 @@ using NUnit.Framework;
 
 namespace Warehouse.API.Controllers.Tests
 {
+    using Core.Abstractions;
     using DAL;
-    using Services;
 
     [TestFixture]
     internal class LoginControllerTests

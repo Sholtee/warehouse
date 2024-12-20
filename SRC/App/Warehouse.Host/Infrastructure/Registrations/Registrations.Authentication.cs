@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace Warehouse.API.Infrastructure.Registrations
+namespace Warehouse.Host.Infrastructure.Registrations
 {
     using Auth;
+    using Core.Abstractions;
+    using Core.Auth;
     using Services;
 
     internal static partial class Registrations
@@ -20,7 +22,7 @@ namespace Warehouse.API.Infrastructure.Registrations
 
             return services
                 .AddAuthentication()
-                .AddScheme<AuthenticationSchemeOptions, SessionCookieAuthenticationHandler>(SessionCookieAuthenticationHandler.SCHEME, null);
+                .AddScheme<AuthenticationSchemeOptions, SessionCookieAuthenticationHandler>(Authentication.SCHEME, null);
         }
     }
 }

@@ -3,9 +3,9 @@ using System.Linq;
 
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace Warehouse.API.Infrastructure.Filters
+namespace Warehouse.Host.Infrastructure.Filters
 {
-    using Exceptions;
+    using Core.Exceptions;
 
     internal sealed class ValidateModelStateFilter : IActionFilter
     {
