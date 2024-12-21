@@ -15,7 +15,7 @@ namespace Warehouse.API.Controllers
     using DAL;
 
     /// <summary>
-    /// TODO: design
+    /// TODO: finish implementation
     /// </summary>
     [ApiController, Consumes("application/json"), Produces("application/json"), Route("api/v1"), Authorize, ApiExplorerSessionCookieAuthorization]
     public sealed class WarehouseController(IWarehouseRepository warehouseRepository, IMapper mapper) : ControllerBase
