@@ -20,8 +20,7 @@ namespace Warehouse.DAL
         public required DateTime ReleaseDate { get; init; }
     }
 
-    public sealed class ListProductOverviewsResult
+    public sealed class ListProductOverviewsResult: List<ProductOverview>
     {
-        public required List<ProductOverview> Products { get; init; }
     }
 }

@@ -17,19 +17,16 @@ namespace Warehouse.DAL
         (
             productId != Guid.Empty ? null : new GetProductDetailsByIdResult
             {
-                ProductDetails = new ProductDetails
-                {
-                    Id = productId,
-                    Brand = "Samsung",
-                    Name = "Galaxy Tab A9+",
-                    Types = ["tablet"],
-                    Description = "The Samsung Galaxy Tab A9 is a budget Android tablet computer and part of the Samsung Galaxy Tab series designed by Samsung Electronics.",
-                    Quantity = 10,
-                    Price = 10000,
-                    ReleaseDate = new DateTime(2023, 10, 17),
-                    MainImage = "main.image",
-                    Images = []
-                }
+                Id = productId,
+                Brand = "Samsung",
+                Name = "Galaxy Tab A9+",
+                Types = ["tablet"],
+                Description = "The Samsung Galaxy Tab A9 is a budget Android tablet computer and part of the Samsung Galaxy Tab series designed by Samsung Electronics.",
+                Quantity = 10,
+                Price = 10000,
+                ReleaseDate = new DateTime(2023, 10, 17),
+                MainImage = "main.image",
+                Images = []
             }
         );
 
@@ -37,8 +34,7 @@ namespace Warehouse.DAL
         (
             new ListProductOverviewsResult
             {
-                Products =
-                [
+                {
                     new ProductOverview
                     {
                         Id = Guid.Empty,
@@ -49,7 +45,7 @@ namespace Warehouse.DAL
                         ReleaseDate = new DateTime(2023, 10, 17),
                         MainImage = "main.image"
                     }
-                ]
+                }
             }
         );
     }
