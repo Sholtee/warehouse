@@ -3,12 +3,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Warehouse.API.Controllers
 {
-    using static ProductFilter;
-
     /// <summary>
-    /// Product filter, used in queries.
+    /// <see cref="WarehouseController.ListProductOverviews(ListProductOverviewsParam)"/> request parameter.
     /// </summary>
-    public sealed class ProductFilter: Filter<IntFilter, DecimalFilter, DateFilter, NameFilter>
+    public sealed class ListProductOverviewsParam
     {
         public sealed class DecimalFilter : PropertyFilter<decimal, StructComparisonType>
         {
@@ -33,5 +31,15 @@ namespace Warehouse.API.Controllers
             [AllowedValues]  // no properties are bound
             public override required string Property { get; init; }
         }
+
+        /// <summary>
+        /// Filter to be applied on query.
+        /// </summary>
+        public required Filter<IntFilter, DecimalFilter, DateFilter, NameFilter> Filter { get; init; }
+
+        /// <summary>
+        /// Pagination config. If not procided the first 10 item is returend
+        /// </summary>
+        public PaginationConfig Page { get; init; } = PaginationConfig.Default;
     }
 }

@@ -1,19 +1,27 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Warehouse.API.Controllers
 {
-    public abstract class PaginationConfig
+    /// <summary>
+    /// Pagination config
+    /// </summary>
+    public sealed class PaginationConfig
     {
         /// <summary>
-        /// Pages to skip.
+        /// The default value. Returns the first 10 element.
         /// </summary>
-        [Range(0, uint.MaxValue)]
-        public uint? SkipPages { get; init; } = 0;
+        public static readonly PaginationConfig Default = new();
 
         /// <summary>
-        /// Page size.
+        /// Pages to skip. Set to the first page if not provided.
+        /// </summary>
+        [Range(0, uint.MaxValue)]
+        public uint SkipPages { get; init; } = 0;
+
+        /// <summary>
+        /// Page size. Set to 10 if not provided
         /// </summary>
         [Range(1, 50)]
-        public uint? PageSize { get; init; } = 10;
+        public uint PageSize { get; init; } = 10;
     }
 }

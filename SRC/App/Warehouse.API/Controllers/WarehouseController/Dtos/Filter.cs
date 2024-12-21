@@ -71,7 +71,7 @@ namespace Warehouse.API.Controllers
     /// }
     /// </code>
     /// </summary>
-    public class Filter<TIntFilter, TDecimalFilter, TDateFilter, TStringFilter>: PaginationConfig, IValidatableObject
+    public sealed class Filter<TIntFilter, TDecimalFilter, TDateFilter, TStringFilter>: IValidatableObject
         where TIntFilter: PropertyFilter<int, StructComparisonType>
         where TDecimalFilter: PropertyFilter<decimal, StructComparisonType>
         where TDateFilter: PropertyFilter<DateTime, StructComparisonType>
@@ -91,7 +91,7 @@ namespace Warehouse.API.Controllers
 
         public Filter<TIntFilter, TDecimalFilter, TDateFilter, TStringFilter>? Or { get; init; }
 
-        public virtual IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (And is not null && Or is not null)
                 yield return new ValidationResult($"'{nameof(And)}' and '{nameof(Or)}' cannot be provided simultaneously", [nameof(And), nameof(Or)]);

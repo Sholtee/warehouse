@@ -38,16 +38,20 @@ namespace Warehouse.API.Controllers
         /// <summary>
         /// Lists products matching on the given <paramref name="filter"/>.
         /// </summary>
-        /// <param name="filter">Filter object</param>
+        /// <param name="param">Parameter contining a the filter pattern.</param>
         /// <returns>Product list matching the given criteria.</returns>
-        /// <response code="200">Returns the list</response>
-        /// <response code="400">The provided <paramref name="filter"/> is not in a valid form</response>
+        /// <response code="200">Returns the matching product list</response>
+        /// <response code="400">The provided parameter is not in a valid form</response>
         /// <response code="403">The client is unathorized to execute the operation.</response>
         [HttpPost("products")]
         [RequiredRoles(Roles.User)]
-        public Task<List<ProductOverview>> ListProductOverviews([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] ProductFilter filter)
+        public Task<List<ListProductOverviewsResult>> ListProductOverviews([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] ListProductOverviewsParam param)
         {
-            return Task.FromResult<List<ProductOverview>>([]);
+            //
+            // TODO: implement
+            //
+
+            return Task.FromResult<List<ListProductOverviewsResult>>([]);
         }
 
         /// <summary>
@@ -61,25 +65,34 @@ namespace Warehouse.API.Controllers
         /// <response code="404">The provided <paramref name="id"/> is not a valid product id</response>
         [HttpGet("product/{id}")]
         [RequiredRoles(Roles.User)]
-        public Task<ProductDetails> GetProductDetailsAsync([FromRoute] int id)
+        public Task<GetProductDetailsResult> GetProductDetails([FromRoute] Guid id)
         {
-            if (id < 0)
-                throw new NotFoundException();
-
             //
             // TODO: implement
             //
 
-            return Task.FromResult(new ProductDetails
-            {
-                Brand = "Samsung",
-                Name = "Galaxy Tab A9+",
-                Types = ["tablet"],
-                Description = "The Samsung Galaxy Tab A9 is a budget Android tablet computer and part of the Samsung Galaxy Tab series designed by Samsung Electronics.",
-                Quantity = 10,
-                Price = 10000,
-                ReleaseDate = new DateTime(2023, 10, 17),
-            });
+            if (id != Guid.Empty)
+                throw new NotFoundException();
+
+            return Task.FromResult
+            (
+                new GetProductDetailsResult
+                {
+                    ProductDetails = new ProductDetails
+                    {
+                        Id = id,
+                        Brand = "Samsung",
+                        Name = "Galaxy Tab A9+",
+                        Types = ["tablet"],
+                        Description = "The Samsung Galaxy Tab A9 is a budget Android tablet computer and part of the Samsung Galaxy Tab series designed by Samsung Electronics.",
+                        Quantity = 10,
+                        Price = 10000,
+                        ReleaseDate = new DateTime(2023, 10, 17),
+                        MainImage = "main.image",
+                        Images = []
+                    }
+                }
+            );
         }
     }
 }
