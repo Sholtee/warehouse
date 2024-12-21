@@ -23,7 +23,7 @@ namespace Warehouse.API.Controllers
         /// <summary>
         /// Value to compare to
         /// </summary>
-        public required TValue Value { get; init; }
+        public virtual required TValue Value { get; init; }
     }
 
     /// <summary>

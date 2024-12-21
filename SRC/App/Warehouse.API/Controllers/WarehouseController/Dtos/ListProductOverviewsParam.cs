@@ -12,6 +12,9 @@ namespace Warehouse.API.Controllers
         {
             [AllowedValues(nameof(ProductOverview.Price))]
             public override required string Property { get; init; }
+
+            [Range(0, double.MaxValue)]
+            public override required decimal Value { get; init; }
         }
 
         public sealed class DateFilter : PropertyFilter<DateTime, StructComparisonType>
@@ -44,7 +47,7 @@ namespace Warehouse.API.Controllers
         public required Filter<IntFilter, DecimalFilter, DateFilter, NameFilter> Filter { get; init; }
 
         /// <summary>
-        /// Sortig to be applied on result.
+        /// Sorting to be applied on result.
         /// </summary>
         public SortProperties? SortBy { get; init; }
 

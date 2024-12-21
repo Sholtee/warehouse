@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Warehouse.API.Controllers
 {
@@ -51,6 +52,6 @@ namespace Warehouse.API.Controllers
         /// <summary>
         /// Product overview.
         /// </summary>
-        public required ProductOverview ProductOverview { get; init; }
+        public required List<ProductOverview> ProductOverviews { get; init; }
     }
 }
