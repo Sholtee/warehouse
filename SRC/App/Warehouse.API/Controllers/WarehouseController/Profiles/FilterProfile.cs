@@ -8,15 +8,16 @@ using AutoMapper;
 
 namespace Warehouse.API.Controllers.Profiles
 {
-    using static ListProductOverviewsParam;
+    using static Controllers.ListProductOverviewsParam;
 
     internal sealed class FilterProfile : Profile
     {
+        #region Private
         private static readonly ParameterExpression _productOverview = Expression.Parameter(typeof(DAL.ProductOverview), "productOverview");
 
         private static readonly IReadOnlyDictionary<string, PropertyInfo> _publicProps = typeof(DAL.ProductOverview)
             .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-            .ToDictionary(static prop => prop.Name);
+            .ToDictionary(static prop => prop.Name, StringComparer.OrdinalIgnoreCase);
 
         private static readonly IReadOnlyDictionary<StructComparisonType, Func<Expression, Expression, Expression>> _structComparisons = new Dictionary<StructComparisonType, Func<Expression, Expression, Expression>>
         {
@@ -76,6 +77,7 @@ namespace Warehouse.API.Controllers.Profiles
             context.Mapper.Map<Expression>(source),
             _productOverview
         );
+        #endregion
 
         public FilterProfile()
         {

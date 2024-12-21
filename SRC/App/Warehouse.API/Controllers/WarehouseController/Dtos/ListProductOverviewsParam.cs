@@ -49,7 +49,7 @@ namespace Warehouse.API.Controllers
         /// <summary>
         /// Sorting to be applied on result.
         /// </summary>
-        public SortProperties? SortBy { get; init; }
+        public SortBy<SortProperties>? SortBy { get; init; }
 
         /// <summary>
         /// Pagination config. If not provided the first 10 item is returend
