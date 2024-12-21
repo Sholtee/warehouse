@@ -4,15 +4,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Warehouse.API.Controllers
 {
-    public enum StructComparisonType
-    {
-        Equals, NotEquals, LessThan, LessThanOrEqual, GreaterThan, GreaterThanOrEqual
-    }
+    public enum StructComparisonType { Equals, NotEquals, LessThan, LessThanOrEqual, GreaterThan, GreaterThanOrEqual }
 
-    public enum StringComparisonType
-    {
-        Equals, NotEquals, Like, NotLike
-    }
+    public enum StringComparisonType { Equals, NotEquals, Like, NotLike }
 
     public abstract class PropertyFilter<TValue, TComparison> where TComparison: struct, Enum
     {

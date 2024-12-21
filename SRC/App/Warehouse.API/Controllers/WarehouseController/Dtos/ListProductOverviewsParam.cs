@@ -32,13 +32,24 @@ namespace Warehouse.API.Controllers
             public override required string Property { get; init; }
         }
 
+        public sealed class SortProperties : SortBy
+        {
+            [AllowedValues(nameof(ProductOverview.Name), nameof(ProductOverview.Brand), nameof(ProductOverview.Price), nameof(ProductOverview.ReleaseDate))]
+            public override required string Property { get; init; }
+        }
+
         /// <summary>
-        /// Filter to be applied on query.
+        /// Filter to be used.
         /// </summary>
         public required Filter<IntFilter, DecimalFilter, DateFilter, NameFilter> Filter { get; init; }
 
         /// <summary>
-        /// Pagination config. If not procided the first 10 item is returend
+        /// Sortig to be applied on result.
+        /// </summary>
+        public SortProperties? SortBy { get; init; }
+
+        /// <summary>
+        /// Pagination config. If not provided the first 10 item is returend
         /// </summary>
         public PaginationConfig Page { get; init; } = PaginationConfig.Default;
     }
