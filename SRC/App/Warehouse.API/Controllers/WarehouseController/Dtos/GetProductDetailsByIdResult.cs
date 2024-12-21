@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Warehouse.API.Controllers
@@ -29,7 +30,7 @@ namespace Warehouse.API.Controllers
     }
 
     /// <summary>
-    /// <see cref="WarehouseController.GetProductDetails(Guid)"/> result
+    /// <see cref="WarehouseController.GetProductDetailsById(Guid)"/> result
     /// </summary>
     public sealed class GetProductDetailsByIdResult
     {
