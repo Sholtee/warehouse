@@ -15,4 +15,13 @@
     <ProjectReference Include="..\Warehouse.DAL\Warehouse.DAL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
+  </ItemGroup>
+    
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute" Condition="'$(Configuration)'=='Debug'">
+      <_Parameter1>Warehouse.Host.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
 </Project>

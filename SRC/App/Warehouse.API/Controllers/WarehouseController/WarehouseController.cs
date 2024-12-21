@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -17,7 +18,7 @@ namespace Warehouse.API.Controllers
     /// TODO: design
     /// </summary>
     [ApiController, Consumes("application/json"), Produces("application/json"), Route("api/v1"), Authorize, ApiExplorerSessionCookieAuthorization]
-    public sealed class WarehouseController(IWarehouseRepository warehouseRepository) : ControllerBase
+    public sealed class WarehouseController(IWarehouseRepository warehouseRepository, IMapper mapper) : ControllerBase
     {
         /// <summary>
         /// Healthcheck endpoint
@@ -27,13 +28,9 @@ namespace Warehouse.API.Controllers
         [HttpGet("healthcheck")]
         [AllowAnonymous]
         [ApiExplorerSettings(IgnoreApi = true)]
-        public async Task<IActionResult> HealthCheck()
-        {
-            if (!await warehouseRepository.IsHealthy())
-                throw new Exception("Repo is not healthy");
-
-            return NoContent();
-        }
+        public async Task<IActionResult> HealthCheck() => await warehouseRepository.IsHealthy()
+            ? NoContent()
+            : throw new Exception("Repo is not healthy");
 
         /// <summary>
         /// Lists products matching on the given <paramref name="filter"/>.
@@ -45,14 +42,16 @@ namespace Warehouse.API.Controllers
         /// <response code="403">The client is unathorized to execute the operation.</response>
         [HttpPost("products")]
         [RequiredRoles(Roles.User)]
-        public Task<List<ListProductOverviewsResult>> ListProductOverviews([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] ListProductOverviewsParam param)
+        public async Task<ListProductOverviewsResult> ListProductOverviews([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] ListProductOverviewsParam param) => new ListProductOverviewsResult
         {
-            //
-            // TODO: implement
-            //
-
-            return Task.FromResult<List<ListProductOverviewsResult>>([]);
-        }
+            ProductOverviews = mapper.Map<List<ProductOverview>>
+            (
+                await warehouseRepository.ListProductOverviews
+                (
+                    mapper.Map<DAL.ListProductOverviewsParam>(param)
+                )
+            )
+        }; 
 
         /// <summary>
         /// Gets a product associated with the given <paramref name="id"/>
@@ -65,34 +64,12 @@ namespace Warehouse.API.Controllers
         /// <response code="404">The provided <paramref name="id"/> is not a valid product id</response>
         [HttpGet("product/{id}")]
         [RequiredRoles(Roles.User)]
-        public Task<GetProductDetailsResult> GetProductDetails([FromRoute] Guid id)
+        public async Task<GetProductDetailsByIdResult> GetProductDetailsById([FromRoute] Guid id) => new GetProductDetailsByIdResult
         {
-            //
-            // TODO: implement
-            //
-
-            if (id != Guid.Empty)
-                throw new NotFoundException();
-
-            return Task.FromResult
+            ProductDetails = mapper.Map<ProductDetails>
             (
-                new GetProductDetailsResult
-                {
-                    ProductDetails = new ProductDetails
-                    {
-                        Id = id,
-                        Brand = "Samsung",
-                        Name = "Galaxy Tab A9+",
-                        Types = ["tablet"],
-                        Description = "The Samsung Galaxy Tab A9 is a budget Android tablet computer and part of the Samsung Galaxy Tab series designed by Samsung Electronics.",
-                        Quantity = 10,
-                        Price = 10000,
-                        ReleaseDate = new DateTime(2023, 10, 17),
-                        MainImage = "main.image",
-                        Images = []
-                    }
-                }
-            );
-        }
+                await warehouseRepository.GetProductDetailsById(id) ?? throw new NotFoundException()
+            )
+        };
     }
 }
