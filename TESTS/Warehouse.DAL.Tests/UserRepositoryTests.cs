@@ -65,7 +65,7 @@ namespace Warehouse.DAL.Tests
         {
             Assert.That(await _userRepository.CreateUser(new CreateUserParam { ClientId = TEST_USER, ClientSecretHash = "hash", Groups = ["Admins", "Users"] }), Is.True);
 
-            QueryUserResult queried = (await _userRepository.QueryUser(TEST_USER))!;
+            User queried = (await _userRepository.QueryUser(TEST_USER))!;
             
             Assert.Multiple(() =>
             {

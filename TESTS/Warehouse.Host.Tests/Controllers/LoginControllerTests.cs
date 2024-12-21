@@ -58,7 +58,7 @@ namespace Warehouse.API.Controllers.Tests
                 CLIENT_ID = "test_user",
                 CLIENT_SECRET = "test_pw";
 
-            QueryUserResult user = new() { ClientId = CLIENT_ID, ClientSecretHash = "hash", Roles = Roles.User };
+            User user = new() { ClientId = CLIENT_ID, ClientSecretHash = "hash", Roles = Roles.User };
 
             _mockUserRepository
                 .Setup(r => r.QueryUser(CLIENT_ID))
@@ -211,7 +211,7 @@ namespace Warehouse.API.Controllers.Tests
         {
             _mockUserRepository
                 .Setup(r => r.QueryUser("user"))
-                .ReturnsAsync((QueryUserResult)null!);
+                .ReturnsAsync((User)null!);
 
             _loginController.Request.Headers.Add
             (
@@ -239,7 +239,7 @@ namespace Warehouse.API.Controllers.Tests
         {
             _mockUserRepository
                 .Setup(r => r.QueryUser("user"))
-                .ReturnsAsync(new QueryUserResult() { ClientId = "user", ClientSecretHash = "hash", Roles = Roles.User });
+                .ReturnsAsync(new User() { ClientId = "user", ClientSecretHash = "hash", Roles = Roles.User });
 
             _mockPasswordHasher
                 .Setup(h => h.VerifyHashedPassword("user", "hash", "pass"))

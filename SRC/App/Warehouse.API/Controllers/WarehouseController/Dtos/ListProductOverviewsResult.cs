@@ -41,7 +41,7 @@ namespace Warehouse.API.Controllers
         /// <summary>
         /// Date first available.
         /// </summary>
-        public required DateTime ReleaseDate { get; init; }
+        public required DateTime ReleaseDateUtc { get; init; }
     }
 
     /// <summary>

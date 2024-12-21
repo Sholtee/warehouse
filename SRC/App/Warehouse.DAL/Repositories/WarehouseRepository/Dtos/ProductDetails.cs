@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Warehouse.DAL
 {
-    public sealed class GetProductDetailsByIdResult: ProductOverview
+    public sealed class ProductDetails: ProductOverview
     {
         public required List<string> Types { get; init; }
 

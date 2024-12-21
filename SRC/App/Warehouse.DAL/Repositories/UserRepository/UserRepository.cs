@@ -63,7 +63,7 @@ namespace Warehouse.DAL
             }
         }
 
-        public async Task<QueryUserResult?> QueryUser(string clientId)
+        public async Task<User?> QueryUser(string clientId)
         {
             string sql = connection
                 .From<UserEntity>()
@@ -88,7 +88,7 @@ namespace Warehouse.DAL
                 .GroupBy(static r => new { r.ClientId, r.ClientSecretHash })
                 .Select
                 (
-                    static grp => new QueryUserResult
+                    static grp => new User
                     {
                         ClientId = grp.Key.ClientId,
                         ClientSecretHash = grp.Key.ClientSecretHash,

@@ -5,7 +5,7 @@ namespace Warehouse.DAL
     /// <summary>
     /// Describes an user
     /// </summary>
-    public sealed class QueryUserResult
+    public sealed class User
     {
         /// <summary>
         /// Client id

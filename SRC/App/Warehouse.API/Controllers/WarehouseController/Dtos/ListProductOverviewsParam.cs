@@ -19,11 +19,11 @@ namespace Warehouse.API.Controllers
 
         public sealed class DateFilter : PropertyFilter<DateTime, StructComparisonType>
         {
-            [AllowedValues(nameof(ProductOverview.ReleaseDate))]
+            [AllowedValues(nameof(ProductOverview.ReleaseDateUtc))]
             public override required string Property { get; init; }
         }
 
-        public sealed class NameFilter : PropertyFilter<string, StringComparisonType>
+        public sealed class StringFilter : PropertyFilter<string, StringComparisonType>
         {
             [AllowedValues(nameof(ProductOverview.Name), nameof(ProductOverview.Brand))]
             public override required string Property { get; init; }
@@ -37,14 +37,14 @@ namespace Warehouse.API.Controllers
 
         public sealed class SortProperties : SortBy
         {
-            [AllowedValues(nameof(ProductOverview.Name), nameof(ProductOverview.Brand), nameof(ProductOverview.Price), nameof(ProductOverview.ReleaseDate))]
+            [AllowedValues(nameof(ProductOverview.Name), nameof(ProductOverview.Brand), nameof(ProductOverview.Price), nameof(ProductOverview.ReleaseDateUtc))]
             public override required string Property { get; init; }
         }
 
         /// <summary>
         /// Filter to be used.
         /// </summary>
-        public required Filter<IntFilter, DecimalFilter, DateFilter, NameFilter> Filter { get; init; }
+        public required Filter<IntFilter, DecimalFilter, DateFilter, StringFilter> Filter { get; init; }
 
         /// <summary>
         /// Sorting to be applied on result.

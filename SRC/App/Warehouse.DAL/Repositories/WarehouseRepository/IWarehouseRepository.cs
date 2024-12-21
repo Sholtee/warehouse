@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Warehouse.DAL
@@ -16,11 +17,11 @@ namespace Warehouse.DAL
         /// <summary>
         /// Queries product overviews by the given criteria
         /// </summary>
-        Task<ListProductOverviewsResult> ListProductOverviews(ListProductOverviewsParam param);
+        Task<List<ProductOverview>> ListProductOverviews(ListProductOverviewsParam param);
 
         /// <summary>
         /// Queries the product details.
         /// </summary>
-        Task<GetProductDetailsByIdResult?> GetProductDetailsById(Guid productId);
+        Task<ProductDetails?> GetProductDetailsById(Guid productId);
     }
 }

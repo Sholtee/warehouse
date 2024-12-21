@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Warehouse.DAL
 {
@@ -16,6 +16,6 @@ namespace Warehouse.DAL
 
         public required decimal Price { get; init; }
 
-        public required DateTime ReleaseDate { get; init; }
+        public required DateTime ReleaseDateUtc { get; init; }
     }
 }

@@ -16,7 +16,7 @@ namespace Warehouse.DAL
         /// <summary>
         /// Queries the user associated with the given <paramref name="clientId"/>. Returns null if there is no user with such id
         /// </summary>
-        Task<QueryUserResult?> QueryUser(string clientId);
+        Task<User?> QueryUser(string clientId);
 
         /// <summary>
         /// Deletes the given user. Removal doesn't mean physical deletion.

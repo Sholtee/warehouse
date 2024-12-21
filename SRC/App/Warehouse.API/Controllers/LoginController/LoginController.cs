@@ -80,7 +80,7 @@ namespace Warehouse.API.Controllers
             // Verify the credentials
             //
 
-            QueryUserResult? user = await userRepository.QueryUser(clientId);
+            User? user = await userRepository.QueryUser(clientId);
             if (user is null || passwordHasher.VerifyHashedPassword(user.ClientId, user.ClientSecretHash, clientSecret) != PasswordVerificationResult.Success)
             {
                 return Unauthorized("Invalid credentials");
