@@ -20,10 +20,11 @@ using Moq;
 using NUnit.Framework;
 using ServiceStack.OrmLite;
 
-namespace Warehouse.Host.Tests
+namespace Warehouse.API.Tests
 {
     using Core.Auth;
     using DAL;
+    using Host;
 
     [TestFixture]
     internal sealed class WorkFlowTests

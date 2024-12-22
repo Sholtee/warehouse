@@ -3,12 +3,12 @@ using System.ComponentModel.DataAnnotations;
 
 using NUnit.Framework;
 
-namespace Warehouse.API.Validators.Tests
+namespace Warehouse.API.Tests
 {
     using Controllers;
 
     [TestFixture]
-    internal class ValidatorTests
+    internal sealed class ValidatorTests
     {
         [Test]
         public void ListProductOverviewsParamValidator_NoError()

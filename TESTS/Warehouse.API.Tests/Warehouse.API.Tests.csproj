@@ -3,16 +3,18 @@
     <Import Project="..\Common.targets" />
 
     <PropertyGroup>
-        <AssemblyName>Warehouse.Host.Tests</AssemblyName>
-        <RootNamespace>Warehouse.Host.Tests</RootNamespace>
-        <NoWarn>CA1515;CA1822;CA2000;CA2007;CA2201;CA2234;SYSLIB0026</NoWarn>
+        <AssemblyName>Warehouse.API.Tests</AssemblyName>
+        <RootNamespace>Warehouse.API.Tests</RootNamespace>
+        <NoWarn>CA2007;CA2234</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.0" />
+      <PackageReference Include="ServiceStack.OrmLite.Sqlite.Data" Version="8.5.2" />
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\SRC\App\Warehouse.API\Warehouse.API.csproj" />
       <ProjectReference Include="..\..\SRC\App\Warehouse.Host\Warehouse.Host.csproj" />
       <ProjectReference Include="..\Warehouse.Tests.Host\Warehouse.Tests.Host.csproj" />
     </ItemGroup>

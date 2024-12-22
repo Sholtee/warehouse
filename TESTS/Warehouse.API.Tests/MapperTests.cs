@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using AutoMapper;
 using NUnit.Framework;
 
-namespace Warehouse.API.Mappers.Tests
+namespace Warehouse.API.Tests
 {
     using Controllers;
     using Controllers.Profiles;
@@ -14,7 +14,7 @@ namespace Warehouse.API.Mappers.Tests
     using static Controllers.ListProductOverviewsParam;
 
     [TestFixture]
-    internal class MapperTests
+    internal sealed class MapperTests
     {
         [Test]
         public void FilterMapper_ShouldMap()
