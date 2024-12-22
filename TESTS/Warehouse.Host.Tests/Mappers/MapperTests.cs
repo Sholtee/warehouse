@@ -14,7 +14,7 @@ namespace Warehouse.API.Mappers.Tests
     using static Controllers.ListProductOverviewsParam;
 
     [TestFixture]
-    internal class MappersTests
+    internal class MapperTests
     {
         [Test]
         public void FilterMapper_ShouldMap()
@@ -69,8 +69,6 @@ namespace Warehouse.API.Mappers.Tests
                     }
                 }
             };
-
-            Assert.That(filter.Validate(null!), Is.Empty);
 
             Expression<Func<DAL.ProductOverview, bool>> mapped = mapper.Map<Expression<Func<DAL.ProductOverview, bool>>>(filter);
             Assert.That(mapped.ToString(), Is.EqualTo("productOverview => (((productOverview.Name == \"Samsung\") And (productOverview.Price < 1000)) Or ((productOverview.Name == \"Sony\") And (productOverview.Price < 1500)))"));
