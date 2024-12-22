@@ -37,7 +37,7 @@ namespace Warehouse.API.Controllers
         [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> HealthCheck() => await warehouseRepository.IsHealthy()
             ? NoContent()
-            : throw new Exception("Repo is not healthy");
+            : throw new InvalidOperationException("Repo is not healthy");
 
         /// <summary>
         /// Lists products matching on the given <paramref name="filter"/>.

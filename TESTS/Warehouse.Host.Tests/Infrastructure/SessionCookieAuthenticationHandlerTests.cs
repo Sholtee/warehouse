@@ -66,7 +66,7 @@ namespace Warehouse.Host.Infrastructure.Tests
             _mockTimeProvider = new Mock<TimeProvider>(MockBehavior.Strict);
             _mockOptionsMonitor = new Mock<IOptionsMonitor<AuthenticationSchemeOptions>>(MockBehavior.Strict);
             _mockOptionsMonitor
-                .Setup(m => m.Get(Authentication.SCHEME))
+                .Setup(m => m.Get(WarehouseAuthentication.SCHEME))
                 .Returns(new AuthenticationSchemeOptions { TimeProvider = _mockTimeProvider.Object });
             _mockLogger = new Mock<ILogger>(MockBehavior.Loose);
             _mockLoggerFactory = new Mock<ILoggerFactory>(MockBehavior.Strict);
@@ -95,7 +95,7 @@ namespace Warehouse.Host.Infrastructure.Tests
             (
                 new AuthenticationScheme
                 (
-                    Authentication.SCHEME,
+                    WarehouseAuthentication.SCHEME,
                     null,
                     typeof(SessionCookieAuthenticationHandler)
                 ),

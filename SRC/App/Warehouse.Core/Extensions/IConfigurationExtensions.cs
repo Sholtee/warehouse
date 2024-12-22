@@ -16,7 +16,7 @@ namespace Warehouse.Core.Extensions
         public static T GetRequiredValue<T>(this IConfiguration self, string key)
         {
             string? val = self.GetRequiredSection(key).Value;
-            return (T) Convert.ChangeType(val, typeof(T))!;
+            return (T) Convert.ChangeType(val, typeof(T), null)!;
         }
     }
 }

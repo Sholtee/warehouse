@@ -43,6 +43,6 @@ namespace Warehouse.API.Controllers
         /// Properties by which we want to sort.
         /// </summary>
         [Required, ValidateObject(validateItems: true)]
-        public required List<TSortBy> Properties { get; init; }
+        public required IReadOnlyList<TSortBy> Properties { get; init; }
     }
 }

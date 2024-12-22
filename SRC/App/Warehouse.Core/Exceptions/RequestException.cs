@@ -9,7 +9,7 @@ using System;
 
 namespace Warehouse.Core.Exceptions
 {
-    public abstract class RequestException : Exception
+    public abstract class RequestException() : Exception("Request exception occured")
     {
         /// <summary>
         /// Additional information regarding the error that might contain sensitive data.

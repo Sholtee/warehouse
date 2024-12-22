@@ -1,5 +1,5 @@
 /********************************************************************************
-* Authentication.cs                                                             *
+* WarehouseAuthentication.cs                                                    *
 *                                                                               *
 * Author: Denes Solti                                                           *
 * Project: Warehouse API (boilerplate)                                          *
@@ -7,7 +7,7 @@
 ********************************************************************************/
 namespace Warehouse.Core.Auth
 {
-    public static class Authentication
+    public static class WarehouseAuthentication
     {
         public const string SCHEME = "session-cookie";
     }

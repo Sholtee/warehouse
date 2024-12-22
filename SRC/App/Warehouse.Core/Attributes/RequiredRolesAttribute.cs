@@ -19,7 +19,7 @@ namespace Warehouse.Core.Attributes
     {
         public RequiredRolesAttribute(Roles roles)
         {
-            AuthenticationSchemes = Authentication.SCHEME;
+            AuthenticationSchemes = WarehouseAuthentication.SCHEME;
             Roles = string.Join(',', Enum.GetValues<Roles>().Where(role => role > 0 && roles.HasFlag(role)));
         }
     }

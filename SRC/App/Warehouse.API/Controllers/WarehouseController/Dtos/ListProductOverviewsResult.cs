@@ -17,6 +17,6 @@ namespace Warehouse.API.Controllers
         /// <summary>
         /// Product overview.
         /// </summary>
-        public required List<ProductOverview> ProductOverviews { get; init; }
+        public required IReadOnlyList<ProductOverview> ProductOverviews { get; init; }
     }
 }

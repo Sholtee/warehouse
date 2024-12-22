@@ -5,6 +5,7 @@
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -23,6 +24,8 @@ namespace Warehouse.Core.Attributes
 
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
+            ArgumentNullException.ThrowIfNull(validationContext, nameof(validationContext));
+
             if (value is not null)
             {
                 List<ValidationResult> results = [];

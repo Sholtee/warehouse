@@ -17,7 +17,7 @@ namespace Warehouse.API.Controllers
         /// <summary>
         /// Product types associated with this item.
         /// </summary>
-        public required List<string> Types { get; init; }
+        public required IReadOnlyList<string> Types { get; init; }
 
         /// <summary>
         /// Long description of the product.
@@ -32,6 +32,6 @@ namespace Warehouse.API.Controllers
         /// <summary>
         /// Image URLs associated with this product.
         /// </summary>
-        public required List<string> Images { get; init; }
+        public required IReadOnlyList<string> Images { get; init; }
     }
 }

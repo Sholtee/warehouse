@@ -22,7 +22,9 @@ namespace Warehouse.Host.Infrastructure.Filters
     /// <summary>
     /// Error details.
     /// </summary>
+    #pragma warning disable CA1515 // This type is part of the public API
     public sealed class ErrorDetails
+    #pragma warning restore CA1515
     {
         /// <summary>
         /// Short, human readable description of the error.
@@ -62,7 +64,7 @@ namespace Warehouse.Host.Infrastructure.Filters
             }
             else
             {
-                logger.LogError(new EventId(context.Exception.HResult), context.Exception.ToString());
+                logger.LogError(new EventId(context.Exception.HResult), "Unhandled exception occured: {exception}", context.Exception);
 
                 context.Result = GetResult(StatusCodes.Status500InternalServerError, null, context.Exception.ToString());
             }

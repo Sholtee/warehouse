@@ -78,6 +78,8 @@ namespace Warehouse.DAL
         /// </summary>
         public static string Dump(params CreateGroupParam[] groups)
         {
+            ArgumentNullException.ThrowIfNull(groups, nameof(groups));
+
             IOrmLiteDialectProvider dialectProvider = OrmLiteConfig.DialectProvider;
 
             List<string> lines = [];

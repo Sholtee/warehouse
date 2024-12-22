@@ -29,7 +29,7 @@ namespace Warehouse.Host.Infrastructure.Registrations
 
             return services
                 .AddAuthentication()
-                .AddScheme<AuthenticationSchemeOptions, SessionCookieAuthenticationHandler>(Authentication.SCHEME, null);
+                .AddScheme<AuthenticationSchemeOptions, SessionCookieAuthenticationHandler>(WarehouseAuthentication.SCHEME, null);
         }
     }
 }

@@ -50,15 +50,15 @@ namespace Warehouse.API.Controllers.Profiles
             throw new AutoMapperMappingException();
         }
 
-        private static List<MappedSortProperties> SortByConverter(SortBy<SortProperties> soruce, List<MappedSortProperties> destination, ResolutionContext context) =>
-            context.Mapper.Map<List<MappedSortProperties>>(soruce.Properties);
+        private static IEnumerable<MappedSortProperties> SortByConverter(SortBy<SortProperties> soruce, IEnumerable<MappedSortProperties> destination, ResolutionContext context) =>
+            context.Mapper.Map<IEnumerable<MappedSortProperties>>(soruce.Properties);
         #endregion
 
         public SortByProfile()
         {
             CreateMap<SortProperties, MappedSortProperties>()
                 .ConvertUsing(SortPropertiesConverter);
-            CreateMap<SortBy<SortProperties>, List<MappedSortProperties>>()
+            CreateMap<SortBy<SortProperties>, IEnumerable<MappedSortProperties>>()
                 .ConvertUsing(SortByConverter);
         }
     }

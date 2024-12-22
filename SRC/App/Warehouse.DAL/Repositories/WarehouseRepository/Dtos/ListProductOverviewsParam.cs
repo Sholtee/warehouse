@@ -15,7 +15,7 @@ namespace Warehouse.DAL
     {
         public required Expression<Func<ProductOverview, bool>> Filter { get; init; }
 
-        public required List<(Expression<Func<ProductOverview, object>> Property, bool Asc)> SortBy { get; init; }
+        public required IReadOnlyList<(Expression<Func<ProductOverview, object>> Property, bool Asc)> SortBy { get; init; }
 
         public required uint Skip { get; init; }
 

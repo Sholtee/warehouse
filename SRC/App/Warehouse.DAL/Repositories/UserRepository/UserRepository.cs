@@ -44,7 +44,10 @@ namespace Warehouse.DAL
 
             selectNewUser.FromExpression = " ";
 
+            #pragma warning disable CA2000 // false positive, Dispose() is being called on the transaction
             using IDbTransaction? transaction = connection.OpenTransactionIfNotExists();
+            #pragma warning restore CA2000
+
             try
             {
                 long rowsInserted = await connection.InsertIntoSelectAsync<UserEntity>(selectNewUser);

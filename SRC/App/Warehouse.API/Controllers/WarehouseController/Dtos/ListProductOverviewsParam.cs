@@ -17,6 +17,7 @@ namespace Warehouse.API.Controllers
     /// </summary>
     public sealed class ListProductOverviewsParam
     {
+        #region Property selectors
         public sealed class DecimalFilter : PropertyFilter<decimal, StructComparisonType>
         {
             [Required, AllowedValues(nameof(ProductOverview.Price))]
@@ -49,6 +50,7 @@ namespace Warehouse.API.Controllers
             [Required, AllowedValues(nameof(ProductOverview.Name), nameof(ProductOverview.Brand), nameof(ProductOverview.Price), nameof(ProductOverview.ReleaseDateUtc))]
             public override required string Property { get; init; }
         }
+        #endregion
 
         /// <summary>
         /// Filter to be used. For instance
