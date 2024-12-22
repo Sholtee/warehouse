@@ -21,7 +21,7 @@ using Microsoft.AspNetCore.Identity;
 
 using static System.Environment;
 
-namespace LocalStack.Setup
+namespace Warehouse.Tools.LocalStackSetup
 {
     internal class Program
     {

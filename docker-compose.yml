@@ -31,7 +31,7 @@ services:
   localstack-setup:
     depends_on:
       - localstack
-    build: ./SRC/Tools/LocalStack
+    build: ./SRC/Tools/LocalStackSetup
     environment:
       - AWS_ENDPOINT_URL=http://localstack:4566
       - AWS_REGION=local

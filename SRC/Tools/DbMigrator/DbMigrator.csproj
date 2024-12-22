@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <AssemblyName>Warehouse.Tools.DbMigrator</AssemblyName>
+    <RootNamespace>Warehouse.Tools.DbMigrator</RootNamespace>
     <OutputType>Exe</OutputType>
     <Configurations>Debug;Release</Configurations>
     <OutputPath>..\..\..\BIN\$(Configuration)</OutputPath>

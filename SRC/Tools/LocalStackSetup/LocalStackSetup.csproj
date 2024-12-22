@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <AssemblyName>Warehouse.Tools.LocalStackSetup</AssemblyName>
+    <RootNamespace>Warehouse.Tools.LocalStackSetup</RootNamespace>
     <OutputType>Exe</OutputType>
     <Configurations>Debug</Configurations>
     <OutputPath>..\..\..\BIN\$(Configuration)</OutputPath>
