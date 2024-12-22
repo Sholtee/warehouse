@@ -1,3 +1,11 @@
+#
+# RunTests.ps1
+#
+# Author: Denes Solti
+# Project: Warehouse API (boilerplate)
+# License: MIT
+#
+
 dotnet tool install --global dotnet-coverage --version 17.13.1
 
 $Path=[System.IO.Path]
