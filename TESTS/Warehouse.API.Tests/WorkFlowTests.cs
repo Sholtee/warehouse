@@ -1,3 +1,10 @@
+/********************************************************************************
+* WorkflowTests.cs                                                              *
+*                                                                               *
+* Author: Denes Solti                                                           *
+* Project: Warehouse API (boilerplate)                                          *
+* License: MIT                                                                  *
+********************************************************************************/
 using System;
 using System.Collections;
 using System.Data;
@@ -188,8 +195,8 @@ namespace Warehouse.API.Tests
                             ]
                         },
                         "page": {
-                            "skipPages": 3,
-                            "pageSize": 10
+                            "skip": 3,
+                            "size": 10
                         }
                     }
                     """,

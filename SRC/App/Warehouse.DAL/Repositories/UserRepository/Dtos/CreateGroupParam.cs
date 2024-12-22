@@ -1,3 +1,10 @@
+/********************************************************************************
+* CreateGroupParam.cs                                                           *
+*                                                                               *
+* Author: Denes Solti                                                           *
+* Project: Warehouse API (boilerplate)                                          *
+* License: MIT                                                                  *
+********************************************************************************/
 namespace Warehouse.DAL
 {
     using Core.Auth;

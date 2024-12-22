@@ -1,3 +1,10 @@
+/********************************************************************************
+* CustomModelDocumentFilter.cs                                                  *
+*                                                                               *
+* Author: Denes Solti                                                           *
+* Project: Warehouse API (boilerplate)                                          *
+* License: MIT                                                                  *
+********************************************************************************/
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 

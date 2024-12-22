@@ -1,3 +1,10 @@
+/********************************************************************************
+* 02-GroupRoles.sql                                                             *
+*                                                                               *
+* Author: Denes Solti                                                           *
+* Project: Warehouse API (boilerplate)                                          *
+* License: MIT                                                                  *
+********************************************************************************/
 INSERT INTO `Role` (`Name`,`Description`,`Id`,`CreatedUtc`) VALUES ('Admin',NULL,'27549ca5-68db-495c-9de6-e2c4ede15519','2024-12-14 16:32:19');
 INSERT INTO `Role` (`Name`,`Description`,`Id`,`CreatedUtc`) VALUES ('User',NULL,'7da562b0-74d8-4f89-aa77-538c1e6f344c','2024-12-14 16:32:19');
 INSERT INTO `Group` (`Name`,`Description`,`Id`,`CreatedUtc`) VALUES ('Admins','Administrators group','f36cd8ea-e209-4d64-885e-1357f1cd2f2a','2024-12-14 16:32:19');

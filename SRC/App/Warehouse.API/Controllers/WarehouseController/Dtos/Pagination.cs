@@ -1,32 +1,34 @@
 /********************************************************************************
-* CreateUserParam.cs                                                            *
+* Pagination.cs                                                                 *
 *                                                                               *
 * Author: Denes Solti                                                           *
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
-namespace Warehouse.DAL
+namespace Warehouse.API.Controllers
 {
     /// <summary>
-    /// Describes an user
+    /// Pagination config
     /// </summary>
-    public sealed class CreateUserParam
+    public sealed class Pagination
     {
         /// <summary>
-        /// Client id
+        /// The default value. Returns the first 10 element.
         /// </summary>
-        public required string ClientId { get; init; }
+        public static readonly Pagination Default = new();
 
         /// <summary>
-        /// Client secret hash
+        /// Pages to skip. Set to the first page if not provided.
         /// </summary>
-        public required string ClientSecretHash { get; init; }
+        [Range(0, uint.MaxValue)]
+        public uint Skip { get; init; } = 0;
 
         /// <summary>
-        /// Groups associated to this user
+        /// Page size. Set to 10 if not provided
         /// </summary>
-        public required IReadOnlyList<string> Groups { get; init; }
+        [Range(1, 50)]
+        public uint Size { get; init; } = 10;
     }
 }

@@ -1,3 +1,10 @@
+/********************************************************************************
+* LoggingMiddleware.cs                                                          *
+*                                                                               *
+* Author: Denes Solti                                                           *
+* Project: Warehouse API (boilerplate)                                          *
+* License: MIT                                                                  *
+********************************************************************************/
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Http;

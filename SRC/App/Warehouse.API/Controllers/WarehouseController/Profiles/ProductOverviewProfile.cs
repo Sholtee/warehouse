@@ -1,3 +1,10 @@
+/********************************************************************************
+* ProductOverviewProfile.cs                                                     *
+*                                                                               *
+* Author: Denes Solti                                                           *
+* Project: Warehouse API (boilerplate)                                          *
+* License: MIT                                                                  *
+********************************************************************************/
 using AutoMapper;
 
 namespace Warehouse.API.Controllers.Profiles

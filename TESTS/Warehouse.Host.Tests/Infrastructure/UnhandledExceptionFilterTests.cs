@@ -1,3 +1,10 @@
+/********************************************************************************
+* UnhandledExceptionFilterTests.cs                                              *
+*                                                                               *
+* Author: Denes Solti                                                           *
+* Project: Warehouse API (boilerplate)                                          *
+* License: MIT                                                                  *
+********************************************************************************/
 using System;
 using System.Net;
 using System.Net.Http;

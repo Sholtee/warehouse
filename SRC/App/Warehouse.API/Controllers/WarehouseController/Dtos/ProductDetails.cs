@@ -1,5 +1,5 @@
 /********************************************************************************
-* CreateUserParam.cs                                                            *
+* ProductDetails.cs                                                             *
 *                                                                               *
 * Author: Denes Solti                                                           *
 * Project: Warehouse API (boilerplate)                                          *
@@ -7,26 +7,31 @@
 ********************************************************************************/
 using System.Collections.Generic;
 
-namespace Warehouse.DAL
+namespace Warehouse.API.Controllers
 {
     /// <summary>
-    /// Describes an user
+    /// Product details
     /// </summary>
-    public sealed class CreateUserParam
+    public sealed class ProductDetails : ProductOverview
     {
         /// <summary>
-        /// Client id
+        /// Product types associated with this item.
         /// </summary>
-        public required string ClientId { get; init; }
+        public required List<string> Types { get; init; }
 
         /// <summary>
-        /// Client secret hash
+        /// Long description of the product.
         /// </summary>
-        public required string ClientSecretHash { get; init; }
+        public required string Description { get; init; }
 
         /// <summary>
-        /// Groups associated to this user
+        /// Overall rating. Null if no one rated the product yet.
         /// </summary>
-        public required IReadOnlyList<string> Groups { get; init; }
+        public float? Rating { get; init; }
+
+        /// <summary>
+        /// Image URLs associated with this product.
+        /// </summary>
+        public required List<string> Images { get; init; }
     }
 }

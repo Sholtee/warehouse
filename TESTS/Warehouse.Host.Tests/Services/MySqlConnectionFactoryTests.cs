@@ -1,4 +1,10 @@
-using System.Data;
+/********************************************************************************
+* MySqlConnectionFactoryTests.cs                                                *
+*                                                                               *
+* Author: Denes Solti                                                           *
+* Project: Warehouse API (boilerplate)                                          *
+* License: MIT                                                                  *
+********************************************************************************/
 using System.Data.Common;
 using System.Text.Json;
 

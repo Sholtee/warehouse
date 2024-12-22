@@ -1,3 +1,10 @@
+/********************************************************************************
+* IConfigurationExtensions.cs                                                   *
+*                                                                               *
+* Author: Denes Solti                                                           *
+* Project: Warehouse API (boilerplate)                                          *
+* License: MIT                                                                  *
+********************************************************************************/
 using System;
 
 using Microsoft.Extensions.Configuration;

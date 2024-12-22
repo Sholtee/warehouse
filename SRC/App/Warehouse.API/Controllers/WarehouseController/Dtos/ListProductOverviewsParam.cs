@@ -1,3 +1,10 @@
+/********************************************************************************
+* ListProductOverviewsParam.cs                                                  *
+*                                                                               *
+* Author: Denes Solti                                                           *
+* Project: Warehouse API (boilerplate)                                          *
+* License: MIT                                                                  *
+********************************************************************************/
 using System;
 using System.ComponentModel.DataAnnotations;
 
@@ -103,6 +110,6 @@ namespace Warehouse.API.Controllers
         /// Pagination config. If not provided the first 10 item is returend
         /// </summary>
         [Required, ValidateObject]
-        public PaginationConfig Page { get; init; } = PaginationConfig.Default;
+        public Pagination Page { get; init; } = Pagination.Default;
     }
 }

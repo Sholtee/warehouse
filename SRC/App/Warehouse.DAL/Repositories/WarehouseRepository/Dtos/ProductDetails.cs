@@ -1,3 +1,10 @@
+/********************************************************************************
+* ProductDetails.cs                                                             *
+*                                                                               *
+* Author: Denes Solti                                                           *
+* Project: Warehouse API (boilerplate)                                          *
+* License: MIT                                                                  *
+********************************************************************************/
 using System.Collections.Generic;
 
 namespace Warehouse.DAL

@@ -1,3 +1,10 @@
+/********************************************************************************
+* MapperTests.cs                                                                *
+*                                                                               *
+* Author: Denes Solti                                                           *
+* Project: Warehouse API (boilerplate)                                          *
+* License: MIT                                                                  *
+********************************************************************************/
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -174,8 +181,8 @@ namespace Warehouse.API.Tests
                 },
                 Page = new()
                 {
-                    PageSize = 5,
-                    SkipPages = 3
+                    Size = 5,
+                    Skip = 3
                 }
             };
 

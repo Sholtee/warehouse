@@ -1,3 +1,10 @@
+/********************************************************************************
+* UnhandledExceptionFilter.cs                                                   *
+*                                                                               *
+* Author: Denes Solti                                                           *
+* Project: Warehouse API (boilerplate)                                          *
+* License: MIT                                                                  *
+********************************************************************************/
 using System.Text.Json.Serialization;
 
 using Microsoft.AspNetCore.Hosting;

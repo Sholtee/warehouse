@@ -1,3 +1,10 @@
+/********************************************************************************
+* Registrations.RootUser.cs                                                     *
+*                                                                               *
+* Author: Denes Solti                                                           *
+* Project: Warehouse API (boilerplate)                                          *
+* License: MIT                                                                  *
+********************************************************************************/
 using Amazon.SecretsManager;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
@@ -10,7 +17,7 @@ namespace Warehouse.Host.Infrastructure.Registrations
     using DAL.Registrations;
     using Services;
 
-    internal static class RootUser
+    internal static partial class Registrations
     {
         public static IApplicationBuilder AddRootUser(this IApplicationBuilder self)
         {

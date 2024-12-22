@@ -1,3 +1,10 @@
+/********************************************************************************
+* Registrations.Swagger.cs                                                      *
+*                                                                               *
+* Author: Denes Solti                                                           *
+* Project: Warehouse API (boilerplate)                                          *
+* License: MIT                                                                  *
+********************************************************************************/
 using System;
 using System.IO;
 using System.Reflection;
@@ -12,7 +19,7 @@ namespace Warehouse.Host.Infrastructure.Registrations
     using Core.Extensions;
     using Filters;
 
-    internal static class Swagger
+    internal static partial class Registrations
     {
         public static IServiceCollection AddSwagger(this IServiceCollection services, IConfiguration configuration) => services.AddEndpointsApiExplorer().AddSwaggerGen(options =>
         {

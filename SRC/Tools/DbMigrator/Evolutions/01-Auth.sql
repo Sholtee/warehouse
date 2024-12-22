@@ -1,3 +1,10 @@
+/********************************************************************************
+* 01-Auth.sql                                                                   *
+*                                                                               *
+* Author: Denes Solti                                                           *
+* Project: Warehouse API (boilerplate)                                          *
+* License: MIT                                                                  *
+********************************************************************************/
 CREATE TABLE `Group` 
 (
   `Name` VARCHAR(255) NULL, 

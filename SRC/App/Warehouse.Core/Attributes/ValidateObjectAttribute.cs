@@ -1,3 +1,10 @@
+/********************************************************************************
+* ValidateObjectAttribute.cs                                                    *
+*                                                                               *
+* Author: Denes Solti                                                           *
+* Project: Warehouse API (boilerplate)                                          *
+* License: MIT                                                                  *
+********************************************************************************/
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;

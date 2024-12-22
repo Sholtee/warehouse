@@ -1,3 +1,10 @@
+/********************************************************************************
+* RootUserRegistrarTests.cs                                                     *
+*                                                                               *
+* Author: Denes Solti                                                           *
+* Project: Warehouse API (boilerplate)                                          *
+* License: MIT                                                                  *
+********************************************************************************/
 using System.Linq;
 using System.Text.RegularExpressions;
 

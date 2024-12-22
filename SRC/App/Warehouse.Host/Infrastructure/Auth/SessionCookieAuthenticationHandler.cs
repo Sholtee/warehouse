@@ -1,3 +1,10 @@
+/********************************************************************************
+* SessionCookieAuthenticationHandler.cs                                         *
+*                                                                               *
+* Author: Denes Solti                                                           *
+* Project: Warehouse API (boilerplate)                                          *
+* License: MIT                                                                  *
+********************************************************************************/
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;

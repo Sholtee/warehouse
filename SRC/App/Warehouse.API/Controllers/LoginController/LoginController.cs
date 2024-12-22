@@ -1,3 +1,10 @@
+/********************************************************************************
+* LoginController.cs                                                            *
+*                                                                               *
+* Author: Denes Solti                                                           *
+* Project: Warehouse API (boilerplate)                                          *
+* License: MIT                                                                  *
+********************************************************************************/
 using System;
 using System.Text;
 using System.Threading.Tasks;
