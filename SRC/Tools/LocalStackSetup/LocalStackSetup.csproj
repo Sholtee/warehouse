@@ -18,7 +18,6 @@
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.SecretsManager" Version="3.7.400.58" />
-    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup>

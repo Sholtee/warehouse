@@ -17,7 +17,6 @@ using System.Threading.Tasks;
 
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
-using Microsoft.AspNetCore.Identity;
 
 using static System.Environment;
 
@@ -93,8 +92,6 @@ namespace Warehouse.Tools.LocalStackSetup
             (
                 await client.ListSecretsAsync(new ListSecretsRequest { })
             ).SecretList.ToDictionary(static s => s.Name);
-
-            PasswordHasher<string> pwHasher = new();
 
             await SetupSecret("local-api-certificate", new Dictionary<string, string>
             {
