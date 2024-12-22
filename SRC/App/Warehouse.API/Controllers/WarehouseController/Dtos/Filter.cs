@@ -4,6 +4,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Warehouse.API.Controllers
 {
+    using Core.Attributes;
+
     public enum StructComparisonType { Equals, NotEquals, LessThan, LessThanOrEqual, GreaterThan, GreaterThanOrEqual }
 
     public enum StringComparisonType { Equals, NotEquals, Like, NotLike }
@@ -18,11 +20,13 @@ namespace Warehouse.API.Controllers
         /// <summary>
         /// The comparison
         /// </summary>
+        [Required]
         public required TComparison Comparison { get; init; }
 
         /// <summary>
         /// Value to compare to
         /// </summary>
+        [Required]
         public virtual required TValue Value { get; init; }
     }
 
@@ -71,18 +75,25 @@ namespace Warehouse.API.Controllers
         where TDateFilter: PropertyFilter<DateTime, StructComparisonType>
         where TStringFilter: PropertyFilter<string, StringComparisonType>
     {
+        [ValidateObject]
         public TIntFilter? Int { get; init; }
 
+        [ValidateObject]
         public TDecimalFilter? Decimal { get; init; }
 
+        [ValidateObject]
         public TDateFilter? Date { get; init; }
 
+        [ValidateObject]
         public TStringFilter? String { get; init; }
 
+        [ValidateObject]
         public Filter<TIntFilter, TDecimalFilter, TDateFilter, TStringFilter>? Block { get; init; }
 
+        [ValidateObject]
         public Filter<TIntFilter, TDecimalFilter, TDateFilter, TStringFilter>? And { get; init; }
 
+        [ValidateObject]
         public Filter<TIntFilter, TDecimalFilter, TDateFilter, TStringFilter>? Or { get; init; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

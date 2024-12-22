@@ -3,6 +3,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Warehouse.API.Controllers
 {
+    using Core.Attributes;
+
     public enum SortKind { Ascending, Descending }
 
     /// <summary>
@@ -18,6 +20,7 @@ namespace Warehouse.API.Controllers
         /// <summary>
         /// Asc or Desc
         /// </summary>
+        [Required]
         public required SortKind Kind { get; init; }
     }
 
@@ -32,6 +35,7 @@ namespace Warehouse.API.Controllers
         /// <summary>
         /// Properties by which we want to sort.
         /// </summary>
+        [Required, ValidateObject(validateItems: true)]
         public required List<TSortBy> Properties { get; init; }
     }
 }
