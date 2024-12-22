@@ -1,11 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
+  <Import Project="..\Common.targets" />
+    
   <PropertyGroup>
-      <Configurations>Debug;Release</Configurations>
-      <OutputPath>..\..\..\BIN\$(Configuration)</OutputPath>
-      <TargetFramework>net9.0</TargetFramework>
-      <Nullable>enable</Nullable>
-      <LangVersion>13</LangVersion>
+      <AssemblyName>Warehouse.DAL</AssemblyName>
+      <RootNamespace>Warehouse.DAL</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +15,10 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute" Condition="'$(Configuration)'=='Debug'">
       <_Parameter1>Warehouse.DAL.Tests</_Parameter1>
     </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Warehouse.Core\Warehouse.Core.csproj" />
   </ItemGroup>
 
 </Project>

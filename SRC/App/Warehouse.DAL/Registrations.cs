@@ -8,7 +8,7 @@ namespace Warehouse.DAL.Registrations
     /// </summary>
     public static class Registrations
     {
-        public static IServiceCollection AddWarehouseRepositories(this IServiceCollection services)
+        public static IServiceCollection AddRepositories(this IServiceCollection services)
         {
             services.TryAddScoped<IUserRepository, UserRepository>();
             services.TryAddScoped<IWarehouseRepository, WarehouseRepository>();

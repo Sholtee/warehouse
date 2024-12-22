@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35506.116
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warehouse.API", "SRC\App\Warehouse.API\Warehouse.API.csproj", "{12B4CC9B-1645-44D8-A231-9927586B6BFE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warehouse.Host", "SRC\App\Warehouse.Host\Warehouse.Host.csproj", "{12B4CC9B-1645-44D8-A231-9927586B6BFE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalStack.Setup", "SRC\Tools\LocalStack\LocalStack.Setup.csproj", "{BA285C95-E4A0-48DA-A8C5-43F6D3C1BA07}"
 EndProject
@@ -17,9 +17,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{6966C920
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warehouse.DAL.Tests", "TESTS\Warehouse.DAL.Tests\Warehouse.DAL.Tests.csproj", "{802A562C-36BA-4FB0-9AA2-CC9D6209FA7B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warehouse.API.Tests", "TESTS\Warehouse.API.Tests\Warehouse.API.Tests.csproj", "{DCCCFFC6-9BCD-4878-B695-7C3A792122DE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warehouse.Host.Tests", "TESTS\Warehouse.Host.Tests\Warehouse.Host.Tests.csproj", "{DCCCFFC6-9BCD-4878-B695-7C3A792122DE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warehouse.Tests.Server", "TESTS\Warehouse.Tests.Server\Warehouse.Tests.Server.csproj", "{0719B4B5-C7D8-4EE0-86AE-9B63175BB793}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warehouse.Tests.Host", "TESTS\Warehouse.Tests.Host\Warehouse.Tests.Host.csproj", "{0719B4B5-C7D8-4EE0-86AE-9B63175BB793}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warehouse.Core", "SRC\App\Warehouse.Core\Warehouse.Core.csproj", "{2A2012CD-8C8A-47CE-940F-0F817A078BF2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warehouse.API", "SRC\App\Warehouse.API\Warehouse.API.csproj", "{30FA56CB-BB80-4426-9514-091DABFC0427}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warehouse.API.Tests", "TESTS\Warehouse.API.Tests\Warehouse.API.Tests.csproj", "{25242D96-9AEC-4A05-AEE8-708E3CB60F03}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +57,17 @@ Global
 		{0719B4B5-C7D8-4EE0-86AE-9B63175BB793}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0719B4B5-C7D8-4EE0-86AE-9B63175BB793}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0719B4B5-C7D8-4EE0-86AE-9B63175BB793}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A2012CD-8C8A-47CE-940F-0F817A078BF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A2012CD-8C8A-47CE-940F-0F817A078BF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A2012CD-8C8A-47CE-940F-0F817A078BF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A2012CD-8C8A-47CE-940F-0F817A078BF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30FA56CB-BB80-4426-9514-091DABFC0427}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30FA56CB-BB80-4426-9514-091DABFC0427}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30FA56CB-BB80-4426-9514-091DABFC0427}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30FA56CB-BB80-4426-9514-091DABFC0427}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25242D96-9AEC-4A05-AEE8-708E3CB60F03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25242D96-9AEC-4A05-AEE8-708E3CB60F03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25242D96-9AEC-4A05-AEE8-708E3CB60F03}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -61,5 +78,6 @@ Global
 		{802A562C-36BA-4FB0-9AA2-CC9D6209FA7B} = {6966C920-E636-40CF-A243-4E2E781427AE}
 		{DCCCFFC6-9BCD-4878-B695-7C3A792122DE} = {6966C920-E636-40CF-A243-4E2E781427AE}
 		{0719B4B5-C7D8-4EE0-86AE-9B63175BB793} = {6966C920-E636-40CF-A243-4E2E781427AE}
+		{25242D96-9AEC-4A05-AEE8-708E3CB60F03} = {6966C920-E636-40CF-A243-4E2E781427AE}
 	EndGlobalSection
 EndGlobal

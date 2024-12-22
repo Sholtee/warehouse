@@ -10,6 +10,8 @@ using ServiceStack.OrmLite;
 
 namespace Warehouse.DAL.Tests
 {
+    using Core.Auth;
+
     [TestFixture]
     internal class UserRepositoryTests
     {
@@ -38,8 +40,8 @@ namespace Warehouse.DAL.Tests
             (
                 Schema.Dump
                 (
-                    new CreateGroupParam { Name = "Admins", Roles = ["Admin", "User"] },
-                    new CreateGroupParam { Name = "Users",  Roles = ["User"] }
+                    new CreateGroupParam { Name = "Admins", Roles = Roles.Admin | Roles.User },
+                    new CreateGroupParam { Name = "Users",  Roles = Roles.User }
                 )
             );
 
@@ -63,14 +65,14 @@ namespace Warehouse.DAL.Tests
         {
             Assert.That(await _userRepository.CreateUser(new CreateUserParam { ClientId = TEST_USER, ClientSecretHash = "hash", Groups = ["Admins", "Users"] }), Is.True);
 
-            QueryUserResult queried = (await _userRepository.QueryUser(TEST_USER))!;
+            User queried = (await _userRepository.QueryUser(TEST_USER))!;
             
             Assert.Multiple(() =>
             {
                 Assert.That(queried, Is.Not.Null);
                 Assert.That(queried.ClientId, Is.EqualTo(TEST_USER));
                 Assert.That(queried.ClientSecretHash, Is.EqualTo("hash"));
-                Assert.That(queried.Roles, Is.EquivalentTo(["Admin", "User"]));
+                Assert.That(queried.Roles, Is.EqualTo(Roles.User | Roles.Admin));
             });
         }
 
