@@ -181,10 +181,13 @@ namespace Warehouse.API.Mappers.Tests
 
             DAL.ListProductOverviewsParam mapped = mapper.Map<DAL.ListProductOverviewsParam>(param);
 
-            Assert.That(mapped.Filter, Is.Not.Null);
-            Assert.That(mapped.SortBy.Count, Is.EqualTo(2));
-            Assert.That(mapped.Skip, Is.EqualTo(15));
-            Assert.That(mapped.Take, Is.EqualTo(5));
+            Assert.Multiple(() =>
+            {
+                Assert.That(mapped.Filter, Is.Not.Null);
+                Assert.That(mapped.SortBy, Has.Count.EqualTo(2));
+                Assert.That(mapped.Skip, Is.EqualTo(15));
+                Assert.That(mapped.Take, Is.EqualTo(5));
+            });
         }
     }
 }
