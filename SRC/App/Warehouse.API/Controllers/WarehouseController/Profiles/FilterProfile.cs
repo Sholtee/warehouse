@@ -8,7 +8,9 @@ using AutoMapper;
 
 namespace Warehouse.API.Controllers.Profiles
 {
-    using static Controllers.ListProductOverviewsParam;
+    using ComparisonExpression     = Func<Expression, Expression, Expression>;
+    using UnionFilter              = Filter<Controllers.ListProductOverviewsParam.IntFilter, Controllers.ListProductOverviewsParam.DecimalFilter, Controllers.ListProductOverviewsParam.DateFilter, Controllers.ListProductOverviewsParam.StringFilter>;
+    using OverviewFilterExpression = Expression<Func<DAL.ProductOverview, bool>>;
 
     internal sealed class FilterProfile : Profile
     {
@@ -19,7 +21,7 @@ namespace Warehouse.API.Controllers.Profiles
             .GetProperties(BindingFlags.Instance | BindingFlags.Public)
             .ToDictionary(static prop => prop.Name, StringComparer.OrdinalIgnoreCase);
 
-        private static readonly IReadOnlyDictionary<StructComparisonType, Func<Expression, Expression, Expression>> _structComparisons = new Dictionary<StructComparisonType, Func<Expression, Expression, Expression>>
+        private static readonly IReadOnlyDictionary<StructComparisonType, ComparisonExpression> _structComparisons = new Dictionary<StructComparisonType, ComparisonExpression>
         {
             { StructComparisonType.Equals, Expression.Equal },
             { StructComparisonType.NotEquals, Expression.NotEqual },
@@ -31,7 +33,7 @@ namespace Warehouse.API.Controllers.Profiles
 
         private static readonly MethodInfo _contains = ((MethodCallExpression) ((Expression<Func<string, string, bool>>) ((left, right) => left.Contains(right))).Body).Method;
 
-        private static readonly IReadOnlyDictionary<StringComparisonType, Func<Expression, Expression, Expression>> _stringComparisons = new Dictionary<StringComparisonType, Func<Expression, Expression, Expression>>
+        private static readonly IReadOnlyDictionary<StringComparisonType, ComparisonExpression> _stringComparisons = new Dictionary<StringComparisonType, ComparisonExpression>
         {
             { StringComparisonType.Equals, Expression.Equal },
             { StringComparisonType.NotEquals, Expression.NotEqual },
@@ -39,9 +41,9 @@ namespace Warehouse.API.Controllers.Profiles
             { StringComparisonType.NotLike, static (left, right) => Expression.Not(Expression.Call(left, _contains, right)) }
         };
 
-        private static Expression FilterConverter<TSrc, TComparison>(PropertyFilter<TSrc, TComparison> source, IReadOnlyDictionary<TComparison, Func<Expression, Expression, Expression>> comparisons, ResolutionContext context) where TComparison : struct, Enum
+        private static Expression FilterConverter<TSrc, TComparison>(PropertyFilter<TSrc, TComparison> source, IReadOnlyDictionary<TComparison, ComparisonExpression> comparisons) where TComparison : struct, Enum
         {
-            if (_publicProps.TryGetValue(source.Property, out PropertyInfo? prop) && comparisons.TryGetValue(source.Comparison, out Func<Expression, Expression, Expression>? exprFactory))
+            if (_publicProps.TryGetValue(source.Property, out PropertyInfo? prop) && comparisons.TryGetValue(source.Comparison, out ComparisonExpression? exprFactory))
             {
                 return exprFactory(Expression.Property(_productOverview, prop), Expression.Constant(source.Value));
             }
@@ -50,29 +52,28 @@ namespace Warehouse.API.Controllers.Profiles
         }
 
         private static Expression FilterConverter<TSrc>(PropertyFilter<TSrc, StructComparisonType> source, Expression destination, ResolutionContext context) =>
-            FilterConverter(source, _structComparisons, context);
+            FilterConverter(source, _structComparisons);
 
         private static Expression FilterConverter(PropertyFilter<string, StringComparisonType> source, Expression destination, ResolutionContext context) =>
-            FilterConverter(source, _stringComparisons, context);
+            FilterConverter(source, _stringComparisons);
 
-        private static Expression FilterConverter(Filter<IntFilter, DecimalFilter, DateFilter, StringFilter> source, Expression destination, ResolutionContext context)
+        private static Expression FilterConverter(UnionFilter source, Expression destination, ResolutionContext context)
         {
-            Expression left = source.Block is not null
-                ? FilterConverter(source.Block, destination, context)  // Block has the priority
-                : MapToExpression(source.Int ?? source.Decimal ?? source.Date ?? (object) source.String!);
+            Expression left = context.Mapper.Map<Expression>
+            (
+                source.Block /*Block has the priority*/ ?? source.Int ?? source.Decimal ?? source.Date ?? (object) source.String!
+            );
 
             if (source.Or is not null)
-                return Expression.Or(left, MapToExpression(source.Or));
+                return Expression.Or(left, context.Mapper.Map<Expression>(source.Or));
 
             if (source.And is not null)
-                return Expression.And(left, MapToExpression(source.And));
+                return Expression.And(left, context.Mapper.Map<Expression>(source.And));
 
             return left;
-
-            Expression MapToExpression(object val) => context.Mapper.Map<Expression>(val);
         }
 
-        private static Expression<Func<DAL.ProductOverview, bool>> FilterConverter(Filter<IntFilter, DecimalFilter, DateFilter, StringFilter> source, Expression<Func<DAL.ProductOverview, bool>> destination, ResolutionContext context) => Expression.Lambda<Func<DAL.ProductOverview, bool>>
+        private static OverviewFilterExpression FilterConverter(UnionFilter source, OverviewFilterExpression destination, ResolutionContext context) => Expression.Lambda<Func<DAL.ProductOverview, bool>>
         (
             context.Mapper.Map<Expression>(source),
             _productOverview
@@ -81,17 +82,17 @@ namespace Warehouse.API.Controllers.Profiles
 
         public FilterProfile()
         {
-            CreateMap<DecimalFilter, Expression>()
+            CreateMap<Controllers.ListProductOverviewsParam.DecimalFilter, Expression>()
                 .ConvertUsing(FilterConverter);
-            CreateMap<IntFilter, Expression>()
+            CreateMap<Controllers.ListProductOverviewsParam.IntFilter, Expression>()
                 .ConvertUsing(FilterConverter);
-            CreateMap<DateFilter, Expression>()
+            CreateMap<Controllers.ListProductOverviewsParam.DateFilter, Expression>()
                 .ConvertUsing(FilterConverter);
-            CreateMap<StringFilter, Expression>()
+            CreateMap<Controllers.ListProductOverviewsParam.StringFilter, Expression>()
                 .ConvertUsing(FilterConverter);
-            CreateMap<Filter<IntFilter, DecimalFilter, DateFilter, StringFilter>, Expression>()
+            CreateMap<UnionFilter, Expression>()
                 .ConvertUsing(FilterConverter);
-            CreateMap<Filter<IntFilter, DecimalFilter, DateFilter, StringFilter>, Expression<Func<DAL.ProductOverview, bool>>>()
+            CreateMap<UnionFilter, OverviewFilterExpression>()
                 .ConvertUsing(FilterConverter);
         }
     }

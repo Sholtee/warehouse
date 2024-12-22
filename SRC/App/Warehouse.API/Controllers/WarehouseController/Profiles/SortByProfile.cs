@@ -10,47 +10,49 @@ namespace Warehouse.API.Controllers.Profiles
 {
     using static Controllers.ListProductOverviewsParam;
 
+    using MappedSortProperties = (Expression<Func<DAL.ProductOverview, object>> Property, bool Asc);
+
     internal sealed class SortByProfile : Profile
     {
+        #region Private
         private static readonly IReadOnlyDictionary<string, PropertyInfo> _publicProps = typeof(DAL.ProductOverview)
             .GetProperties(BindingFlags.Instance | BindingFlags.Public)
             .ToDictionary(static prop => prop.Name, StringComparer.OrdinalIgnoreCase);
 
+        private static MappedSortProperties SortPropertiesConverter(SortProperties source, MappedSortProperties destination, ResolutionContext context)
+        {
+            if (_publicProps.TryGetValue(source.Property, out PropertyInfo? prop))
+            {
+                ParameterExpression productOverview = Expression.Parameter(typeof(DAL.ProductOverview), nameof(productOverview));
+
+                return
+                (
+                    Expression.Lambda<Func<DAL.ProductOverview, object>>
+                    (
+                        Expression.Convert
+                        (
+                            Expression.Property(productOverview, prop),
+                            typeof(object)
+                        ),
+                        productOverview
+                    ),
+                    source.Kind == SortKind.Ascending
+                );
+            }
+
+            throw new AutoMapperMappingException();
+        }
+
+        private static List<MappedSortProperties> SortByConverter(SortBy<SortProperties> soruce, List<MappedSortProperties> destination, ResolutionContext context) =>
+            context.Mapper.Map<List<MappedSortProperties>>(soruce.Properties);
+        #endregion
+
         public SortByProfile()
         {
-            CreateMap<SortProperties, (Expression<Func<DAL.ProductOverview, object>> Property, bool Asc)>()
-                .ConvertUsing((src, dst, ctx) =>
-                {
-                    if (_publicProps.TryGetValue(src.Property, out PropertyInfo? prop))
-                    {
-                        ParameterExpression productOverview = Expression.Parameter(typeof(DAL.ProductOverview), nameof(productOverview));
-
-                        return
-                        (
-                            Expression.Lambda<Func<DAL.ProductOverview, object>>
-                            (
-                                Expression.Convert
-                                (
-                                    Expression.Property(productOverview, prop),
-                                    typeof(object)
-                                ),
-                                productOverview
-                            ),
-                            src.Kind == SortKind.Ascending
-                        );
-                    }
-
-                    throw new AutoMapperMappingException();
-                });
-
-            CreateMap<SortBy<SortProperties>, List<(Expression<Func<DAL.ProductOverview, object>> Property, bool Asc)>>()
-                .ConvertUsing
-                (
-                    (src, dst, ctx) => src
-                        .Properties
-                        .Select(prop => ctx.Mapper.Map<(Expression<Func<DAL.ProductOverview, object>> Property, bool Asc)>(prop))
-                        .ToList()
-                );
+            CreateMap<SortProperties, MappedSortProperties>()
+                .ConvertUsing(SortPropertiesConverter);
+            CreateMap<SortBy<SortProperties>, List<MappedSortProperties>>()
+                .ConvertUsing(SortByConverter);
         }
     }
 }
