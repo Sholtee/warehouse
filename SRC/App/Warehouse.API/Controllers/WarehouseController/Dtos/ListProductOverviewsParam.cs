@@ -44,13 +44,57 @@ namespace Warehouse.API.Controllers
         }
 
         /// <summary>
-        /// Filter to be used.
+        /// Filter to be used. For instance
+        /// <code>(Brand == "Samsung" && "Price" < 1000) || (Brand == "Sony" && "Price" < 1500)</code>
+        /// can be translated as
+        /// <code>
+        /// {
+        ///   Block: {
+        ///     String: {
+        ///       Property: "Brand",
+        ///       Comparison: "Equals",
+        ///       Value: "Samsung"
+        ///     },
+        ///     And: {
+        ///       Decimal: {
+        ///         Property: "Price",
+        ///         Comparison: "LessThan",
+        ///         Value: 1000
+        ///       }
+        ///     }
+        ///   },
+        ///   Or: {
+        ///     Block: {
+        ///       String: {
+        ///         Property: "Brand",
+        ///         Comparison: "Equals",
+        ///         Value: "Sony"
+        ///       },
+        ///       And: {
+        ///         Decimal: {
+        ///           Property: "Price",
+        ///           Comparison: "LessThan",
+        ///           Value: 1500
+        ///         }
+        ///       }
+        ///     }
+        ///   }
+        /// }
+        /// </code>
         /// </summary>
         [Required, ValidateObject]
         public required Filter<IntFilter, DecimalFilter, DateFilter, StringFilter> Filter { get; init; }
 
         /// <summary>
-        /// Sorting to be applied on result.
+        /// If provided, specifies the sort properties (in order). For instance:
+        /// <code>
+        /// {
+        ///   Properties: [
+        ///     {Property: "Brand", Kind: "Ascending"},
+        ///     {Property: "Name", Kind: "Ascending"}
+        ///   ]
+        /// }
+        /// </code>
         /// </summary>
         [ValidateObject]
         public SortBy<SortProperties>? SortBy { get; init; }

@@ -28,6 +28,7 @@ namespace Warehouse.Host.Tests
     [TestFixture]
     internal sealed class WorkFlowTests
     {
+        #region Private
         private sealed class TestHostFactory : WebApplicationFactory<Program>
         {
             private readonly SqliteConnection _connection;
@@ -92,6 +93,19 @@ namespace Warehouse.Host.Tests
 
         private TestHostFactory _appFactory = null!;
 
+        private async Task<string> GetSessionCookie()
+        {
+            RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/api/v1/login");
+            requestBuilder.AddHeader("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes($"root:{_appFactory.RootPw}"))}");
+
+            using HttpResponseMessage resp = await requestBuilder.GetAsync();
+
+            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+
+            return resp.Headers.GetValues("Set-Cookie").Single().Split(";")[0];
+        }
+        #endregion
+
         [SetUp]
         public void SetupTest() => _appFactory = new TestHostFactory();
 
@@ -112,28 +126,80 @@ namespace Warehouse.Host.Tests
         }
 
         [Test]
-        public async Task TestLoginAndQueryItem()
+        public async Task TestLoginAndGetItem()
         {
-            using HttpClient client = _appFactory.CreateClient();
+            RequestBuilder requestBuilder = _appFactory.Server.CreateRequest($"http://localhost/api/v1/product/{Guid.Empty}");
+            requestBuilder.AddHeader("Cookie", await GetSessionCookie());
 
-            string sessionCookie;
+            HttpResponseMessage resp = await requestBuilder.GetAsync();
 
-            RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/api/v1/login");
-            requestBuilder.AddHeader("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes($"root:{_appFactory.RootPw}"))}");
-            using (HttpResponseMessage resp = await requestBuilder.GetAsync())
-            {
-                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        }
 
-                sessionCookie = resp.Headers.GetValues("Set-Cookie").Single().Split(";")[0];
-            }
+        [Test]
+        public async Task TestLoginAndQueryItems()
+        {
+            RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/api/v1/products/");
+            requestBuilder.AddHeader("Cookie", await GetSessionCookie());
+            requestBuilder.And
+            (
+                msg => msg.Content = new StringContent
+                (
+                    """
+                    {
+                        // (Brand == "Samsung" && "Price" < 1000) || (Brand == "Sony" && "Price" < 1500)
+                        "filter": {
+                            "block": {
+                                "string": {
+                                    "property": "Brand",
+                                    "comparison": "equals",
+                                    "value": "Samsung"
+                                },
+                                "and": {
+                                    "decimal": {
+                                        "property": "Price",
+                                        "comparison": "lessThan",
+                                        "value": 1000
+                                    }
+                                }
+                            },
+                            "or": {
+                                "block": {
+                                    "string": {
+                                        "property": "Brand",
+                                        "comparison": "equals",
+                                        "value": "Sony"
+                                    },
+                                    "and": {
+                                        "decimal": {
+                                            "property": "Price",
+                                            "comparison": "lessThan",
+                                            "value": 1500
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "sortBy": {
+                            "properties": [
+                                {"property": "Brand", "kind": "ascending"},
+                                {"property": "Name", "kind": "ascending"}
+                            ]
+                        },
+                        "page": {
+                            "skipPages": 3,
+                            "pageSize": 10
+                        }
+                    }
+                    """,
+                    Encoding.UTF8,
+                    "application/json"
+                )
+            );
 
-            requestBuilder = _appFactory.Server.CreateRequest("http://localhost/api/v1/product/1986");
-            requestBuilder.AddHeader("Cookie", sessionCookie);
+            HttpResponseMessage resp = await requestBuilder.PostAsync();
 
-            using (HttpResponseMessage resp = await requestBuilder.GetAsync())
-            {
-                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            }
+            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         }
 
         [Test]

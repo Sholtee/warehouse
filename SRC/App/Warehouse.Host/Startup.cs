@@ -35,10 +35,13 @@ namespace Warehouse.Host
                 .AddAuthorization()
                 .AddJsonOptions(static options =>
                 {
-                    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-                    options.JsonSerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow;
-                    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+                    JsonSerializerOptions jsonOptions = options.JsonSerializerOptions;
+
+                    jsonOptions.PropertyNameCaseInsensitive = true;
+                    jsonOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow;
+                    jsonOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                    jsonOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+                    jsonOptions.ReadCommentHandling = JsonCommentHandling.Skip;
                 })
                 .ConfigureApiBehaviorOptions(static options =>
                 {

@@ -38,7 +38,7 @@ namespace Warehouse.API.Controllers
     /// {
     ///   Block: {
     ///     String: {
-    ///       Property: "Brand,
+    ///       Property: "Brand",
     ///       Comparison: "Equals",
     ///       Value: "Samsung"
     ///     },
@@ -53,7 +53,7 @@ namespace Warehouse.API.Controllers
     ///   Or: {
     ///     Block: {
     ///       String: {
-    ///         Property: "Brand,
+    ///         Property: "Brand",
     ///         Comparison: "Equals",
     ///         Value: "Sony"
     ///       },
