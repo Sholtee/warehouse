@@ -4,9 +4,10 @@ WORKDIR /build
 ENV DOTNET_NOLOGO=true
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=true
 
-COPY . .
+COPY LocalStackSetup ./LocalStackSetup
+COPY Common.targets .
 
-RUN dotnet build LocalStackSetup.csproj -o ./bin 
+RUN dotnet build LocalStackSetup/LocalStackSetup.csproj -o ./bin 
 
 # ---------------------------------------------------
 

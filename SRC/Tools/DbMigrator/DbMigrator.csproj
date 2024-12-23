@@ -1,19 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\Common.targets" />
+
   <PropertyGroup>
     <AssemblyName>Warehouse.Tools.DbMigrator</AssemblyName>
     <RootNamespace>Warehouse.Tools.DbMigrator</RootNamespace>
-    <OutputType>Exe</OutputType>
     <Configurations>Debug;Release</Configurations>
-    <OutputPath>..\..\..\BIN\$(Configuration)</OutputPath>
-    <TargetFramework>net9.0</TargetFramework>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove=".dockerignore" />
-    <None Remove="dockerfile" />
-    <None Remove="README.md" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.SecretsManager" Version="3.7.400.62" />

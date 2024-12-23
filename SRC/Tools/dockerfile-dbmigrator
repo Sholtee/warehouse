@@ -4,9 +4,10 @@ WORKDIR /build
 ENV DOTNET_NOLOGO=true
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=true
 
-COPY . .
+COPY DbMigrator ./DbMigrator
+COPY Common.targets .
 
-RUN dotnet build DbMigrator.csproj -o ./bin 
+RUN dotnet build DbMigrator/DbMigrator.csproj -o ./bin 
 
 # ---------------------------------------------------
 

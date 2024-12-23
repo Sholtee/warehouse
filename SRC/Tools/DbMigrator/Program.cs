@@ -21,13 +21,15 @@ namespace DbMigrator
 {
     internal static class Program
     {
+        #pragma warning disable CA1812  // this class is instantiated by the JsonSerializer
         private sealed record DbSecret(string Endpoint, string Database, string UserName, string Password);
+        #pragma warning restore CA1812
 
         private static async Task<bool> WaitForServer(string connectionString)
         {
             using MySqlConnection connection = new(connectionString);
 
-            for (int i = 0; i < int.Parse(GetEnvironmentVariable("RETRY_ATTEMPTS") ?? "10"); i++)
+            for (int i = 0; i < int.Parse(GetEnvironmentVariable("RETRY_ATTEMPTS") ?? "10", null); i++)
             {
                 await Task.Delay(2000 * i);
 

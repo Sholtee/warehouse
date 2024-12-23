@@ -22,9 +22,11 @@ using static System.Environment;
 
 namespace Warehouse.Tools.LocalStackSetup
 {
-    internal class Program
+    internal static class Program
     {
+        #pragma warning disable CA1812  // this class is instantiated by the JsonSerializer
         private sealed class LocalStackStatus
+        #pragma warning restore CA1812 
         {
             public required Dictionary<string, string> Services { get; init; }
             public required string Edition { get; init; }
@@ -46,7 +48,7 @@ namespace Warehouse.Tools.LocalStackSetup
                 PropertyNameCaseInsensitive = true
             };
 
-            for (int i = 0; i < int.Parse(GetEnvironmentVariable("RETRY_ATTEMPTS") ?? "10"); i++)
+            for (int i = 0; i < int.Parse(GetEnvironmentVariable("RETRY_ATTEMPTS") ?? "10", null); i++)
             {
                 await Task.Delay(2000 * i);
 
@@ -62,7 +64,7 @@ namespace Warehouse.Tools.LocalStackSetup
                     LocalStackStatus? status = await resp.Content.ReadFromJsonAsync<LocalStackStatus>(serializerOpts);
                     foreach (string service in services)
                     {
-                        if (status?.Services.TryGetValue(service, out string? serviceStatus) is not true || serviceStatus != "available")
+                        if (status?.Services.TryGetValue(service, out string? serviceStatus) is not true || serviceStatus is not "available")
                         {
                             Console.WriteLine($"Service not available: {service}");
                             goto again;
@@ -86,17 +88,17 @@ namespace Warehouse.Tools.LocalStackSetup
 
         private static async Task SetupSecrets()
         {
-            using IAmazonSecretsManager client = new AmazonSecretsManagerClient();
+            using AmazonSecretsManagerClient client = new();
 
             Dictionary<string, SecretListEntry> secrets = 
             (
                 await client.ListSecretsAsync(new ListSecretsRequest { })
             ).SecretList.ToDictionary(static s => s.Name);
 
-            await SetupSecret("local-api-certificate", new Dictionary<string, string>
+            await SetupSecret("local-api-certificate", new
             {
-                ["privateKey"] = File.ReadAllText(Path.Combine("Cert", "private.key")),
-                ["certificate"] = File.ReadAllText(Path.Combine("Cert", "certificate.crt"))
+                PrivateKey = await File.ReadAllTextAsync(Path.Combine("Cert", "private.key")),
+                Certificate = await File.ReadAllTextAsync(Path.Combine("Cert", "certificate.crt"))
             });
 
             await SetupSecret("local-jwt-secret-key", GetEnvironmentVariable("JWT_SECRET")!);
@@ -105,29 +107,25 @@ namespace Warehouse.Tools.LocalStackSetup
 
             async Task SetupSecret(string name, object value)
             {
-                Console.WriteLine($"Setup {name}...");
+                if (secrets.ContainsKey(name))
+                {
+                    Console.WriteLine($"Secret '{name}' already exists");
+                    return;
+                }
+
+                Console.WriteLine($"Setup '{name}'...");
 
                 if (value is not string valueStr)
                     valueStr = JsonSerializer.Serialize(value);
 
-                if (secrets.ContainsKey(name))
-                    await client.PutSecretValueAsync
-                    (
-                        new PutSecretValueRequest
-                        {
-                            SecretId = name,
-                            SecretString = valueStr
-                        }
-                    );
-                else
-                    await client.CreateSecretAsync
-                    (
-                        new CreateSecretRequest
-                        {
-                            Name = name,
-                            SecretString = valueStr
-                        }
-                    );
+                await client.CreateSecretAsync
+                (
+                    new CreateSecretRequest
+                    {
+                        Name = name,
+                        SecretString = valueStr
+                    }
+                );
             }
         }
 

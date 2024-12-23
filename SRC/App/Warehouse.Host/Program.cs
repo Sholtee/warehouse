@@ -6,7 +6,6 @@
 * License: MIT                                                                  *
 ********************************************************************************/
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Text.Json;
 
@@ -31,6 +30,8 @@ namespace Warehouse.Host
 
     internal class Program
     {
+        private sealed record CertificateSecret(string Certificate, string PrivateKey);
+
         internal static void UsingHttps(WebHostBuilderContext context, KestrelServerOptions serverOpts) => serverOpts.Listen
         (
             IPAddress.Any,
@@ -39,7 +40,7 @@ namespace Warehouse.Host
             {
                 IServiceProvider serviceProvider = listenOpts.ApplicationServices;
 
-                Dictionary<string, string> cert = JsonSerializer.Deserialize<Dictionary<string, string>>
+                CertificateSecret cert = JsonSerializer.Deserialize<CertificateSecret>
                 (
                     serviceProvider
                         .GetRequiredService<IAmazonSecretsManager>()
@@ -52,14 +53,15 @@ namespace Warehouse.Host
                         )
                         .GetAwaiter()
                         .GetResult()
-                        .SecretString
+                        .SecretString,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
                 )!;
 
                 listenOpts.UseHttps
                 (
                     serviceProvider
                         .GetRequiredService<IX509CertificateFactory>()
-                        .CreateFromPem(cert["certificate"], cert["privateKey"])
+                        .CreateFromPem(cert.Certificate, cert.PrivateKey)
                 );
             }
         );

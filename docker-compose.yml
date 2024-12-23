@@ -12,7 +12,9 @@ services:
         condition: service_started
       localstack-setup:
         condition: service_completed_successfully
-    build: ./SRC/Tools/DbMigrator
+    build:
+      context: ./SRC/Tools
+      dockerfile: ./dockerfile-dbmigrator
     environment:
       - AWS_ENDPOINT_URL=http://localstack:4566
       - AWS_REGION=local
@@ -31,7 +33,9 @@ services:
   localstack-setup:
     depends_on:
       - localstack
-    build: ./SRC/Tools/LocalStackSetup
+    build:
+      context: ./SRC/Tools
+      dockerfile: ./dockerfile-localstacksetup
     environment:
       - AWS_ENDPOINT_URL=http://localstack:4566
       - AWS_REGION=local
