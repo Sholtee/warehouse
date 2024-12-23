@@ -27,7 +27,7 @@ services:
     ports:
       - 4566:4566
     environment:
-      - SERVICES=secretsmanager
+      - SERVICES=acm,resourcegroupstaggingapi,secretsmanager
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
   localstack-setup:
