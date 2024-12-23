@@ -25,7 +25,6 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -193,17 +192,6 @@ namespace Warehouse.Host.Infrastructure.Tests
     {
         private sealed class TestHostFactory : WebApplicationFactory<Warehouse.Tests.Host.Program>
         {
-            protected override IHost CreateHost(IHostBuilder builder)
-            {
-                builder.ConfigureHostConfiguration(config =>
-                {
-                    config.AddJsonFile("appsettings.json");
-                    config.AddJsonFile("appsettings.Development.json");
-                });
-
-                return base.CreateHost(builder);
-            }
-
             protected override void ConfigureWebHost(IWebHostBuilder builder)
             {
                 builder.ConfigureTestServices(services =>

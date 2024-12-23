@@ -81,17 +81,17 @@ namespace Warehouse.Host.Services.Tests
                 )
                 .Returns("hash");
 
-            Mock<IConfigurationSection> mockPrefix = new(MockBehavior.Strict);
-            mockPrefix
+            Mock<IConfigurationSection> mockEnv = new(MockBehavior.Strict);
+            mockEnv
                 .SetupGet(s => s.Value)
                 .Returns("local");
-            mockPrefix
+            mockEnv
                 .SetupGet(s => s.Path)
                 .Returns((string) null!);
 
             _mockConfiguration
-                .Setup(c => c.GetSection("Prefix"))
-                .Returns(mockPrefix.Object);
+                .Setup(c => c.GetSection("ASPNETCORE_ENVIRONMENT"))
+                .Returns(mockEnv.Object);
 
             _mockSecretsManager
                 .Setup

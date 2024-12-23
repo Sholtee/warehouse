@@ -48,7 +48,7 @@ namespace Warehouse.Host
                         (
                             new GetSecretValueRequest
                             {
-                                SecretId = $"{serviceProvider.GetRequiredService<IConfiguration>().GetRequiredValue<string>("Prefix")}-api-certificate"
+                                SecretId = $"{serviceProvider.GetRequiredService<IConfiguration>().GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-api-certificate"
                             }
                         )
                         .GetAwaiter()

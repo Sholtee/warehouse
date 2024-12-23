@@ -62,7 +62,7 @@ namespace Warehouse.Host.Services
             if (!await userRepository.CreateUser(createUserParam))
                 return false;
 
-            string secret = $"{configuration.GetRequiredValue<string>("Prefix")}-root-user-creds";
+            string secret = $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-root-user-creds";
 
             await secretsManager.CreateSecretAsync
             (

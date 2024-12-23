@@ -30,7 +30,7 @@ namespace Warehouse.Host.Services
             (
                 new GetSecretValueRequest
                 {
-                    SecretId = $"{configuration.GetRequiredValue<string>("Prefix")}-db-secret"
+                    SecretId = $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-db-secret"
                 }
             ).GetAwaiter().GetResult();
 

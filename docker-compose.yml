@@ -58,7 +58,7 @@ services:
     ports:
       - 1986:1986
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=local
       - AWS_ENDPOINT_URL=http://localstack:4566
       - AWS_REGION=local
       - AWS_ACCESS_KEY_ID=local

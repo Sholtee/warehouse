@@ -30,7 +30,7 @@ namespace Warehouse.Host.Services
         private readonly JwtSecurityTokenHandler _handler = new();
 
         private readonly string 
-            _domain = configuration.GetRequiredValue<string>("AppDomain"),
+            _domain = $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-warehouse-app",
             _algorithm = configuration.GetValue($"{nameof(JwtService)}:Algorithm", SecurityAlgorithms.HmacSha256);
 
         private Task<SymmetricSecurityKey?> SecurityKey => cache.GetOrCreateAsync("jwt-secret-key", async entry =>
@@ -42,7 +42,7 @@ namespace Warehouse.Host.Services
 
             GetSecretValueResponse resp = await secretsManager.GetSecretValueAsync(new GetSecretValueRequest
             {
-                SecretId = $"{configuration.GetRequiredValue<string>("Prefix")}-jwt-secret-key"
+                SecretId = $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-jwt-secret-key"
             });
 
             return new SymmetricSecurityKey
