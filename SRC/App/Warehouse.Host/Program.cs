@@ -23,7 +23,7 @@ namespace Warehouse.Host
     using Core.Extensions;
     using Services;
 
-    internal partial class Program
+    internal sealed class Program
     {
         internal static void UsingHttps(WebHostBuilderContext context, KestrelServerOptions serverOpts) => serverOpts.Listen
         (
