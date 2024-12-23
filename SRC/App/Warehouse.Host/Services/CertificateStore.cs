@@ -5,6 +5,7 @@
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
+using System;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
@@ -25,7 +26,7 @@ namespace Warehouse.Host.Services
     using Core.Abstractions;
     using Core.Extensions;
 
-    internal class CertificateStore
+    internal sealed class CertificateStore
     (
         IConfiguration configuration,
         IAmazonResourceGroupsTaggingAPI taggingAPI,
@@ -34,40 +35,49 @@ namespace Warehouse.Host.Services
         ILogger<CertificateStore> logger
     )
     {
-        protected virtual X509Certificate2 CreateFromEncryptedPem(string cert, string privateKey, string passphrase) =>  // to be mocked
+        internal Func<string, string, string, X509Certificate2> CreateFromEncryptedPem { get; init; } = static (cert, privateKey, passphrase) => // to be mocked
             X509Certificate2.CreateFromEncryptedPem(cert, privateKey, passphrase);
 
-        public async Task<X509Certificate2> GetMaseterCertificate()
+        public async Task<X509Certificate2> GetCertificateAsync(string? certificateArn)
         {
-            //
-            // ACM doesn't support named certificates, so grab it by tag
-            //
+            if (certificateArn is null)
+            {
+                //
+                // This branch is for the local env only where we can't get the ARN from env var
+                //
 
-            GetResourcesResponse resources = await taggingAPI.GetResourcesAsync
-            (
-                new GetResourcesRequest
-                {
-                    TagFilters =
-                    [
-                        new TagFilter
-                        {
-                            Key = "Project",
-                            Values =
-                            [
-                                $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-warehouse-app"
-                            ]
-                        }
-                    ]
-                }
-            );
+                logger.LogInformation("No certificate ARN provided, getting the master cert.");
 
-            string[] appResources = [.. resources.ResourceTagMappingList.Select(static tm => tm.ResourceARN)];
-            logger.LogInformation("Found app resources: {resources}", string.Join(", ", appResources));
+                //
+                // ACM doesn't support named certificates, so grab it by tag
+                //
 
-            Regex matcher = new("^arn:aws:acm:\\S+:certificate\\/", RegexOptions.Compiled);
+                GetResourcesResponse resources = await taggingAPI.GetResourcesAsync
+                (
+                    new GetResourcesRequest
+                    {
+                        TagFilters =
+                        [
+                            new TagFilter
+                            {
+                                Key = "Project",
+                                Values =
+                                [
+                                    $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-warehouse-app"
+                                ]
+                            }
+                        ]
+                    }
+                );
 
-            string certificateArn = appResources.Single(matcher.IsMatch);
-            logger.LogInformation("Certificate ARN: {arn}", certificateArn);
+                string[] appResources = [.. resources.ResourceTagMappingList.Select(static tm => tm.ResourceARN)];
+                logger.LogInformation("Available app resources: {resources}", string.Join(", ", appResources));
+
+                Regex matcher = new("^arn:aws:acm:\\S+:certificate\\/", RegexOptions.Compiled);
+
+                certificateArn = appResources.Single(matcher.IsMatch);
+                logger.LogInformation("Certificate ARN found: {arn}", certificateArn);
+            }
 
             //
             // Grab the certificate

@@ -9,7 +9,7 @@ using System.Net;
 
 using Amazon;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -25,21 +25,6 @@ namespace Warehouse.Host
 
     internal sealed class Program
     {
-        internal static void UsingHttps(WebHostBuilderContext context, KestrelServerOptions serverOpts) => serverOpts.Listen
-        (
-            IPAddress.Any,
-            context.Configuration.GetRequiredValue<int>("ApiPort"),
-            static listenOpts => listenOpts.UseHttps
-            (
-                listenOpts
-                    .ApplicationServices
-                    .GetRequiredService<CertificateStore>()
-                    .GetMaseterCertificate()
-                    .GetAwaiter()
-                    .GetResult()
-            )
-        );
-
         public static void Main(string[] args) => new HostBuilder()
             .ConfigureDefaults(args)
             .ConfigureLogging(static (context, loggerBuilder) =>
@@ -61,7 +46,23 @@ namespace Warehouse.Host
             })
             .ConfigureWebHostDefaults
             (
-                static webBuilder => webBuilder.UseStartup<Startup>().ConfigureKestrel(UsingHttps)    
+                static webBuilder => webBuilder.UseStartup<Startup>().ConfigureKestrel
+                (
+                    static (context, serverOpts) => serverOpts.Listen
+                    (
+                        IPAddress.Any,
+                        context.Configuration.GetRequiredValue<int>("ApiPort"),
+                        listenOpts => listenOpts.UseHttps
+                        (
+                            listenOpts
+                                .ApplicationServices
+                                .GetRequiredService<CertificateStore>()
+                                .GetCertificateAsync(context.Configuration.GetValue<string>("CERTIFICATE_ARN"))
+                                .GetAwaiter()
+                                .GetResult()
+                        )
+                    )
+                )    
             )
             .Build()
             .Run();
