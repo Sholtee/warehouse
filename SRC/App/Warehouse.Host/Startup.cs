@@ -19,12 +19,10 @@ using Microsoft.Extensions.Hosting;
 namespace Warehouse.Host
 {
     using API.Registrations;
-    using Core.Abstractions;
     using DAL.Registrations;
     using Infrastructure.Filters;
     using Infrastructure.Middlewares;
     using Infrastructure.Registrations;
-    using Services;
 
     internal sealed class Startup(IConfiguration configuration)
     {
