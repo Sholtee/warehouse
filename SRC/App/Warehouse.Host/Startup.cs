@@ -54,14 +54,15 @@ namespace Warehouse.Host
                 {
                     options.SuppressModelStateInvalidFilter = true;  // we want to use our own ValidateModelStateFilter
                 });
-
+        
             services.TryAddSingleton(TimeProvider.System);
-            services.TryAddSingleton<IX509CertificateFactory, X509CertificateFactory>();
 
-            services.AddSessionCookieAuthentication();
+            services.AddAwsServices();
+            services.AddCertificateStore();
             services.AddDbConnection();
             services.AddRepositories();
             services.AddRootUserRegistrar();
+            services.AddSessionCookieAuthentication();
             services.AddSwagger(configuration);
         }
 
