@@ -4,3 +4,7 @@
 [Oo]bj/
 launchSettings.json
 *.user
+*.crt
+*.key
+*.csr
+serial
