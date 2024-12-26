@@ -42,7 +42,7 @@ namespace Warehouse.Host.Services
 
             GetSecretValueResponse resp = await secretsManager.GetSecretValueAsync(new GetSecretValueRequest
             {
-                SecretId = $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-jwt-secret-key"
+                SecretId = $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-warehouse-jwt-secret-key"
             });
 
             return new SymmetricSecurityKey

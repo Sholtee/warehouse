@@ -12,12 +12,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-using Amazon.CertificateManager;
-using Amazon.CertificateManager.Model;
 using Amazon.ResourceGroupsTaggingAPI;
 using Amazon.ResourceGroupsTaggingAPI.Model;
 using Amazon.SecretsManager;
@@ -100,9 +97,15 @@ namespace Warehouse.Tools.LocalStackSetup
         {
             using AmazonSecretsManagerClient client = new();
 
-            await SetupSecret("local-jwt-secret-key", GetEnvironmentVariable("JWT_SECRET")!);
+            await SetupSecret("local-warehouse-jwt-secret-key", GetEnvironmentVariable("JWT_SECRET")!);
 
-            await SetupSecret("local-db-secret", GetEnvironmentVariable("DB_SECRET")!);
+            await SetupSecret("local-warehouse-db-secret", GetEnvironmentVariable("DB_SECRET")!);
+
+            await SetupSecret("local-warehouse-app-cert", new
+            {
+                privateKey = await File.ReadAllTextAsync(Path.Combine("Cert", "client.key")),
+                certificate = await File.ReadAllTextAsync(Path.Combine("Cert", "client.crt"))
+            });
 
             async Task SetupSecret(string name, object value)
             {
@@ -128,38 +131,6 @@ namespace Warehouse.Tools.LocalStackSetup
                     }
                 );
             }
-        }
-
-        private static async Task SetupCertificate()
-        {
-            using AmazonCertificateManagerClient client = new();
-
-            ImportCertificateResponse resp = await client.ImportCertificateAsync
-            (
-                new ImportCertificateRequest
-                {
-                    Certificate = await ReadAsStream(Path.Combine("Cert", "client.crt")),
-                    PrivateKey = await ReadAsStream(Path.Combine("Cert", "client.key")),
-                    Tags =
-                    [
-                        new Amazon.CertificateManager.Model.Tag
-                        {
-                            Key = TAG_KEY,
-                            Value = TAG_VALUE
-                        }
-                    ]
-                }
-            );
-
-            Console.WriteLine($"Created certificate: {resp.CertificateArn}");
-
-            static async Task<MemoryStream> ReadAsStream(string file) => new MemoryStream
-            (
-                Encoding.UTF8.GetBytes
-                (
-                    await File.ReadAllTextAsync(file)
-                )
-            );
         }
 
         private static async Task<bool> HasAppResources()
@@ -198,7 +169,6 @@ namespace Warehouse.Tools.LocalStackSetup
                 return;
             }
 
-            await SetupCertificate();
             await SetupSecrets();
 
             Console.WriteLine("LocalStack initialized successfully :)");

@@ -9,7 +9,6 @@ using System.Net;
 
 using Amazon;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -57,9 +56,7 @@ namespace Warehouse.Host
                             listenOpts
                                 .ApplicationServices
                                 .GetRequiredService<CertificateStore>()
-                                .GetCertificateAsync(context.Configuration.GetValue<string>("CERTIFICATE_ARN"))
-                                .GetAwaiter()
-                                .GetResult()
+                                .GetCertificate("warehouse-app-cert")
                         )
                     )
                 )    

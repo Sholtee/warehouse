@@ -91,7 +91,7 @@ namespace Warehouse.Host.Services.Tests
                 (
                     s => s.CreateSecretAsync
                     (
-                        It.Is<CreateSecretRequest>(r => r.Name == "local-root-user-creds" & r.SecretString == _mockPasswordHasher.Invocations[0].Arguments[1].ToString()),
+                        It.Is<CreateSecretRequest>(r => r.Name == "local-warehouse-root-user-creds" & r.SecretString == _mockPasswordHasher.Invocations[0].Arguments[1].ToString()),
                         default
                     )
                 )

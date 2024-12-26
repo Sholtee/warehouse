@@ -6,97 +6,43 @@
 * License: MIT                                                                  *
 ********************************************************************************/
 using System;
-using System.IO;
-using System.Linq;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Text.RegularExpressions;
+using System.Text.Json;
 using System.Threading.Tasks;
 
-using Amazon.CertificateManager;
-using Amazon.CertificateManager.Model;
-using Amazon.ResourceGroupsTaggingAPI.Model;
-using Amazon.ResourceGroupsTaggingAPI;
+using Amazon.SecretsManager;
+using Amazon.SecretsManager.Model;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 
 namespace Warehouse.Host.Services
 {
-    using Core.Abstractions;
     using Core.Extensions;
 
-    internal sealed class CertificateStore
-    (
-        IConfiguration configuration,
-        IAmazonResourceGroupsTaggingAPI taggingAPI,
-        IAmazonCertificateManager certificateManager,
-        IPasswordGenerator passwordGenerator,
-        ILogger<CertificateStore> logger
-    )
+    internal sealed class CertificateStore(IConfiguration configuration, IAmazonSecretsManager secretsManager, IOptions<JsonOptions> jsonOpts)
     {
-        internal Func<string, string, string, X509Certificate2> CreateFromEncryptedPem { get; init; } = static (cert, privateKey, passphrase) => // to be mocked
-            X509Certificate2.CreateFromEncryptedPem(cert, privateKey, passphrase);
+        private sealed record Pem(string PrivateKey, string Certificate);
 
-        public async Task<X509Certificate2> GetCertificateAsync(string? certificateArn)
+        internal Func<string, string, X509Certificate2> CreateFromPem { get; init; } = static (cert, privateKey) => // to be mocked
+            X509Certificate2.CreateFromPem(cert, privateKey);
+
+        public async Task<X509Certificate2> GetCertificateAsync(string name)
         {
-            if (certificateArn is null)
-            {
-                //
-                // This branch is for the local env only where we can't get the ARN from env var
-                //
-
-                logger.LogInformation("No certificate ARN provided, getting the master cert.");
-
-                //
-                // ACM doesn't support named certificates, so grab it by tag
-                //
-
-                GetResourcesResponse resources = await taggingAPI.GetResourcesAsync
-                (
-                    new GetResourcesRequest
-                    {
-                        TagFilters =
-                        [
-                            new TagFilter
-                            {
-                                Key = "Project",
-                                Values =
-                                [
-                                    $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-warehouse-app"
-                                ]
-                            }
-                        ]
-                    }
-                );
-
-                string[] appResources = [.. resources.ResourceTagMappingList.Select(static tm => tm.ResourceARN)];
-                logger.LogInformation("Available app resources: {resources}", string.Join(", ", appResources));
-
-                Regex matcher = new("^arn:aws:acm:\\S+:certificate\\/", RegexOptions.Compiled);
-
-                certificateArn = appResources.Single(matcher.IsMatch);
-                logger.LogInformation("Certificate ARN found: {arn}", certificateArn);
-            }
-
-            //
-            // Grab the certificate
-            //
-
-            string passphrase = passwordGenerator.Generate(20);
-
-            ExportCertificateResponse certificate = await certificateManager.ExportCertificateAsync
+            GetSecretValueResponse resp = await secretsManager.GetSecretValueAsync
             (
-                new ExportCertificateRequest
+                new GetSecretValueRequest
                 {
-                    CertificateArn = certificateArn,
-                    Passphrase = new MemoryStream(Encoding.UTF8.GetBytes(passphrase))  // must be provided
+                    SecretId = $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-{name}"
                 }
             );
 
-            logger.LogInformation("Certificate retrieved");
+            Pem pem = JsonSerializer.Deserialize<Pem>(resp.SecretString, jsonOpts.Value.JsonSerializerOptions)!;
 
-            return CreateFromEncryptedPem(certificate.Certificate, certificate.PrivateKey, passphrase);
+            return CreateFromPem(pem.Certificate, pem.PrivateKey);
         }
+
+        public X509Certificate2 GetCertificate(string name) => GetCertificateAsync(name).GetAwaiter().GetResult();
     }
 }

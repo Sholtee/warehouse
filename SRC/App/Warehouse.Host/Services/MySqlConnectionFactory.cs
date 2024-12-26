@@ -12,8 +12,10 @@ using System.Text.Json;
 
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MySqlConnector;
 
 namespace Warehouse.Host.Services
@@ -24,24 +26,17 @@ namespace Warehouse.Host.Services
     {
         private sealed record DbSecret(string Endpoint, string Database, string UserName, string Password);
 
-        public MySqlConnectionFactory(IConfiguration configuration, IAmazonSecretsManager secretsManager, ILoggerFactory logger)
+        public MySqlConnectionFactory(IConfiguration configuration, IAmazonSecretsManager secretsManager, IOptions<JsonOptions> jsonOptions, ILoggerFactory logger)
         {
             GetSecretValueResponse resp = secretsManager.GetSecretValueAsync
             (
                 new GetSecretValueRequest
                 {
-                    SecretId = $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-db-secret"
+                    SecretId = $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-warehouse-db-secret"
                 }
             ).GetAwaiter().GetResult();
 
-            DbSecret secret = JsonSerializer.Deserialize<DbSecret>
-            (
-                resp.SecretString,
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                }
-            )!;
+            DbSecret secret = JsonSerializer.Deserialize<DbSecret>(resp.SecretString, jsonOptions.Value.JsonSerializerOptions)!;
 
             DataSource = new MySqlDataSourceBuilder
             (

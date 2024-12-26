@@ -6,64 +6,51 @@
 * License: MIT                                                                  *
 ********************************************************************************/
 using System;
-using System.Linq;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading.Tasks;
 
-using Amazon.CertificateManager;
-using Amazon.CertificateManager.Model;
-using Amazon.ResourceGroupsTaggingAPI;
-using Amazon.ResourceGroupsTaggingAPI.Model;
+using Amazon.SecretsManager;
+using Amazon.SecretsManager.Model;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 
 
 namespace Warehouse.Host.Services.Tests
 {
-    using Core.Abstractions;
-
     [TestFixture]
     internal sealed class CertificateStoreTests
     {
         private Mock<IConfiguration> _mockConfiguration = null!;
-        private Mock<IAmazonResourceGroupsTaggingAPI> _mockTaggingApi = null!;
-        private Mock<IAmazonCertificateManager> _mockCertificateManager = null!;
-        private Mock<IPasswordGenerator> _mockPasswordGenerator = null!;
-        private Mock<ILogger<CertificateStore>> _mockLogger = null!;
-        private Mock<Func<string, string, string, X509Certificate2>> _mockCreateCert = null!;
+        private Mock<IAmazonSecretsManager> _mockSecretsManager = null!;
+        private Mock<IOptions<JsonOptions>> _mockJsonOptions = null!;
+        private Mock<Func<string, string, X509Certificate2>> _mockCreateCert = null!;
         private CertificateStore _certificateStore = null!;
 
         [SetUp]
         public void SetupTest()
         {
             _mockConfiguration = new(MockBehavior.Strict);
-            _mockTaggingApi = new(MockBehavior.Strict);
-            _mockCertificateManager = new(MockBehavior.Strict);
-            _mockPasswordGenerator = new(MockBehavior.Strict);
-            _mockLogger = new(MockBehavior.Loose);    
+            _mockSecretsManager = new(MockBehavior.Strict);
+            _mockJsonOptions = new(MockBehavior.Strict);    
             _mockCreateCert = new(MockBehavior.Strict);
 
             _certificateStore = new
             (
                 _mockConfiguration.Object,
-                _mockTaggingApi.Object,
-                _mockCertificateManager.Object,
-                _mockPasswordGenerator.Object,
-                _mockLogger.Object
+                _mockSecretsManager.Object,
+                _mockJsonOptions.Object
             )
             {
-                CreateFromEncryptedPem = _mockCreateCert.Object
+                CreateFromPem = _mockCreateCert.Object
             };
         }
 
         [Test]
-        public async Task GetCertificate_ShouldReturnTheCertificateByTag()
+        public async Task GetCertificate_ShouldReturnTheCertificate()
         {
-            const string certArn = "arn:aws:acm:us-east-1:000000000000:certificate/a5aa491d-764e-4cf6-922b-e639e69e2ddb";
-
             Mock<IConfigurationSection> mockEnv = new(MockBehavior.Strict);
             mockEnv
                 .SetupGet(s => s.Value)
@@ -76,68 +63,40 @@ namespace Warehouse.Host.Services.Tests
                 .Setup(c => c.GetSection("ASPNETCORE_ENVIRONMENT"))
                 .Returns(mockEnv.Object);
 
-            _mockTaggingApi
+            _mockJsonOptions
+                .SetupGet(o => o.Value)
+                .Returns(new JsonOptions());
+
+            _mockSecretsManager
                 .Setup
                 (
-                    t => t.GetResourcesAsync
+                    t => t.GetSecretValueAsync
                     (
-                        It.Is<GetResourcesRequest>
+                        It.Is<GetSecretValueRequest>
                         (
-                            r => r.TagFilters.Count(f => f.Key == "Project" && f.Values.Contains("local-warehouse-app")) == 1
+                            r => r.SecretId == "local-warehouse-app-certificate"
                         ),
                         default
                     )
                 )
                 .ReturnsAsync
                 (
-                    new GetResourcesResponse
+                    new GetSecretValueResponse
                     {
-                        ResourceTagMappingList =
-                        [
-                            new ResourceTagMapping
-                            {
-                                ResourceARN = certArn
-                            }
-                        ]
+                        SecretString = "{\"privateKey\": \"privateKey\", \"certificate\": \"certificate\"}"
                     }
                 );
 
-            _mockPasswordGenerator
-                .Setup(p => p.Generate(20))
-                .Returns("password");
-
-            _mockCertificateManager
-                .Setup
-                (
-                    c => c.ExportCertificateAsync
-                    (
-                        It.Is<ExportCertificateRequest>
-                        (
-                            r => r.CertificateArn == certArn && Encoding.UTF8.GetString(r.Passphrase.ToArray()) == "password"
-                        ),
-                        default
-                    )
-                )
-                .ReturnsAsync
-                (
-                    new ExportCertificateResponse
-                    {
-                        Certificate = "certificate",
-                        PrivateKey = "privateKey"
-                    }
-                );
 
             X509Certificate2 cert = new();
             _mockCreateCert
-                .Setup(c => c.Invoke("certificate", "privateKey", "password"))
+                .Setup(c => c.Invoke("certificate", "privateKey"))
                 .Returns(cert);
 
-            Assert.That(await _certificateStore.GetCertificateAsync(null), Is.EqualTo(cert));
+            Assert.That(await _certificateStore.GetCertificateAsync("warehouse-app-certificate"), Is.EqualTo(cert));
 
-            _mockCreateCert.Verify(c => c.Invoke(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            _mockCertificateManager.Verify(c => c.ExportCertificateAsync(It.IsAny<ExportCertificateRequest>(), default), Times.Once);
-            _mockPasswordGenerator.Verify(p => p.Generate(It.IsAny<int>()), Times.Once);
-            _mockTaggingApi.Verify(t => t.GetResourcesAsync(It.IsAny<GetResourcesRequest>(), default), Times.Once);
+            _mockCreateCert.Verify(c => c.Invoke(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            _mockSecretsManager.Verify(t => t.GetSecretValueAsync(It.IsAny<GetSecretValueRequest>(), default), Times.Once);
         }
     }
 }

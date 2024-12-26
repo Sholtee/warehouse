@@ -10,8 +10,6 @@
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.301" />
-    <PackageReference Include="AWSSDK.CertificateManager" Version="3.7.400.68" />
-    <PackageReference Include="AWSSDK.ResourceGroupsTaggingAPI" Version="3.7.400.68" />
     <PackageReference Include="AWSSDK.SecretsManager" Version="3.7.400.68" />
     <PackageReference Include="MySqlConnector" Version="2.4.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
