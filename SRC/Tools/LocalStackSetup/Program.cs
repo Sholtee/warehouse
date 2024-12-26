@@ -163,7 +163,7 @@ namespace Warehouse.Tools.LocalStackSetup
 
         public static async Task Main()
         {
-            await WiatForServices("secretsmanager", "acm");
+            await WiatForServices("resourcegroupstaggingapi", "secretsmanager");
 
             if (await HasAppResources())
             {

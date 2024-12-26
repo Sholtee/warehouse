@@ -63,7 +63,7 @@ namespace DbMigrator
                         (
                             new GetSecretValueRequest
                             {
-                                SecretId = $"{GetEnvironmentVariable("PREFIX")}-db-secret"
+                                SecretId = $"{GetEnvironmentVariable("PREFIX")}-warehouse-db-secret"
                             }
                         )
                     ).SecretString,
