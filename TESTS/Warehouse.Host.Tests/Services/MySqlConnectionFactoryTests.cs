@@ -65,8 +65,9 @@ namespace Warehouse.Host.Services.Tests
                         (
                             new
                             {
-                                endpoint = "endpoint",
-                                database = "db",
+                                host = "endpoint",
+                                port = 3306,
+                                dbName = "db",
                                 userName = "user",
                                 password = "pass"
                             }
@@ -90,7 +91,7 @@ namespace Warehouse.Host.Services.Tests
                 _mockLoggerFactory.Object
             );
 
-            Assert.That(connectionFactory.DataSource.ConnectionString, Is.EqualTo("Server=endpoint;User ID=user;Password=pass;Database=db"));
+            Assert.That(connectionFactory.DataSource.ConnectionString, Is.EqualTo("Server=endpoint;Port=3306;User ID=user;Password=pass;Database=db"));
             _mockSecretsManager.Verify(s => s.GetSecretValueAsync(It.IsAny<GetSecretValueRequest>(), default), Times.Once);
 
             Mock<DbConnection> mockConnection = new(MockBehavior.Strict);

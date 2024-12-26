@@ -22,7 +22,7 @@ namespace DbMigrator
     internal static class Program
     {
         #pragma warning disable CA1812  // this class is instantiated by the JsonSerializer
-        private sealed record DbSecret(string Endpoint, string Database, string UserName, string Password);
+        private sealed record DbSecret(string Host, uint Port, string DbName, string UserName, string Password);
         #pragma warning restore CA1812
 
         private static async Task<bool> WaitForServer(string connectionString)
@@ -76,7 +76,8 @@ namespace DbMigrator
 
             MySqlConnectionStringBuilder connectionStringBuilder = new()
             {
-                Server = secret.Endpoint,
+                Server = secret.Host,
+                Port = secret.Port,
                 UserID = secret.UserName,
                 Password = secret.Password
             };
@@ -88,7 +89,7 @@ namespace DbMigrator
             if (!await WaitForServer(connectionStringBuilder.ConnectionString))
                 return -1;
 
-            connectionStringBuilder.Database = secret.Database;
+            connectionStringBuilder.Database = secret.DbName;
 
             //
             // Create the database if necessary

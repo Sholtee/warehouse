@@ -9,6 +9,7 @@ using System;
 using System.Data;
 using System.Data.Common;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
@@ -24,7 +25,18 @@ namespace Warehouse.Host.Services
 
     internal sealed class MySqlConnectionFactory: IDisposable
     {
-        private sealed record DbSecret(string Endpoint, string Database, string UserName, string Password);
+        private sealed record DbSecret
+        (
+            string Host,
+            uint Port,
+            string DbName,
+            string UserName,
+            string Password
+        );
+
+        #pragma warning disable CA2213 // This field is disposed properly
+        private DbDataSource _dataSource;
+        #pragma warning restore CA2213
 
         public MySqlConnectionFactory(IConfiguration configuration, IAmazonSecretsManager secretsManager, IOptions<JsonOptions> jsonOptions, ILoggerFactory logger)
         {
@@ -36,29 +48,41 @@ namespace Warehouse.Host.Services
                 }
             ).GetAwaiter().GetResult();
 
-            DbSecret secret = JsonSerializer.Deserialize<DbSecret>(resp.SecretString, jsonOptions.Value.JsonSerializerOptions)!;
+            DbSecret secret = JsonSerializer.Deserialize<DbSecret>
+            (
+                resp.SecretString,
+                new JsonSerializerOptions(jsonOptions.Value.JsonSerializerOptions)
+                {
+                    UnmappedMemberHandling = JsonUnmappedMemberHandling.Skip  // we dont need the cluster id, etc
+                }
+            )!;
 
-            DataSource = new MySqlDataSourceBuilder
+            _dataSource = new MySqlDataSourceBuilder
             (
                 new MySqlConnectionStringBuilder
                 {
-                    Server = secret.Endpoint,
+                    Server = secret.Host,
+                    Port = secret.Port,
                     UserID = secret.UserName,
                     Password = secret.Password,
-                    Database = secret.Database
+                    Database = secret.DbName
                 }.ConnectionString
             )
             .UseLoggerFactory(logger)
             .Build();
         }
 
-        public void Dispose()
-        {
-            DataSource?.Dispose();
-            DataSource = null!;
-        }
+        public void Dispose() => DataSource = null!;
 
-        public DbDataSource DataSource { get; set; }  // for tests
+        public DbDataSource DataSource // for tests
+        {
+            get => _dataSource;
+            set
+            {
+                _dataSource?.Dispose();
+                _dataSource = value;
+            }
+        }  
 
         public IDbConnection CreateConnection()
         {

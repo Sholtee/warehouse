@@ -41,7 +41,7 @@ services:
       - AWS_REGION=local
       - AWS_ACCESS_KEY_ID=local
       - AWS_SECRET_ACCESS_KEY=local
-      - 'DB_SECRET={"endpoint": "aurora", "database": "WarehouseDb", "password": "kerekesfacapa", "userName": "root"}'
+      - 'DB_SECRET={"host": "aurora", "port": 3306, "dbName": "WarehouseDb", "password": "kerekesfacapa", "userName": "root"}'
       - JWT_SECRET=very-very-very-very-very-very-very-secret-key
       - ROOT_PASSWORD=medvedisznoember  
   api:
