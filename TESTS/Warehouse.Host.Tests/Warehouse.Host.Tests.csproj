@@ -5,7 +5,7 @@
     <PropertyGroup>
         <AssemblyName>Warehouse.Host.Tests</AssemblyName>
         <RootNamespace>Warehouse.Host.Tests</RootNamespace>
-        <NoWarn>CA1515;CA1822;CA2000;CA2007;CA2201;CA2234;SYSLIB0026</NoWarn>
+        <NoWarn>CA1515;CA1822;CA2000;CA2007;CA2201;CA2234;SYSLIB0026;CertificateManager1002</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>

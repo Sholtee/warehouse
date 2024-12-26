@@ -1,5 +1,5 @@
 #
-# RunLocal.ps1
+# Run-Local.ps1
 #
 # Author: Denes Solti
 # Project: Warehouse API (boilerplate)

@@ -5,7 +5,6 @@
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Amazon.SecretsManager;
@@ -16,6 +15,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Warehouse.Host.Services
 {
+    using Core.Abstractions;
     using Core.Extensions;
     using DAL;
 
@@ -24,33 +24,16 @@ namespace Warehouse.Host.Services
         IConfiguration configuration,
         ILogger<RootUserRegistrar> logger,
         IUserRepository userRepository,
+        IPasswordGenerator passwordGenerator,
         IPasswordHasher<string> passwordHasher,
         IAmazonSecretsManager secretsManager
     )
     {
-        private static string GeneratePassword()
-        {
-            const string 
-                UPPER_CASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-                LOWER_CASE_LETTERS = "abcdefghijklmnopqrstuvwxyz",
-                NUMBERS = "0123456789",
-                SPECIALS = "!@#$%^&*()_+";
-
-            List<char> chars = [];
-
-            chars.AddRange(UPPER_CASE_LETTERS.Random(5));
-            chars.AddRange(LOWER_CASE_LETTERS.Random(5));
-            chars.AddRange(NUMBERS.Random(5));
-            chars.AddRange(SPECIALS.Random(5));
-
-            return string.Join("", chars.Shuffle());
-        }
-
         public async Task<bool> EnsureHasRootUserAsync()
         {
             const string ROOT_USER = "root";
 
-            string pw = GeneratePassword();
+            string pw = passwordGenerator.Generate(20);
 
             CreateUserParam createUserParam = new()
             {
@@ -62,7 +45,7 @@ namespace Warehouse.Host.Services
             if (!await userRepository.CreateUser(createUserParam))
                 return false;
 
-            string secret = $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-root-user-creds";
+            string secret = $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-warehouse-root-user-creds";
 
             await secretsManager.CreateSecretAsync
             (

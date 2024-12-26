@@ -15,6 +15,8 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 
+using Amazon.ResourceGroupsTaggingAPI;
+using Amazon.ResourceGroupsTaggingAPI.Model;
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 
@@ -24,6 +26,11 @@ namespace Warehouse.Tools.LocalStackSetup
 {
     internal static class Program
     {
+        #region Private
+        private const string
+            TAG_KEY = "Project",
+            TAG_VALUE = "local-warehouse-app";
+
         #pragma warning disable CA1812  // this class is instantiated by the JsonSerializer
         private sealed class LocalStackStatus
         #pragma warning restore CA1812 
@@ -90,29 +97,18 @@ namespace Warehouse.Tools.LocalStackSetup
         {
             using AmazonSecretsManagerClient client = new();
 
-            Dictionary<string, SecretListEntry> secrets = 
-            (
-                await client.ListSecretsAsync(new ListSecretsRequest { })
-            ).SecretList.ToDictionary(static s => s.Name);
+            await SetupSecret("local-warehouse-jwt-secret-key", GetEnvironmentVariable("JWT_SECRET")!);
 
-            await SetupSecret("local-api-certificate", new
+            await SetupSecret("local-warehouse-db-secret", GetEnvironmentVariable("DB_SECRET")!);
+
+            await SetupSecret("local-warehouse-app-cert", new
             {
-                PrivateKey = await File.ReadAllTextAsync(Path.Combine("Cert", "private.key")),
-                Certificate = await File.ReadAllTextAsync(Path.Combine("Cert", "certificate.crt"))
+                privateKey = await File.ReadAllTextAsync(Path.Combine("Cert", "client.key")),
+                certificate = await File.ReadAllTextAsync(Path.Combine("Cert", "client.crt"))
             });
-
-            await SetupSecret("local-jwt-secret-key", GetEnvironmentVariable("JWT_SECRET")!);
-
-            await SetupSecret("local-db-secret", GetEnvironmentVariable("DB_SECRET")!);
 
             async Task SetupSecret(string name, object value)
             {
-                if (secrets.ContainsKey(name))
-                {
-                    Console.WriteLine($"Secret '{name}' already exists");
-                    return;
-                }
-
                 Console.WriteLine($"Setup '{name}'...");
 
                 if (value is not string valueStr)
@@ -123,15 +119,55 @@ namespace Warehouse.Tools.LocalStackSetup
                     new CreateSecretRequest
                     {
                         Name = name,
-                        SecretString = valueStr
+                        SecretString = valueStr,
+                        Tags =
+                        [
+                            new Amazon.SecretsManager.Model.Tag
+                            {
+                                Key = TAG_KEY,
+                                Value = TAG_VALUE
+                            }
+                        ]
                     }
                 );
             }
         }
 
+        private static async Task<bool> HasAppResources()
+        {
+            using AmazonResourceGroupsTaggingAPIClient client = new();
+
+            GetResourcesResponse resp = await client.GetResourcesAsync
+            (
+                new GetResourcesRequest
+                {
+                    TagFilters =
+                    [
+                        new TagFilter
+                        {
+                            Key = TAG_KEY,
+                            Values = [TAG_VALUE]
+                        }
+                    ]
+                }
+            );
+
+            string[] appResources = [.. resp.ResourceTagMappingList.Select(static tm => tm.ResourceARN)];
+            Console.WriteLine($"Initialized LocalStack resources: {(appResources.Length > 0 ? string.Join(", ", appResources) : "-")}");
+
+            return appResources.Length > 0;
+        }
+        #endregion
+
         public static async Task Main()
         {
-            await WiatForServices("secretsmanager");
+            await WiatForServices("secretsmanager", "acm");
+
+            if (await HasAppResources())
+            {
+                Console.WriteLine("LocalStack alread initialized, terminating...");
+                return;
+            }
 
             await SetupSecrets();
 

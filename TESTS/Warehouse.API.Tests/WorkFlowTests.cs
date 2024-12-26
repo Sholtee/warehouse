@@ -98,10 +98,10 @@ namespace Warehouse.API.Tests
                 {
                     Mock<IAmazonSecretsManager> mockSecretsManager = new(MockBehavior.Strict);
                     mockSecretsManager
-                        .Setup(s => s.GetSecretValueAsync(It.Is<GetSecretValueRequest>(r => r.SecretId == "local-jwt-secret-key"), default))
+                        .Setup(s => s.GetSecretValueAsync(It.Is<GetSecretValueRequest>(r => r.SecretId == "local-warehouse-jwt-secret-key"), default))
                         .ReturnsAsync(new GetSecretValueResponse { SecretString = "very-very-very-very-very-secure-secret-key" });
                     mockSecretsManager
-                        .Setup(s => s.CreateSecretAsync(It.Is<CreateSecretRequest>(r => r.Name == "local-root-user-creds"), default))
+                        .Setup(s => s.CreateSecretAsync(It.Is<CreateSecretRequest>(r => r.Name == "local-warehouse-root-user-creds"), default))
                         .Returns<CreateSecretRequest, CancellationToken>((r, t) =>
                         {
                             RootPw = r.SecretString;

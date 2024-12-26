@@ -210,7 +210,7 @@ namespace Warehouse.Host.Infrastructure.Tests
 
                     Mock<IAmazonSecretsManager> mockSecretsManager = new(MockBehavior.Strict);
                     mockSecretsManager
-                        .Setup(s => s.GetSecretValueAsync(It.Is<GetSecretValueRequest>(r => r.SecretId == "local-jwt-secret-key"), default))
+                        .Setup(s => s.GetSecretValueAsync(It.Is<GetSecretValueRequest>(r => r.SecretId == "local-warehouse-jwt-secret-key"), default))
                         .ReturnsAsync(new GetSecretValueResponse { SecretString = "very-very-very-very-very-secure-secret-key" });
 
                     services.AddSingleton(mockSecretsManager.Object);

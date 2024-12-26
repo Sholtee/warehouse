@@ -6,7 +6,6 @@
 * License: MIT                                                                  *
 ********************************************************************************/
 using System.Linq;
-using System.Text.RegularExpressions;
 
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
@@ -19,6 +18,7 @@ using NUnit.Framework;
 
 namespace Warehouse.Host.Services.Tests
 {
+    using Core.Abstractions;
     using DAL;
 
     [TestFixture]
@@ -27,6 +27,7 @@ namespace Warehouse.Host.Services.Tests
         private Mock<IConfiguration> _mockConfiguration = null!;
         private Mock<IUserRepository> _mockUserRepository = null!;
         private Mock<ILogger<RootUserRegistrar>> _mockLogger = null!;
+        private Mock<IPasswordGenerator> _mockPasswordGenerator = null!;
         private Mock<IPasswordHasher<string>> _mockPasswordHasher = null!;
         private Mock<IAmazonSecretsManager> _mockSecretsManager = null!;
         private RootUserRegistrar _rootUserRegistrar = null!;
@@ -38,12 +39,14 @@ namespace Warehouse.Host.Services.Tests
             _mockUserRepository = new(MockBehavior.Strict);
             _mockLogger = new(MockBehavior.Loose);
             _mockPasswordHasher = new(MockBehavior.Strict);
+            _mockPasswordGenerator = new(MockBehavior.Strict);
             _mockSecretsManager = new(MockBehavior.Strict);
             _rootUserRegistrar = new RootUserRegistrar
             (
                 _mockConfiguration.Object,
                 _mockLogger.Object,
                 _mockUserRepository.Object,
+                _mockPasswordGenerator.Object,
                 _mockPasswordHasher.Object,
                 _mockSecretsManager.Object
             );
@@ -63,22 +66,12 @@ namespace Warehouse.Host.Services.Tests
                     return res;
                 });
 
+            _mockPasswordGenerator
+                .Setup(p => p.Generate(20))
+                .Returns("password");
+
             _mockPasswordHasher
-                .Setup
-                (
-                    h => h.HashPassword
-                    (
-                        "root",
-                        It.Is<string>
-                        (
-                            s => s.Length == 20 &&
-                                Regex.Match(s, "\\d+").Success &&
-                                Regex.Match(s, "[a-z]").Success &&
-                                Regex.Match(s, "[A-Z]").Success &&
-                                Regex.Match(s, "[!@#$%^&*()_+]").Success
-                        )
-                    )
-                )
+                .Setup(h => h.HashPassword("root", "password"))
                 .Returns("hash");
 
             Mock<IConfigurationSection> mockEnv = new(MockBehavior.Strict);
@@ -98,7 +91,7 @@ namespace Warehouse.Host.Services.Tests
                 (
                     s => s.CreateSecretAsync
                     (
-                        It.Is<CreateSecretRequest>(r => r.Name == "local-root-user-creds" & r.SecretString == _mockPasswordHasher.Invocations[0].Arguments[1].ToString()),
+                        It.Is<CreateSecretRequest>(r => r.Name == "local-warehouse-root-user-creds" & r.SecretString == _mockPasswordHasher.Invocations[0].Arguments[1].ToString()),
                         default
                     )
                 )

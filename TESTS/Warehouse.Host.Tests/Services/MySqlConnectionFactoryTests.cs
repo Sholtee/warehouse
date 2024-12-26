@@ -10,8 +10,10 @@ using System.Text.Json;
 
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 using NUnit.Framework;
@@ -25,6 +27,7 @@ namespace Warehouse.Host.Services.Tests
         private Mock<IConfiguration> _mockConfiguration = null!;
         private Mock<IAmazonSecretsManager> _mockSecretsManager = null!;
         private Mock<ILoggerFactory> _mockLoggerFactory = null!;
+        private Mock<IOptions<JsonOptions>> _mockJsonOptions = null!;
         private Mock<DbDataSource> _mockDataSource = null!;
 
         [SetUp]
@@ -34,6 +37,7 @@ namespace Warehouse.Host.Services.Tests
             _mockSecretsManager = new Mock<IAmazonSecretsManager>(MockBehavior.Strict);
             _mockLoggerFactory = new Mock<ILoggerFactory>(MockBehavior.Strict);
             _mockDataSource = new Mock<DbDataSource>(MockBehavior.Strict);
+            _mockJsonOptions = new Mock<IOptions<JsonOptions>>(MockBehavior.Strict);
         }
 
         [Test]
@@ -52,7 +56,7 @@ namespace Warehouse.Host.Services.Tests
                 .Returns(mockEnv.Object);
 
             _mockSecretsManager
-                .Setup(s => s.GetSecretValueAsync(It.Is<GetSecretValueRequest>(r => r.SecretId == "local-db-secret"), default))
+                .Setup(s => s.GetSecretValueAsync(It.Is<GetSecretValueRequest>(r => r.SecretId == "local-warehouse-db-secret"), default))
                 .ReturnsAsync
                 (
                     new GetSecretValueResponse
@@ -61,14 +65,18 @@ namespace Warehouse.Host.Services.Tests
                         (
                             new
                             {
-                                Endpoint = "endpoint",
-                                Database = "db",
-                                UserName = "user",
-                                Password = "pass"
+                                endpoint = "endpoint",
+                                database = "db",
+                                userName = "user",
+                                password = "pass"
                             }
                         )
                     }
                 );
+
+            _mockJsonOptions
+                .SetupGet(j => j.Value)
+                .Returns(new JsonOptions());
 
             _mockLoggerFactory
                 .Setup(l => l.CreateLogger(It.IsAny<string>()))
@@ -78,6 +86,7 @@ namespace Warehouse.Host.Services.Tests
             (
                 _mockConfiguration.Object,
                 _mockSecretsManager.Object,
+                _mockJsonOptions.Object,
                 _mockLoggerFactory.Object
             );
 

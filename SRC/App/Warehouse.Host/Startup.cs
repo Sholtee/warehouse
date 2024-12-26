@@ -19,12 +19,10 @@ using Microsoft.Extensions.Hosting;
 namespace Warehouse.Host
 {
     using API.Registrations;
-    using Core.Abstractions;
     using DAL.Registrations;
     using Infrastructure.Filters;
     using Infrastructure.Middlewares;
     using Infrastructure.Registrations;
-    using Services;
 
     internal sealed class Startup(IConfiguration configuration)
     {
@@ -54,14 +52,15 @@ namespace Warehouse.Host
                 {
                     options.SuppressModelStateInvalidFilter = true;  // we want to use our own ValidateModelStateFilter
                 });
-
+        
             services.TryAddSingleton(TimeProvider.System);
-            services.TryAddSingleton<IX509CertificateFactory, X509CertificateFactory>();
 
-            services.AddSessionCookieAuthentication();
+            services.AddAwsServices();
+            services.AddCertificateStore();
             services.AddDbConnection();
             services.AddRepositories();
             services.AddRootUserRegistrar();
+            services.AddSessionCookieAuthentication();
             services.AddSwagger(configuration);
         }
 

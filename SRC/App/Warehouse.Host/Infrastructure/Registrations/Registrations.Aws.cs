@@ -1,19 +1,18 @@
 /********************************************************************************
-* X509CertificateFactory.cs                                                     *
+* Registrations.Aws.cs                                                          *
 *                                                                               *
 * Author: Denes Solti                                                           *
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
-using System.Security.Cryptography.X509Certificates;
+using Amazon.SecretsManager;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Warehouse.Host.Services
+namespace Warehouse.Host.Infrastructure.Registrations
 {
-    using Core.Abstractions;
-
-    internal sealed class X509CertificateFactory : IX509CertificateFactory
+    internal static partial class Registrations
     {
-        public X509Certificate2 CreateFromPem(string certificate, string privateKey) =>
-            X509Certificate2.CreateFromPem(certificate, privateKey);
+        public static IServiceCollection AddAwsServices(this IServiceCollection services) => services
+            .TryAddAWSService<IAmazonSecretsManager>();
     }
 }

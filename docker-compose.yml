@@ -41,7 +41,7 @@ services:
       - AWS_REGION=local
       - AWS_ACCESS_KEY_ID=local
       - AWS_SECRET_ACCESS_KEY=local
-      - 'DB_SECRET={"Endpoint": "aurora", "Database": "WarehouseDb", "Password": "kerekesfacapa", "UserName": "root"}'
+      - 'DB_SECRET={"endpoint": "aurora", "database": "WarehouseDb", "password": "kerekesfacapa", "userName": "root"}'
       - JWT_SECRET=very-very-very-very-very-very-very-secret-key
   api:
     depends_on:
