@@ -15,7 +15,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Warehouse.Host.Services
 {
-    using Core.Abstractions;
     using Core.Extensions;
     using DAL;
 
@@ -24,7 +23,6 @@ namespace Warehouse.Host.Services
         IConfiguration configuration,
         ILogger<RootUserRegistrar> logger,
         IUserRepository userRepository,
-        IPasswordGenerator passwordGenerator,
         IPasswordHasher<string> passwordHasher,
         IAmazonSecretsManager secretsManager
     )
@@ -33,30 +31,25 @@ namespace Warehouse.Host.Services
         {
             const string ROOT_USER = "root";
 
-            string pw = passwordGenerator.Generate(20);
+            GetSecretValueResponse resp = await secretsManager.GetSecretValueAsync
+            (
+                new GetSecretValueRequest
+                {
+                    SecretId = $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-warehouse-root-user-password"
+                }
+            );
 
             CreateUserParam createUserParam = new()
             {
                 ClientId = ROOT_USER,
-                ClientSecretHash = passwordHasher.HashPassword(ROOT_USER, pw),
+                ClientSecretHash = passwordHasher.HashPassword(ROOT_USER, resp.SecretString),
                 Groups = ["Admins"]
             };
 
             if (!await userRepository.CreateUser(createUserParam))
                 return false;
-
-            string secret = $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-warehouse-root-user-creds";
-
-            await secretsManager.CreateSecretAsync
-            (
-                new CreateSecretRequest
-                {
-                    Name = secret,
-                    SecretString = pw
-                }
-            );        
-
-            logger.LogInformation("{root} user has been created. Change the password ASAP! Initial creds stored in {secret}", ROOT_USER, secret);
+    
+            logger.LogInformation("{root} user has been created.", ROOT_USER);
             return true;
         }
 

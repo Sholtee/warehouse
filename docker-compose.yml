@@ -27,7 +27,7 @@ services:
     ports:
       - 4566:4566
     environment:
-      - SERVICES=secretsmanager
+      - SERVICES=resourcegroupstaggingapi,secretsmanager
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
   localstack-setup:
@@ -43,6 +43,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=local
       - 'DB_SECRET={"endpoint": "aurora", "database": "WarehouseDb", "password": "kerekesfacapa", "userName": "root"}'
       - JWT_SECRET=very-very-very-very-very-very-very-secret-key
+      - ROOT_PASSWORD=medvedisznoember  
   api:
     depends_on:
       localstack-setup:

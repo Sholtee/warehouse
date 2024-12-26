@@ -107,6 +107,8 @@ namespace Warehouse.Tools.LocalStackSetup
                 certificate = await File.ReadAllTextAsync(Path.Combine("Cert", "client.crt"))
             });
 
+            await SetupSecret("local-warehouse-root-user-password", GetEnvironmentVariable("ROOT_PASSWORD")!);
+
             async Task SetupSecret(string name, object value)
             {
                 Console.WriteLine($"Setup '{name}'...");

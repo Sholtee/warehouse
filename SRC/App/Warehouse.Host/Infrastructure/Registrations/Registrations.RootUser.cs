@@ -36,8 +36,7 @@ namespace Warehouse.Host.Infrastructure.Registrations
             services.AddRepositories();
 
             services.TryAddScoped(typeof(IPasswordHasher<>), typeof(PasswordHasher<>));
-            services.TryAddScoped<RootUserRegistrar>();        
-            services.TryAddSingleton<IPasswordGenerator, PasswordGenerator>();
+            services.TryAddScoped<RootUserRegistrar>();
 
             return services;
         }

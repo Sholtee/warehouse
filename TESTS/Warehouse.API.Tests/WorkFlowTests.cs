@@ -101,20 +101,14 @@ namespace Warehouse.API.Tests
                         .Setup(s => s.GetSecretValueAsync(It.Is<GetSecretValueRequest>(r => r.SecretId == "local-warehouse-jwt-secret-key"), default))
                         .ReturnsAsync(new GetSecretValueResponse { SecretString = "very-very-very-very-very-secure-secret-key" });
                     mockSecretsManager
-                        .Setup(s => s.CreateSecretAsync(It.Is<CreateSecretRequest>(r => r.Name == "local-warehouse-root-user-creds"), default))
-                        .Returns<CreateSecretRequest, CancellationToken>((r, t) =>
-                        {
-                            RootPw = r.SecretString;
-                            return Task.FromResult<CreateSecretResponse>(null!);
-                        });
+                        .Setup(s => s.GetSecretValueAsync(It.Is<GetSecretValueRequest>(r => r.SecretId == "local-warehouse-root-user-password"), default))
+                        .ReturnsAsync(new GetSecretValueResponse { SecretString = "password" });
 
                     services.AddSingleton(mockSecretsManager.Object);
                     services.AddSingleton<IDbConnection>(_connection);
                     services.AddSingleton<IOrmLiteDialectProvider>(SqliteDialect.Provider);
                 });
             }
-
-            public string RootPw { get; internal set; } = null!;
         }
 
         private TestHostFactory _appFactory = null!;
@@ -122,7 +116,7 @@ namespace Warehouse.API.Tests
         private async Task<string> GetSessionCookie()
         {
             RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/api/v1/login");
-            requestBuilder.AddHeader("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes($"root:{_appFactory.RootPw}"))}");
+            requestBuilder.AddHeader("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes($"root:password"))}");
 
             using HttpResponseMessage resp = await requestBuilder.GetAsync();
 
