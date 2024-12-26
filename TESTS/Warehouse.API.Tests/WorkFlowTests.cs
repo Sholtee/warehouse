@@ -92,9 +92,9 @@ namespace Warehouse.API.Tests
                 return base.CreateHost(builder);
             }
 
-            protected override void ConfigureWebHost(IWebHostBuilder builder)
-            {
-                builder.ConfigureTestServices(services =>
+            protected override void ConfigureWebHost(IWebHostBuilder builder) => builder
+                .UseEnvironment("local")
+                .ConfigureTestServices(services =>
                 {
                     Mock<IAmazonSecretsManager> mockSecretsManager = new(MockBehavior.Strict);
                     mockSecretsManager
@@ -108,7 +108,6 @@ namespace Warehouse.API.Tests
                     services.AddSingleton<IDbConnection>(_connection);
                     services.AddSingleton<IOrmLiteDialectProvider>(SqliteDialect.Provider);
                 });
-            }
         }
 
         private TestHostFactory _appFactory = null!;

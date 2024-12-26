@@ -14,11 +14,11 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
 
 namespace Warehouse.Host
 {
     using API.Registrations;
+    using Core.Extensions;
     using DAL.Registrations;
     using Infrastructure.Filters;
     using Infrastructure.Middlewares;
@@ -74,7 +74,7 @@ namespace Warehouse.Host
                 .UseMiddleware<LoggingMiddleware>()
                 .UseEndpoints(static endpoints => endpoints.MapControllers());
 
-            if (env.IsDevelopment())
+            if (env.IsLocal() || env.IsDev())
             {
                 app.UseDeveloperExceptionPage();        
                 app.UseSwagger(configuration);

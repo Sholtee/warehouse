@@ -12,12 +12,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Warehouse.Host.Infrastructure.Filters
 {
     using Core.Exceptions;
+    using Core.Extensions;
 
     /// <summary>
     /// Error details.
@@ -79,7 +79,7 @@ namespace Warehouse.Host.Infrastructure.Filters
                     Status = statusCode,
                     TraceId = context.HttpContext.TraceIdentifier,
                     Errors = errors,
-                    DeveloperMessage = env.IsDevelopment() ? developerMessage : null
+                    DeveloperMessage = env.IsLocal() || env.IsDev() ? developerMessage : null
                 };
 
                 return new ObjectResult(result)

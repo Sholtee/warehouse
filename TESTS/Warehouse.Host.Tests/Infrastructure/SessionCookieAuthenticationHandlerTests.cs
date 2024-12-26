@@ -192,9 +192,9 @@ namespace Warehouse.Host.Infrastructure.Tests
     {
         private sealed class TestHostFactory : WebApplicationFactory<Warehouse.Tests.Host.Program>
         {
-            protected override void ConfigureWebHost(IWebHostBuilder builder)
-            {
-                builder.ConfigureTestServices(services =>
+            protected override void ConfigureWebHost(IWebHostBuilder builder) => builder
+                .UseEnvironment("local")
+                .ConfigureTestServices(services =>
                 {
                     Mock<IMemoryCache> mockMemoryCache = new(MockBehavior.Strict);
                     mockMemoryCache
@@ -222,7 +222,6 @@ namespace Warehouse.Host.Infrastructure.Tests
                         .AddApplicationPart(typeof(AuthTestController).Assembly)
                         .AddControllersAsServices();
                 });
-            }
         }
 
         private TestHostFactory _appFactory = null!;
