@@ -1,0 +1,321 @@
+#####################################################
+# foundation.yml
+#
+# Author: Denes Solti
+# Project: Warehouse API (boilerplate)
+# License: MIT
+#####################################################
+Description: Foundation infrastructure. Can be deployed in any region
+
+Transform: AWS::LanguageExtensions
+
+Parameters:
+  prefix:
+    Type: String
+    Description: Prefix, for instance "dev" or "prod"
+    MaxLength: '32'
+  # certificate:
+  #   Type: String
+  #   Description: PEM certificate
+  # privateKey:
+  #   Type: String
+  #   Description: PEM private key
+
+Mappings:
+  AZsByIndex:
+    Values:
+      "1": a
+      "2": b
+
+Resources:
+  ###################
+  # Services
+  ###################
+
+  EcrRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub "${prefix}-warehouse-ecr-repository"
+
+  ServicesCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub "${prefix}-warehouse-services-cluster"
+
+  ###################
+  # VPC
+  ###################
+
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 192.168.0.0/16
+      InstanceTenancy: default
+
+  VpcInternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  VpcInternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref Vpc
+      InternetGatewayId: !Ref VpcInternetGateway
+
+  Fn::ForEach::VpcSubnets:
+    - SubnetIndex
+    - - "1"  # must be string
+      - "2"
+    - VpcPrivateSubnet${SubnetIndex}:
+        Type: AWS::EC2::Subnet
+        Description: Resources in private subnet can access the internet but cannot be accessed outside the subnet
+        Properties:
+          VpcId: !Ref Vpc
+          CidrBlock: !Sub "192.168.${SubnetIndex}0.0/24"
+          AvailabilityZone: !Join
+            - ""
+            - - !Ref AWS::Region
+              - !FindInMap
+                - AZsByIndex
+                - Values
+                - !Ref SubnetIndex
+          MapPublicIpOnLaunch: false
+
+      VpcPrivateRouteTable${SubnetIndex}:
+        Type: AWS::EC2::RouteTable
+        Properties:
+          VpcId: !Ref Vpc
+
+      VpcPrivateSubnet${SubnetIndex}RouteTableAssociation:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+          RouteTableId: !Ref
+            Fn::Sub: "VpcPrivateRouteTable${SubnetIndex}"
+          SubnetId: !Ref
+            Fn::Sub: "VpcPrivateSubnet${SubnetIndex}"
+
+      VpcPrivateSubnet${SubnetIndex}NatRoute:
+        Type: AWS::EC2::Route
+        Properties:
+          DestinationCidrBlock: "0.0.0.0/0"
+          NatGatewayId: !Ref
+            Fn::Sub: "VpcNatGateway${SubnetIndex}"
+          RouteTableId: !Ref
+            Fn::Sub: "VpcPrivateRouteTable${SubnetIndex}"
+
+      VpcPublicSubnet${SubnetIndex}:
+        Type: AWS::EC2::Subnet
+        Description: Resources in public subnet can access the internet and also can be accessed outside the subnet
+        Properties:
+          VpcId: !Ref Vpc
+          CidrBlock: !Sub "192.168.${SubnetIndex}1.0/24"
+          AvailabilityZone: !Join
+            - ""
+            - - !Ref AWS::Region
+              - !FindInMap
+                - AZsByIndex
+                - Values
+                - !Ref SubnetIndex
+          MapPublicIpOnLaunch: true
+
+      VpcPublicRouteTable${SubnetIndex}:
+        Type: AWS::EC2::RouteTable
+        Properties:
+          VpcId: !Ref Vpc
+
+      VpcPublicSubnet${SubnetIndex}InternetRoute:
+        Type: AWS::EC2::Route
+        Properties:
+          DestinationCidrBlock: "0.0.0.0/0"
+          GatewayId: !Ref VpcInternetGateway
+          RouteTableId: !Ref
+            Fn::Sub: "VpcPublicRouteTable${SubnetIndex}"
+
+      VpcPublicSubnet${SubnetIndex}RouteTableAssociation:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+          RouteTableId: !Ref
+            Fn::Sub: "VpcPublicRouteTable${SubnetIndex}"
+          SubnetId: !Ref
+            Fn::Sub: "VpcPublicSubnet${SubnetIndex}"
+
+      VpcNatPublicIP${SubnetIndex}:
+        Type: AWS::EC2::EIP
+        Properties:
+          Domain: vpc
+
+      VpcNatGateway${SubnetIndex}:
+        Type: AWS::EC2::NatGateway
+        Properties:
+          AllocationId: !GetAtt
+            - !Sub "VpcNatPublicIP${SubnetIndex}"
+            - AllocationId
+          SubnetId: !Ref
+            Fn::Sub: "VpcPublicSubnet${SubnetIndex}"
+
+  #####################
+  # Load balancer
+  #####################
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Type: application
+      Scheme: internet-facing  # cannot be "internal" if we want to use as a CF origin
+      Subnets:
+        - !Ref VpcPublicSubnet1
+        - !Ref VpcPublicSubnet2
+      SecurityGroups:
+        - !Ref LoadBalancerSecurityGroup
+
+  HTTPSListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      # Port: 443
+      # Protocol: HTTPS
+      # Certificates:
+      #   - CertificateArn: !Ref certificateArn
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: fixed-response
+          FixedResponseConfig:
+            StatusCode: 404
+            MessageBody: '{"error": "notFound"}'
+            ContentType: 'application/json'
+
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTPS from all
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+
+  ###################
+  # DB
+  ###################
+
+  DbCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      DBClusterIdentifier: !Sub "${prefix}-warehouse-db-cluster"
+      DBSubnetGroupName: !Ref DbSubnetGroup
+      Engine: aurora-mysql
+      EngineVersion: 8.0.mysql_aurora.3.06.0
+      MasterUsername: !Sub '{{resolve:secretsmanager:${DbSecret}:SecretString:username}}'
+      MasterUserPassword: !Sub '{{resolve:secretsmanager:${DbSecret}:SecretString:password}}'
+      DatabaseName: WarehouseDb
+      EnableHttpEndpoint: false
+      ServerlessV2ScalingConfiguration:
+        MinCapacity: 0.5
+        MaxCapacity: 1
+      VpcSecurityGroupIds:
+        - !Ref DbSecurityGroup
+
+  DbInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref DbCluster
+      DBInstanceIdentifier: !Sub "${prefix}-warehouse-db-instance"
+      DBInstanceClass: db.serverless
+      DBSubnetGroupName: !Ref DbSubnetGroup
+      Engine: aurora-mysql
+      EngineVersion: 8.0.mysql_aurora.3.06.0
+      PubliclyAccessible: false
+
+  DbSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub "${prefix}-warehouse-db-secret"
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "root"}'
+        GenerateStringKey: "password"
+        PasswordLength: 20
+
+  DbClusterSecretAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Desciption: Stores the connection information in the secret 
+    Properties:
+      SecretId: !Ref DbSecret
+      TargetId: !Ref DbCluster
+      TargetType: AWS::RDS::DBCluster
+
+  DbSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Db subnet group
+      SubnetIds:
+        - !Ref VpcPrivateSubnet1
+        - !Ref VpcPrivateSubnet2
+
+  DbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: DB cluster VPC security group
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: !GetAtt VpcPrivateSubnet1.CidrBlock
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: !GetAtt VpcPrivateSubnet2.CidrBlock
+
+#####################
+# Outputs
+#####################
+
+Outputs:
+  EcrRepositoryUri:
+    Value: !GetAtt EcrRepository.RepositoryUri
+    Export:
+      Name: !Sub "${prefix}-warehouse-ecr-repository-uri"
+  HTTPSListenerArn:
+    Value: !Ref HTTPSListener
+    Export:
+      Name: !Sub "${prefix}-warehouse-http-listener-arn"
+  LoadBalancerEndpoint:
+    Value: !Sub "https://${LoadBalancer.DNSName}"
+    Export:
+      Name: !Sub "${prefix}-warehouse-lb-endpoint"
+  ServicesCluster:
+    Value: !Ref ServicesCluster
+    Export:
+      Name: !Sub "${prefix}-warehouse-services-cluster"
+  VpcId:
+    Value: !Ref Vpc
+    Export:
+      Name: !Sub "${prefix}-warehouse-vpc-id"
+
+  Fn::ForEach::VpcOutputs:
+    - SubnetIndex
+    - - "1"  # must be string
+      - "2"
+    - PublicSubnet${SubnetIndex}Id:
+        Value: !Ref
+          Fn::Sub: "VpcPublicSubnet${SubnetIndex}"
+        Export:
+          Name: !Sub "${prefix}-warehouse-vpc-public-subnet-${SubnetIndex}-id"
+      PublicSubnet${SubnetIndex}CidrIp:
+        Value: !GetAtt
+          - !Sub "VpcPublicSubnet${SubnetIndex}"
+          - CidrBlock
+        Export:
+          Name: !Sub "${prefix}-warehouse-vpc-public-subnet-${SubnetIndex}-cidr-ip"
+      PrivateSubnet${SubnetIndex}Id:
+        Value: !Ref
+          Fn::Sub: "VpcPrivateSubnet${SubnetIndex}"
+        Export:
+          Name: !Sub "${prefix}-warehouse-vpc-private-subnet-${SubnetIndex}-id"
+      PrivateSubnet${SubnetIndex}CidrIp:
+        Value: !GetAtt
+          - !Sub "VpcPrivateSubnet${SubnetIndex}"
+          - CidrBlock
+        Export:
+          Name: !Sub "${prefix}-warehouse-vpc-private-subnet-${SubnetIndex}-cidr-ip"
