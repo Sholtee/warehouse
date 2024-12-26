@@ -138,8 +138,8 @@ namespace Warehouse.Tools.LocalStackSetup
             (
                 new ImportCertificateRequest
                 {
-                    Certificate = await ReadAsStream(Path.Combine("Cert", "certificate.crt")),
-                    PrivateKey = await ReadAsStream(Path.Combine("Cert", "private.key")),
+                    Certificate = await ReadAsStream(Path.Combine("Cert", "client.crt")),
+                    PrivateKey = await ReadAsStream(Path.Combine("Cert", "client.key")),
                     Tags =
                     [
                         new Amazon.CertificateManager.Model.Tag
