@@ -14,6 +14,7 @@ using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 
@@ -44,5 +45,12 @@ namespace Warehouse.Host.Services
         }
 
         public X509Certificate2 GetCertificate(string name) => GetCertificateAsync(name).GetAwaiter().GetResult();
+
+        public static X509Certificate2 GetCertificate(IServiceProvider scope, object? key) => scope
+            .GetRequiredService<CertificateStore>()
+            .GetCertificate
+            (
+                key as string ?? throw new ArgumentException("Invalid key", nameof(key))
+            );
     }
 }

@@ -5,6 +5,8 @@
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
+using System.Security.Cryptography.X509Certificates;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -18,6 +20,7 @@ namespace Warehouse.Host.Infrastructure.Registrations
         {
             services.AddAwsServices();
             services.TryAddSingleton<CertificateStore>();
+            services.TryAddKeyedSingleton<X509Certificate2>("warehouse-app-cert", CertificateStore.GetCertificate);
 
             return services;
         }

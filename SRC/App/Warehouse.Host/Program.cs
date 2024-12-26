@@ -6,6 +6,7 @@
 * License: MIT                                                                  *
 ********************************************************************************/
 using System.Net;
+using System.Security.Cryptography.X509Certificates;
 
 using Amazon;
 using Microsoft.AspNetCore.Hosting;
@@ -20,7 +21,6 @@ using ServiceStack.OrmLite;
 namespace Warehouse.Host
 {
     using Core.Extensions;
-    using Services;
 
     internal sealed class Program
     {
@@ -51,12 +51,11 @@ namespace Warehouse.Host
                     (
                         IPAddress.Any,
                         context.Configuration.GetRequiredValue<int>("ApiPort"),
-                        listenOpts => listenOpts.UseHttps
+                        static listenOpts => listenOpts.UseHttps
                         (
                             listenOpts
                                 .ApplicationServices
-                                .GetRequiredService<CertificateStore>()
-                                .GetCertificate("warehouse-app-cert")
+                                .GetRequiredKeyedService<X509Certificate2>("warehouse-app-cert")
                         )
                     )
                 )    
