@@ -19,7 +19,15 @@ param(
   [string]$region,
 
   [Parameter(Position=3, Mandatory=$true)]
-  [string]$profile
+  [string]$profile,
+
+  [Parameter(Position=4, Mandatory=$true)]
+  [ValidatePattern("^.+\.crt$")]
+  [string]$certificate,
+
+  [Parameter(Position=5, Mandatory=$true)]
+  [ValidatePattern("^.+\.key$")]
+  [string]$privateKey
 )
 
 $ErrorActionPreference = 'Stop'
@@ -32,14 +40,7 @@ aws cloudformation ${action}-stack `
   --stack-name ${stackName} `
   --region ${region} `
   --template-body file://./foundation.yml `
-  --parameters "ParameterKey=prefix,ParameterValue=${prefix}" `
+  --parameters "ParameterKey=prefix,ParameterValue=${prefix}" "ParameterKey=certificate,ParameterValue=$(Get-Content -Path $certificate)" "ParameterKey=privateKey,ParameterValue=$(Get-Content -Path $privateKey)"`
   --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
-aws cloudformation wait stack-${action}-complete --region ${region} --stack-name ${stackName}
-
-aws cloudformation describe-stacks `
-    --profile ${profile} `
-    --stack-name ${stackName} `
-    --region ${region} `
-    --query "Stacks[0].Outputs[?OutputKey=='LoadBalancerEndpoint'].OutputValue" `
-    --output text
+aws cloudformation wait stack-${action}-complete --profile ${profile} --region ${region} --stack-name ${stackName}

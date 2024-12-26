@@ -14,12 +14,12 @@ Parameters:
     Type: String
     Description: Prefix, for instance "dev" or "prod"
     MaxLength: '32'
-  # certificate:
-  #   Type: String
-  #   Description: PEM certificate
-  # privateKey:
-  #   Type: String
-  #   Description: PEM private key
+  certificate:
+    Type: String
+    Description: PEM certificate
+  privateKey:
+    Type: String
+    Description: PEM private key
 
 Mappings:
   AZsByIndex:
@@ -227,15 +227,6 @@ Resources:
       EngineVersion: 8.0.mysql_aurora.3.06.0
       PubliclyAccessible: false
 
-  DbSecret:
-    Type: AWS::SecretsManager::Secret
-    Properties:
-      Name: !Sub "${prefix}-warehouse-db-secret"
-      GenerateSecretString:
-        SecretStringTemplate: '{"username": "root"}'
-        GenerateStringKey: "password"
-        PasswordLength: 20
-
   DbClusterSecretAttachment:
     Type: AWS::SecretsManager::SecretTargetAttachment
     Desciption: Stores the connection information in the secret 
@@ -266,6 +257,40 @@ Resources:
           FromPort: 3306
           ToPort: 3306
           CidrIp: !GetAtt VpcPrivateSubnet2.CidrBlock
+
+#####################
+# App secrets
+#####################
+
+  DbSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub "${prefix}-warehouse-db-secret"
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "root"}'
+        GenerateStringKey: "password"
+        PasswordLength: 20
+
+  JwtSecretKey:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub "${prefix}-warehouse-jwt-secret-key"
+      GenerateSecretString:
+        PasswordLength: 64
+
+  RootPassword:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub "${prefix}-warehouse-root-user-password"
+      GenerateSecretString:
+        PasswordLength: 64
+
+  AppCert:
+    Type: AWS::SecretsManager::Secret
+    Description: We cannot grab the private key from ACM so we store the PEM in SM
+    Properties:
+      Name: !Sub "${prefix}-warehouse-app-cert"
+      SecretString: !Sub '{"privateKey": "${privateKey}", "certificate": "${certificate}"}'
 
 #####################
 # Outputs
