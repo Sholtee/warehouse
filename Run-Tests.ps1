@@ -1,5 +1,5 @@
 #
-# RunTests.ps1
+# Run-Tests.ps1
 #
 # Author: Denes Solti
 # Project: Warehouse API (boilerplate)

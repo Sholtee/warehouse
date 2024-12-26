@@ -1,5 +1,5 @@
 #
-# GetRootPw.ps1
+# Get-RootPw.ps1
 #
 # Author: Denes Solti
 # Project: Warehouse API (boilerplate)
