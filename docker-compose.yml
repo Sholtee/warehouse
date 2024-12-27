@@ -1,3 +1,11 @@
+#
+# docker-compose.yml
+#
+# Author: Denes Solti
+# Project: Warehouse API (boilerplate)
+# License: MIT
+#
+
 services:
   aurora:
     image: mysql:9.1.0
@@ -6,28 +14,13 @@ services:
       MYSQL_ROOT_PASSWORD: kerekesfacapa
     ports:
       - 3306:3306
-  db-migrator:
-    depends_on:
-      aurora:
-        condition: service_started
-      localstack-setup:
-        condition: service_completed_successfully
-    build:
-      context: ./SRC/Tools
-      dockerfile: ./dockerfile-dbmigrator
-    environment:
-      - AWS_ENDPOINT_URL=http://localstack:4566
-      - AWS_REGION=local
-      - AWS_ACCESS_KEY_ID=local
-      - AWS_SECRET_ACCESS_KEY=local
-      - PREFIX=local
   localstack:
     image: localstack/localstack:4.0.3
     restart: always
     ports:
       - 4566:4566
     environment:
-      - SERVICES=resourcegroupstaggingapi,secretsmanager
+      - SERVICES=lambda,resourcegroupstaggingapi,secretsmanager
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
   localstack-setup:
@@ -35,7 +28,7 @@ services:
       - localstack
     build:
       context: ./SRC/Tools
-      dockerfile: ./dockerfile-localstacksetup
+      dockerfile: ./LocalStackSetup/dockerfile
     environment:
       - AWS_ENDPOINT_URL=http://localstack:4566
       - AWS_REGION=local
@@ -43,12 +36,12 @@ services:
       - AWS_SECRET_ACCESS_KEY=local
       - 'DB_SECRET={"host": "aurora", "port": 3306, "dbName": "WarehouseDb", "password": "kerekesfacapa", "userName": "root"}'
       - JWT_SECRET=very-very-very-very-very-very-very-secret-key
-      - ROOT_PASSWORD=medvedisznoember  
+      - ROOT_PASSWORD=medvedisznoember
+    volumes:
+      - ./CloudFormation/.tmp:/app/LambdaBinaries
   api:
     depends_on:
       localstack-setup:
-        condition: service_completed_successfully
-      db-migrator:
         condition: service_completed_successfully
     restart: always
     build:

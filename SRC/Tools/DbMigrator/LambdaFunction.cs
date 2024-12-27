@@ -1,5 +1,5 @@
 /********************************************************************************
-* Program.cs                                                                    *
+* LambdaFunction.cs                                                             *
 *                                                                               *
 * Author: Denes Solti                                                           *
 * Project: Warehouse API (boilerplate)                                          *
@@ -9,6 +9,8 @@ using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 
+using Amazon.Lambda.Core;
+using Amazon.Lambda.Serialization.SystemTextJson;
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using DbUp;
@@ -17,15 +19,20 @@ using MySqlConnector;
 
 using static System.Environment;
 
+[assembly: LambdaSerializer(typeof(DefaultLambdaJsonSerializer))]
+
 namespace DbMigrator
 {
-    internal static class Program
+    /// <summary>
+    /// Warehouse.Tools.DbMigrator::DbMigrator.LambdaFunction::Handler
+    /// </summary>
+    public sealed class LambdaFunction
     {
         #pragma warning disable CA1812  // this class is instantiated by the JsonSerializer
         private sealed record DbSecret(string Host, uint Port, string DbName, string UserName, string Password);
         #pragma warning restore CA1812
 
-        private static async Task<bool> WaitForServer(string connectionString)
+        private static async Task<bool> WaitForServer(string connectionString, ILambdaLogger logger)
         {
             using MySqlConnection connection = new(connectionString);
 
@@ -37,12 +44,12 @@ namespace DbMigrator
                 {
                     await connection.OpenAsync();
 
-                    Console.WriteLine($"MySQL {connection.ServerVersion} is READY");
+                    logger.LogInformation("MySQL {serverVersion} is READY", connection.ServerVersion);
                     return true;
                 }
                 catch (MySqlException ex)
                 {
-                    Console.WriteLine($"Failed to connect to MySQL: {ex.Message}");
+                    logger.LogWarning("Failed to connect to MySQL host: {error}", ex.Message);
                     continue;
                 }
             }
@@ -50,8 +57,12 @@ namespace DbMigrator
             return false;
         }
 
-        static async Task<int> Main()
+        #pragma warning disable CA1822 // Lambda handler cannot be static
+        public async Task Handler(object? input, ILambdaContext context)
+        #pragma warning restore CA1822
         {
+            ArgumentNullException.ThrowIfNull(context, nameof(context));
+
             DbSecret secret;
 
             using (AmazonSecretsManagerClient client = new())
@@ -86,8 +97,11 @@ namespace DbMigrator
             // Wait for the server to be ready
             //
 
-            if (!await WaitForServer(connectionStringBuilder.ConnectionString))
-                return -1;
+            if (!await WaitForServer(connectionStringBuilder.ConnectionString, context.Logger))
+            {
+                context.Logger.LogError("Failed to connect to MySQL host");
+                return;
+            }
 
             connectionStringBuilder.Database = secret.DbName;
 
@@ -112,12 +126,11 @@ namespace DbMigrator
 
             if (!result.Successful)
             {
-                Console.WriteLine(result.Error);
-                return -1;
+                context.Logger.LogError(result.Error, "Migration failed :(");
+                return;
             }
 
-            Console.WriteLine("Migration successful :)");
-            return 0;
+            context.Logger.LogInformation("Migration successful :)");
         }
     }
 }
