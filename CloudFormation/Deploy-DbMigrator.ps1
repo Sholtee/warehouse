@@ -1,7 +1,7 @@
 #
 # Deploy-DbMigrator.ps1
 #
-# Usage: Deploy-Migrator.ps1 -action [create|update] -prefix prefix -region region-name -profile profile-name
+# Usage: Deploy-Migrator.ps1 -action [create|update] -prefix prefix -region region-name -profile profile-name [-runMigrations]
 #
 # Author: Denes Solti
 # Project: Warehouse API (boilerplate)
@@ -19,7 +19,9 @@ param(
   [string]$profile,
 
   [Parameter(Position=4, Mandatory=$true)]
-  [string]$region
+  [string]$region,
+
+  [switch]$runMigrations = $false
 )
 
 $ErrorActionPreference = "Stop"
@@ -42,3 +44,10 @@ aws cloudformation ${action}-stack `
   --template-body file://./db-migrator.yml `
   --parameters "ParameterKey=prefix,ParameterValue=${prefix}" "ParameterKey=lambdaVersion,ParameterValue=${version}" `
   --capabilities CAPABILITY_NAMED_IAM
+
+if ($runMigrations) {
+  $fnName = "${prefix}-warehouse-db-migrator-lambda"
+
+  aws lambda wait function-updated --function-name $fnName --profile $profile --region $region
+  aws lambda invoke --function-name $fnName --profile $profile --region $region ($PATH::Combine('.', '.tmp', "db-migrator-invocation-$((New-Guid).ToString('N')).log"))
+}
