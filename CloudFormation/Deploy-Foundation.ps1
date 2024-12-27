@@ -34,7 +34,6 @@ $ErrorActionPreference = 'Stop'
 
 $stackName = "${prefix}-warehouse-foundation"
 
-
 aws cloudformation ${action}-stack `
   --profile ${profile} `
   --stack-name ${stackName} `
@@ -42,5 +41,3 @@ aws cloudformation ${action}-stack `
   --template-body file://./foundation.yml `
   --parameters "ParameterKey=prefix,ParameterValue=${prefix}" "ParameterKey=certificate,ParameterValue=$(Get-Content -Path $certificate)" "ParameterKey=privateKey,ParameterValue=$(Get-Content -Path $privateKey)"`
   --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
-
-aws cloudformation wait stack-${action}-complete --profile ${profile} --region ${region} --stack-name ${stackName}

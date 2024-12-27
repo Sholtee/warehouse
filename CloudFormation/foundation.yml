@@ -293,10 +293,23 @@ Resources:
       SecretString: !Sub '{"privateKey": "${privateKey}", "certificate": "${certificate}"}'
 
 #####################
+# S3
+#####################
+
+  LambdaBinariesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${prefix}-warehouse-lambda-binaries"
+
+#####################
 # Outputs
 #####################
 
 Outputs:
+  DbSecretArn:
+    Value: !Ref DbSecret
+    Export:
+      Name: !Sub "${prefix}-warehouse-db-secret-arn"
   EcrRepositoryUri:
     Value: !GetAtt EcrRepository.RepositoryUri
     Export:
@@ -309,6 +322,10 @@ Outputs:
     Value: !Sub "https://${LoadBalancer.DNSName}"
     Export:
       Name: !Sub "${prefix}-warehouse-lb-endpoint"
+  LambdaBinariesBucketName:
+    Value: !Ref LambdaBinariesBucket
+    Export:
+      Name: !Sub "${prefix}-warehouse-lambda-binaries-bucket-name"
   ServicesCluster:
     Value: !Ref ServicesCluster
     Export:
