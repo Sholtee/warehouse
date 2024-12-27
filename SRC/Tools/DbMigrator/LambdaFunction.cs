@@ -1,5 +1,5 @@
 /********************************************************************************
-* Function.cs                                                                   *
+* LambdaFunction.cs                                                             *
 *                                                                               *
 * Author: Denes Solti                                                           *
 * Project: Warehouse API (boilerplate)                                          *
@@ -23,6 +23,9 @@ using static System.Environment;
 
 namespace DbMigrator
 {
+    /// <summary>
+    /// Warehouse.Tools.DbMigrator::DbMigrator.LambdaFunction::Handler
+    /// </summary>
     public sealed class LambdaFunction
     {
         #pragma warning disable CA1812  // this class is instantiated by the JsonSerializer

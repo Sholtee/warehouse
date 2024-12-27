@@ -3,7 +3,6 @@
         <Authors>Denes Solti</Authors>
         <Version>0.0.0</Version>
         <OutputPath>..\..\..\BIN\$(Configuration)</OutputPath>
-        <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <LangVersion>13</LangVersion>
         <AnalysisMode>AllEnabledByDefault</AnalysisMode>

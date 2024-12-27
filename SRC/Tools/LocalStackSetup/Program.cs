@@ -6,6 +6,7 @@
 * License: MIT                                                                  *
 ********************************************************************************/
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,6 +16,8 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 
+using Amazon.Lambda;
+using Amazon.Lambda.Model;
 using Amazon.ResourceGroupsTaggingAPI;
 using Amazon.ResourceGroupsTaggingAPI.Model;
 using Amazon.SecretsManager;
@@ -135,6 +138,79 @@ namespace Warehouse.Tools.LocalStackSetup
             }
         }
 
+        private static async Task SetupDbMigratorLambda()
+        {
+            const string
+                MIGRATOR_NAME = "local-warehouse-db-migrator-lambda",
+                LOG_GROUP = $"/aws/lambda/{MIGRATOR_NAME}";
+
+            string[] variablesToCopy = ["AWS_ENDPOINT_URL", "AWS_REGION", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"];
+
+            IDictionary vars = GetEnvironmentVariables();
+
+            Console.WriteLine("Loading DB Migrator lambda binaries");
+
+            using MemoryStream zipFile = new();
+            using (FileStream lambdaBinaries = File.OpenRead(Path.Combine("LambdaBinaries", "DbMigrator.zip")))
+            {
+                await lambdaBinaries.CopyToAsync(zipFile);
+                zipFile.Seek(0, SeekOrigin.Begin);
+            }
+
+            Console.WriteLine("Creating DB Migrator lambda");
+
+            using AmazonLambdaClient client = new();
+
+            await client.CreateFunctionAsync
+            (
+                new CreateFunctionRequest
+                {
+                    FunctionName = MIGRATOR_NAME,
+                    Runtime = Runtime.Dotnet8,
+                    Handler = "Warehouse.Tools.DbMigrator::DbMigrator.LambdaFunction::Handler",
+                    Role = "arn:aws:iam::000000000000:role/lambda-role",
+                    Timeout = 60,
+                    MemorySize = 128,
+                    Environment = new()
+                    {
+                        Variables = new Dictionary<string, string>
+                        (
+                            vars
+                                .Keys
+                                .Cast<string>()
+                                .Where(variablesToCopy.Contains)
+                                .ToDictionary(static key => key, key => (string) vars[key]!)
+                        )
+                        {
+                            { "PREFIX", "local" }
+                        }
+                    },
+                    Code = new FunctionCode
+                    {
+                        ZipFile = zipFile
+                    },
+                    Tags = new Dictionary<string, string>
+                    {
+                        { TAG_KEY, TAG_VALUE }
+                    }
+                }
+            );
+
+            Console.WriteLine("Wait for lambda to be activated");
+
+            GetFunctionConfigurationResponse resp;
+
+            while ((resp = await client.GetFunctionConfigurationAsync(MIGRATOR_NAME)).State == State.Pending)
+            {
+                await Task.Delay(1000);
+            }
+
+            if (resp.State != State.Active)
+                throw new InvalidOperationException($"Lambda got bad state {resp.State}");
+
+            Console.WriteLine("DB Migrator lambda created successfully");
+        }
+
         private static async Task<bool> HasAppResources()
         {
             using AmazonResourceGroupsTaggingAPIClient client = new();
@@ -163,13 +239,15 @@ namespace Warehouse.Tools.LocalStackSetup
 
         public static async Task Main()
         {
-            await WiatForServices("resourcegroupstaggingapi", "secretsmanager");
+            await WiatForServices("lambda", "resourcegroupstaggingapi", "secretsmanager");
 
             if (await HasAppResources())
             {
                 Console.WriteLine("LocalStack alread initialized, terminating...");
                 return;
             }
+
+            await SetupDbMigratorLambda();
 
             await SetupSecrets();
 

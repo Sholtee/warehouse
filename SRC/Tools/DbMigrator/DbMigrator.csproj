@@ -2,6 +2,8 @@
   <Import Project="..\Common.targets" />
 
   <PropertyGroup>
+    <!--.NET9.0 is not supported by Lambda runtime-->
+    <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>Warehouse.Tools.DbMigrator</AssemblyName>
     <RootNamespace>Warehouse.Tools.DbMigrator</RootNamespace>
     <Configurations>Debug;Release</Configurations>

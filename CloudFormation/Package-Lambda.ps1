@@ -24,7 +24,7 @@ $csproj = $csproj | Resolve-Path
 
 dotnet publish $csproj -c Release -o $binDir -r "linux-x64" -p:PublishReadyToRun=true
 try {
-  Compress-Archive -Path (Join-Path $binDir '*') -DestinationPath $PATH::Combine($tmpDir, "$($PATH::GetFileNameWithoutExtension($csproj)).zip")
+  Compress-Archive -Path (Join-Path $binDir '*') -DestinationPath $PATH::Combine($tmpDir, "$($PATH::GetFileNameWithoutExtension($csproj)).zip") -Force
 } finally {
   Remove-Item $binDir -Recurse -Force
 }

@@ -2,6 +2,7 @@
   <Import Project="..\Common.targets" />
 
   <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
     <AssemblyName>Warehouse.Tools.LocalStackSetup</AssemblyName>
     <RootNamespace>Warehouse.Tools.LocalStackSetup</RootNamespace>
     <OutputType>Exe</OutputType>
@@ -9,6 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="dockerfile" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.Lambda" Version="3.7.411.13" />
     <PackageReference Include="AWSSDK.ResourceGroupsTaggingAPI" Version="3.7.400.68" />
     <PackageReference Include="AWSSDK.SecretsManager" Version="3.7.400.68" />
   </ItemGroup>

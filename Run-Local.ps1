@@ -6,4 +6,8 @@
 # License: MIT
 #
 
+$ErrorActionPreference = "Stop"
+
+./CloudFormation/Package-Lambda.ps1 ./SRC/Tools/DbMigrator/DbMigrator.csproj
+
 docker compose up
