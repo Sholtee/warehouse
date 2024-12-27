@@ -32,7 +32,8 @@ namespace Warehouse.Tools.LocalStackSetup
         #region Private
         private const string
             TAG_KEY = "Project",
-            TAG_VALUE = "local-warehouse-app";
+            TAG_VALUE = "local-warehouse-app",
+            MIGRATOR_NAME = "local-warehouse-db-migrator-lambda";
 
         #pragma warning disable CA1812  // this class is instantiated by the JsonSerializer
         private sealed class LocalStackStatus
@@ -140,10 +141,6 @@ namespace Warehouse.Tools.LocalStackSetup
 
         private static async Task SetupDbMigratorLambda()
         {
-            const string
-                MIGRATOR_NAME = "local-warehouse-db-migrator-lambda",
-                LOG_GROUP = $"/aws/lambda/{MIGRATOR_NAME}";
-
             string[] variablesToCopy = ["AWS_ENDPOINT_URL", "AWS_REGION", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"];
 
             IDictionary vars = GetEnvironmentVariables();
@@ -211,6 +208,30 @@ namespace Warehouse.Tools.LocalStackSetup
             Console.WriteLine("DB Migrator lambda created successfully");
         }
 
+        private static async Task InitDb()
+        {
+            Console.WriteLine("Init DataBase"); ;
+
+            using AmazonLambdaClient client = new();
+
+            InvokeResponse resp = await client.InvokeAsync(new InvokeRequest
+            {
+                FunctionName = MIGRATOR_NAME,
+            });
+
+            if (!string.IsNullOrEmpty(resp.FunctionError))
+            {
+                #pragma warning disable CA2000 // "sr" is disposed properly
+                using StreamReader sr = new(resp.Payload, leaveOpen: false);
+                #pragma warning restore CA2000
+
+                Console.WriteLine(await sr.ReadToEndAsync());
+                throw new InvalidOperationException(resp.FunctionError);
+            }
+
+            Console.WriteLine("Database initialized successfully");
+        }
+
         private static async Task<bool> HasAppResources()
         {
             using AmazonResourceGroupsTaggingAPIClient client = new();
@@ -250,6 +271,8 @@ namespace Warehouse.Tools.LocalStackSetup
             await SetupDbMigratorLambda();
 
             await SetupSecrets();
+
+            await InitDb();
 
             Console.WriteLine("LocalStack initialized successfully :)");
         }

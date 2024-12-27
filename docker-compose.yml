@@ -1,3 +1,11 @@
+#
+# docker-compose.yml
+#
+# Author: Denes Solti
+# Project: Warehouse API (boilerplate)
+# License: MIT
+#
+
 services:
   aurora:
     image: mysql:9.1.0
@@ -12,13 +20,15 @@ services:
     ports:
       - 4566:4566
     environment:
-      - SERVICES=resourcegroupstaggingapi,secretsmanager
+      - SERVICES=lambda,resourcegroupstaggingapi,secretsmanager
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
   localstack-setup:
     depends_on:
       - localstack
-    build: ./SRC/Tools/LocalStackSetup
+    build:
+      context: ./SRC/Tools
+      dockerfile: ./LocalStackSetup/dockerfile
     environment:
       - AWS_ENDPOINT_URL=http://localstack:4566
       - AWS_REGION=local
@@ -26,7 +36,9 @@ services:
       - AWS_SECRET_ACCESS_KEY=local
       - 'DB_SECRET={"host": "aurora", "port": 3306, "dbName": "WarehouseDb", "password": "kerekesfacapa", "userName": "root"}'
       - JWT_SECRET=very-very-very-very-very-very-very-secret-key
-      - ROOT_PASSWORD=medvedisznoember  
+      - ROOT_PASSWORD=medvedisznoember
+    volumes:
+      - ./CloudFormation/.tmp:/app/LambdaBinaries
   api:
     depends_on:
       localstack-setup:
