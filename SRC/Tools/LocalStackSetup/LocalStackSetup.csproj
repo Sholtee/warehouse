@@ -4,6 +4,7 @@
   <PropertyGroup>
     <AssemblyName>Warehouse.Tools.LocalStackSetup</AssemblyName>
     <RootNamespace>Warehouse.Tools.LocalStackSetup</RootNamespace>
+    <OutputType>Exe</OutputType>
     <Configurations>Debug</Configurations>
   </PropertyGroup>
 
