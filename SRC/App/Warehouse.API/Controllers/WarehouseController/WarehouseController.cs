@@ -7,6 +7,7 @@
 ********************************************************************************/
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 
 using AutoMapper;
@@ -32,12 +33,18 @@ namespace Warehouse.API.Controllers
         /// </summary>
         /// <returns>No content</returns>
         /// <response code="204">If the health check was successful</response>
-        [HttpGet("healthcheck")]
+        [HttpGet("healthcheck"), ResponseCode(HttpStatusCode.NoContent)]
         [AllowAnonymous]
         [ApiExplorerSettings(IgnoreApi = true)]
-        public async Task<IActionResult> HealthCheck() => await warehouseRepository.IsHealthy()
-            ? NoContent()
-            : throw new InvalidOperationException("Repo is not healthy");
+        public async Task HealthCheck()
+        {
+            if (!await warehouseRepository.IsHealthy())
+                throw new InvalidOperationException("Repo is not healthy");
+
+            //
+            // TODO: other checks
+            //
+        }
 
         /// <summary>
         /// Lists products matching on the given <paramref name="filter"/>.

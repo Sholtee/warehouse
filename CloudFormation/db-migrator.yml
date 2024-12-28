@@ -1,0 +1,101 @@
+#####################################################
+# db-migrator.yml
+#
+# Author: Denes Solti
+# Project: Warehouse API (boilerplate)
+# License: MIT
+#####################################################
+Description: Lambda for db migrations
+
+Parameters:
+  prefix:
+    Type: String
+    Description: The prefix for this full deployment.
+    MaxLength: '14'
+  lambdaVersion:
+    Type: String
+    Description: The lambda version to be deployed
+
+Resources:
+  DbMigratorLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Fn::ImportValue: !Sub "${prefix}-warehouse-lambda-binaries-bucket-name"
+        S3Key: !Sub "${prefix}-warehouse-db-migrator-${lambdaVersion}.zip"
+      FunctionName: !Sub "${prefix}-warehouse-db-migrator-lambda"
+      Environment:
+        Variables:
+          PREFIX: !Ref prefix
+      Handler: Warehouse.Tools.DbMigrator::DbMigrator.LambdaFunction::Handler
+      Role: !GetAtt DbMigratorLambdaRole.Arn
+      Runtime: dotnet8
+      Timeout: 60
+      MemorySize: 1024
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref DbMigratorLambdaSecurityGroup
+        SubnetIds:
+          - Fn::ImportValue: !Sub "${prefix}-warehouse-vpc-private-subnet-1-id"
+          - Fn::ImportValue: !Sub "${prefix}-warehouse-vpc-private-subnet-2-id"
+
+  DbMigratorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${prefix}-warehouse-db-migrator-lambda"
+
+  DbMigratorLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Policies:
+        - PolicyName: allowLogging
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - logs:*
+              Resource: !GetAtt DbMigratorLogGroup.Arn
+        - PolicyName: allowVpcAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - ec2:CreateNetworkInterface
+                - ec2:DeleteNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DescribeSubnets
+                - ec2:DetachNetworkInterface
+                - ec2:AssignPrivateIpAddresses
+                - ec2:UnassignPrivateIpAddresses
+              Resource: '*'
+        - PolicyName: allowSecretsManagerAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource:
+                  Fn::ImportValue: !Sub "${prefix}-warehouse-db-secret-arn"
+
+  DbMigratorLambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Lambda SG
+      VpcId:
+        Fn::ImportValue: !Sub "${prefix}-warehouse-vpc-id"
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: "0.0.0.0/0"

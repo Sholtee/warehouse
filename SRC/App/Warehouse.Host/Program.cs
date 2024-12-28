@@ -5,11 +5,13 @@
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
+using System;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 
 using Amazon;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -20,29 +22,45 @@ using ServiceStack.OrmLite;
 
 namespace Warehouse.Host
 {
-    using Core.Extensions;
 
     internal sealed class Program
     {
         public static void Main(string[] args) => new HostBuilder()
-            .ConfigureDefaults(args)
-            .ConfigureLogging(static (context, loggerBuilder) =>
-            {
-                loggerBuilder.ClearProviders();
-
-                Serilog.ILogger logger = new LoggerConfiguration()
-                    .ReadFrom
-                    .Configuration(context.Configuration)
-                    .CreateLogger();
-
-                loggerBuilder.AddSerilog(logger);
-                OrmLiteConfig.ResetLogFactory(new SerilogFactory(logger));
-
-                if (logger.IsEnabled(LogEventLevel.Debug))
+            .ConfigureHostConfiguration
+            (
+                configBuilder => configBuilder
+                    .AddCommandLine(args)
+                    .AddEnvironmentVariables(prefix: "ASPNETCORE_")
+                    .AddEnvironmentVariables(prefix: "AWS_")
+                    .AddEnvironmentVariables(prefix: "WAREHOUSE_")
+            )
+            .ConfigureAppConfiguration
+            (
+                static (context, configBuilder) => configBuilder
+                    .SetBasePath(Environment.CurrentDirectory)
+                    .AddJsonFile("appsettings.json")
+                    .AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true)
+            )
+            .ConfigureLogging
+            (
+                static (context, loggerBuilder) =>
                 {
-                    AWSConfigs.LoggingConfig.LogTo = LoggingOptions.Console;
+                    loggerBuilder.ClearProviders();
+
+                    Serilog.ILogger logger = new LoggerConfiguration()
+                        .ReadFrom
+                        .Configuration(context.Configuration)
+                        .CreateLogger();
+
+                    loggerBuilder.AddSerilog(logger);
+                    OrmLiteConfig.ResetLogFactory(new SerilogFactory(logger));
+
+                    if (logger.IsEnabled(LogEventLevel.Debug))
+                    {
+                        AWSConfigs.LoggingConfig.LogTo = LoggingOptions.Console;
+                    }
                 }
-            })
+            )
             .ConfigureWebHostDefaults
             (
                 static webBuilder => webBuilder.UseStartup<Startup>().ConfigureKestrel
@@ -50,7 +68,7 @@ namespace Warehouse.Host
                     static (context, serverOpts) => serverOpts.Listen
                     (
                         IPAddress.Any,
-                        context.Configuration.GetRequiredValue<int>("ApiPort"),
+                        context.Configuration.GetValue("WAREHOUSE_SERVICE_PORT", 1986),
                         static listenOpts => listenOpts.UseHttps
                         (
                             listenOpts

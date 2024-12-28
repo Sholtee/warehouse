@@ -6,6 +6,8 @@
 # License: MIT
 #
 
+$ErrorActionPreference = "Stop"
+
 dotnet tool install --global dotnet-coverage --version 17.13.1
 
 $Path=[System.IO.Path]

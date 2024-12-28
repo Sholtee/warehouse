@@ -8,14 +8,11 @@
 using System;
 using System.Collections;
 using System.Data;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
-using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 
 using Amazon.SecretsManager;
@@ -24,7 +21,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.Sqlite;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Moq;
@@ -67,7 +63,7 @@ namespace Warehouse.API.Tests
                 );
 
                 _connection.CreateFunction("UUID", Guid.NewGuid);
-                _connection.ExecuteNonQuery(schemaSetup.ToString());
+                _connection.ExecuteNonQuery(schemaSetup.ToString());             
             }
 
             protected override void Dispose(bool disposing)
@@ -76,20 +72,6 @@ namespace Warehouse.API.Tests
 
                 if (disposing)
                     _connection.Dispose();
-            }
-
-            protected override IHost CreateHost(IHostBuilder builder)
-            {
-                builder.ConfigureHostConfiguration(configBuilder =>
-                {
-                    Stream stm = new MemoryStream();
-                    JsonSerializer.Serialize(stm, new { ASPNETCORE_ENVIRONMENT = "local" });
-                    stm.Position = 0;
-
-                    configBuilder.AddJsonStream(stm);  // will close the input stream
-                });
-
-                return base.CreateHost(builder);
             }
 
             protected override void ConfigureWebHost(IWebHostBuilder builder) => builder
@@ -141,7 +123,12 @@ namespace Warehouse.API.Tests
             using HttpClient client = _appFactory.CreateClient();
             using HttpResponseMessage resp = await client.GetAsync("api/v1/healthcheck");
 
-            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+            await Assert.MultipleAsync(async () =>
+            {
+                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+                Assert.That(resp.Content.Headers.ContentType, Is.Null);
+                Assert.That(await resp.Content.ReadAsStringAsync(), Is.Empty);
+            });
         }
 
         [Test]
@@ -219,6 +206,7 @@ namespace Warehouse.API.Tests
             HttpResponseMessage resp = await requestBuilder.PostAsync();
 
             Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(resp.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/json"));
         }
 
         [Test]

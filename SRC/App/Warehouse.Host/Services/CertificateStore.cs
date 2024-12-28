@@ -13,16 +13,14 @@ using System.Threading.Tasks;
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 
 namespace Warehouse.Host.Services
 {
-    using Core.Extensions;
-
-    internal sealed class CertificateStore(IConfiguration configuration, IAmazonSecretsManager secretsManager, IOptions<JsonOptions> jsonOpts)
+    internal sealed class CertificateStore(IHostEnvironment env, IAmazonSecretsManager secretsManager, IOptions<JsonOptions> jsonOpts)
     {
         private sealed record Pem(string PrivateKey, string Certificate);
 
@@ -35,7 +33,7 @@ namespace Warehouse.Host.Services
             (
                 new GetSecretValueRequest
                 {
-                    SecretId = $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-{name}"
+                    SecretId = $"{env.EnvironmentName}-{name}"
                 }
             );
 

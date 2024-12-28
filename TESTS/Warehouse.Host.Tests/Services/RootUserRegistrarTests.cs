@@ -10,7 +10,7 @@ using System.Linq;
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
@@ -23,7 +23,7 @@ namespace Warehouse.Host.Services.Tests
     [TestFixture]
     internal sealed class RootUserRegistrarTests
     {
-        private Mock<IConfiguration> _mockConfiguration = null!;
+        private Mock<IHostEnvironment> _mockHostEnvironment = null!;
         private Mock<IUserRepository> _mockUserRepository = null!;
         private Mock<ILogger<RootUserRegistrar>> _mockLogger = null!;
         private Mock<IPasswordHasher<string>> _mockPasswordHasher = null!;
@@ -33,14 +33,18 @@ namespace Warehouse.Host.Services.Tests
         [SetUp]
         public void SetupTest()
         {
-            _mockConfiguration = new(MockBehavior.Strict);
+            _mockHostEnvironment = new(MockBehavior.Strict);
+            _mockHostEnvironment
+                .Setup(e => e.EnvironmentName)
+                .Returns("local");
+
             _mockUserRepository = new(MockBehavior.Strict);
             _mockLogger = new(MockBehavior.Loose);
             _mockPasswordHasher = new(MockBehavior.Strict);
             _mockSecretsManager = new(MockBehavior.Strict);
             _rootUserRegistrar = new RootUserRegistrar
             (
-                _mockConfiguration.Object,
+                _mockHostEnvironment.Object,
                 _mockLogger.Object,
                 _mockUserRepository.Object,
                 _mockPasswordHasher.Object,
@@ -65,18 +69,6 @@ namespace Warehouse.Host.Services.Tests
             _mockPasswordHasher
                 .Setup(h => h.HashPassword("root", "password"))
                 .Returns("hash");
-
-            Mock<IConfigurationSection> mockEnv = new(MockBehavior.Strict);
-            mockEnv
-                .SetupGet(s => s.Value)
-                .Returns("local");
-            mockEnv
-                .SetupGet(s => s.Path)
-                .Returns((string) null!);
-
-            _mockConfiguration
-                .Setup(c => c.GetSection("ASPNETCORE_ENVIRONMENT"))
-                .Returns(mockEnv.Object);
 
             _mockSecretsManager
                 .Setup
