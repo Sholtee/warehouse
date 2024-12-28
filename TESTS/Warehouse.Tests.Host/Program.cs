@@ -7,6 +7,7 @@
 ********************************************************************************/
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 
@@ -15,7 +16,14 @@ namespace Warehouse.Tests.Host
     public sealed class Program
     {
         public static void Main() => new HostBuilder()
-           .ConfigureWebHostDefaults(static webBuilder => webBuilder.UseEnvironment("local").UseStartup<Startup>())
+           .ConfigureHostConfiguration
+           (
+               static configBuilder => configBuilder.AddJsonFile("appsettings.json").AddJsonFile("appsettings.local.json")
+           )
+           .ConfigureWebHostDefaults
+           (
+               static webBuilder => webBuilder.UseEnvironment("local").UseStartup<Startup>()
+           )
            .Build()
            .Run();
     }

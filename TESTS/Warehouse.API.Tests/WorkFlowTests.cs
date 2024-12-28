@@ -63,7 +63,7 @@ namespace Warehouse.API.Tests
                 );
 
                 _connection.CreateFunction("UUID", Guid.NewGuid);
-                _connection.ExecuteNonQuery(schemaSetup.ToString());
+                _connection.ExecuteNonQuery(schemaSetup.ToString());             
             }
 
             protected override void Dispose(bool disposing)

@@ -28,7 +28,11 @@ namespace Warehouse.Host
         public static void Main(string[] args) => new HostBuilder()
             .ConfigureHostConfiguration
             (
-                static configBuilder => configBuilder.AddEnvironmentVariables()
+                configBuilder => configBuilder
+                    .AddCommandLine(args)
+                    .AddEnvironmentVariables(prefix: "ASPNETCORE_")
+                    .AddEnvironmentVariables(prefix: "AWS_")
+                    .AddEnvironmentVariables(prefix: "WAREHOUSE_")
             )
             .ConfigureAppConfiguration
             (
@@ -36,7 +40,6 @@ namespace Warehouse.Host
                     .SetBasePath(Environment.CurrentDirectory)
                     .AddJsonFile("appsettings.json")
                     .AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true)
-                    .AddEnvironmentVariables()
             )
             .ConfigureLogging
             (
@@ -65,7 +68,7 @@ namespace Warehouse.Host
                     static (context, serverOpts) => serverOpts.Listen
                     (
                         IPAddress.Any,
-                        context.Configuration.GetValue("SERVICE_PORT", 1986),
+                        context.Configuration.GetValue("WAREHOUSE_SERVICE_PORT", 1986),
                         listenOpts => listenOpts.UseHttps
                         (
                             listenOpts
