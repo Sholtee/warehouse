@@ -167,7 +167,7 @@ Resources:
       SecurityGroups:
         - !Ref LoadBalancerSecurityGroup
 
-  HTTPSListener:
+  HTTPListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       LoadBalancerArn: !Ref LoadBalancer
@@ -269,6 +269,7 @@ Resources:
       GenerateSecretString:
         SecretStringTemplate: '{"username": "root"}'
         GenerateStringKey: "password"
+        ExcludePunctuation: true  # DbCluster.MasterUserPassword cannot contain puncations
         PasswordLength: 20
 
   JwtSecretKey:
@@ -281,7 +282,7 @@ Resources:
   RootPassword:
     Type: AWS::SecretsManager::Secret
     Properties:
-      Name: !Sub "${prefix}-warehouse-root-user-password"
+      Name: !Sub "${prefix}-warehouse-root-password"
       GenerateSecretString:
         PasswordLength: 64
 
@@ -310,12 +311,24 @@ Outputs:
     Value: !Ref DbSecret
     Export:
       Name: !Sub "${prefix}-warehouse-db-secret-arn"
+  JwtSecretKeyArn:
+    Value: !Ref JwtSecretKey
+    Export:
+      Name: !Sub "${prefix}-warehouse-jwt-secret-key-arn"
+  RootPasswordArn:
+    Value: !Ref RootPassword
+    Export:
+      Name: !Sub "${prefix}-warehouse-root-password-arn"
+  AppCertArn:
+    Value: !Ref AppCert
+    Export:
+      Name: !Sub "${prefix}-warehouse-app-cert-arn"
   EcrRepositoryUri:
     Value: !GetAtt EcrRepository.RepositoryUri
     Export:
       Name: !Sub "${prefix}-warehouse-ecr-repository-uri"
-  HTTPSListenerArn:
-    Value: !Ref HTTPSListener
+  HTTPListenerArn:
+    Value: !Ref HTTPListener
     Export:
       Name: !Sub "${prefix}-warehouse-http-listener-arn"
   LoadBalancerEndpoint:

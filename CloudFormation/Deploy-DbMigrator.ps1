@@ -41,7 +41,7 @@ $stackName = "${prefix}-warehouse-db-migrator"
 
 aws cloudformation ${action}-stack `
   --profile $profile `
-  --stack-name  $stackName`
+  --stack-name  $stackName `
   --region $region `
   --template-body file://./db-migrator.yml `
   --parameters "ParameterKey=prefix,ParameterValue=${prefix}" "ParameterKey=lambdaVersion,ParameterValue=${version}" `

@@ -33,27 +33,21 @@ if (!$skipImageUpdate) {
 
   $ecrHost = "$(aws sts get-caller-identity --profile ${profile} --region ${region} --query Account --output text).dkr.ecr.${region}.amazonaws.com"
 
-  function Build-Image([string]$context, [string]$image, [string]$dockerfile) {
-    $context = $PATH::Combine($PSScriptRoot, '..', 'SRC', $context) | Resolve-Path
-
-    $global:image = "${ecrHost}/${prefix}-warehouse-ecr-repository:${image}-$((New-Guid).ToString('N'))"
+  aws ecr get-login-password --profile $profile --region $region | docker login --username AWS --password-stdin $ecrHost
+  try {
+    $context = $PATH::Combine($PSScriptRoot, '..', 'SRC', 'App') | Resolve-Path
+    $image = "${ecrHost}/${prefix}-warehouse-ecr-repository:${stackName}-$((New-Guid).ToString('N'))"
 
     docker build `
-      --file $($PATH::Combine($context, $dockerfile) | Resolve-Path) `
+      --file $($PATH::Combine($context, 'dockerfile') | Resolve-Path) `
       --build-arg CONFIG=Release `
       --platform linux/amd64 `
       --force-rm `
       --tag $image `
       $context
-  }
 
-  aws ecr get-login-password --profile ${profile} --region ${region} | docker login --username AWS --password-stdin ${ecrHost}
-  try {
-    Build-Image -context App -image $stackName -dockerfile dockerfile
     docker push $image
-
-    Build-Image -context Tools -image ${prefix}-warehouse-db-migratorp -dockerfile dockerfile-dbmigrator
-    docker push $image
+    docker rmi $image --force
   } finally {
     docker logout ${ecrHost}
   }
@@ -63,10 +57,10 @@ if (!$skipImageUpdate) {
   $imageParam = "UsePreviousValue=true"
 }
 
-#aws cloudformation ${action}-stack `
-#  --profile $profile `
-#  --stack-name $stackName `
-#  --region $region `
-#  --template-body file://./app.yml `
-#  --parameters "ParameterKey=prefix,ParameterValue=${prefix}" "ParameterKey=image,${imageParam}" `
-#  --capabilities CAPABILITY_NAMED_IAM
+aws cloudformation ${action}-stack `
+  --profile $profile `
+  --stack-name $stackName `
+  --region $region `
+  --template-body file://./app.yml `
+  --parameters "ParameterKey=prefix,ParameterValue=${prefix}" "ParameterKey=image,$imageParam" `
+  --capabilities CAPABILITY_NAMED_IAM
