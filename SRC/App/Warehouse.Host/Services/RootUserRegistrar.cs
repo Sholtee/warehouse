@@ -9,18 +9,17 @@ using System.Threading.Tasks;
 
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
+using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Warehouse.Host.Services
 {
-    using Core.Extensions;
     using DAL;
 
     internal sealed class RootUserRegistrar
     (
-        IConfiguration configuration,
+        IHostEnvironment env,
         ILogger<RootUserRegistrar> logger,
         IUserRepository userRepository,
         IPasswordHasher<string> passwordHasher,
@@ -35,7 +34,7 @@ namespace Warehouse.Host.Services
             (
                 new GetSecretValueRequest
                 {
-                    SecretId = $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-warehouse-root-user-password"
+                    SecretId = $"{env.EnvironmentName}-warehouse-root-user-password"
                 }
             );
 

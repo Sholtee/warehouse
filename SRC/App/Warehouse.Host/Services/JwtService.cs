@@ -16,6 +16,7 @@ using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
@@ -25,12 +26,19 @@ namespace Warehouse.Host.Services
     using Core.Auth;
     using Core.Extensions;
 
-    internal sealed class JwtService(IMemoryCache cache, IConfiguration configuration, IAmazonSecretsManager secretsManager, ILogger<JwtService> logger): IJwtService
+    internal sealed class JwtService
+    (
+        IMemoryCache cache,
+        IHostEnvironment env,
+        IConfiguration configuration,
+        IAmazonSecretsManager secretsManager,
+        ILogger<JwtService> logger
+    ): IJwtService
     {
         private readonly JwtSecurityTokenHandler _handler = new();
 
         private readonly string 
-            _domain = $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-warehouse-app",
+            _domain = $"{env.EnvironmentName}-warehouse-app",
             _algorithm = configuration.GetValue($"{nameof(JwtService)}:Algorithm", SecurityAlgorithms.HmacSha256);
 
         private Task<SymmetricSecurityKey?> SecurityKey => cache.GetOrCreateAsync("jwt-secret-key", async entry =>
@@ -42,7 +50,7 @@ namespace Warehouse.Host.Services
 
             GetSecretValueResponse resp = await secretsManager.GetSecretValueAsync(new GetSecretValueRequest
             {
-                SecretId = $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-warehouse-jwt-secret-key"
+                SecretId = $"{env.EnvironmentName}-warehouse-jwt-secret-key"
             });
 
             return new SymmetricSecurityKey

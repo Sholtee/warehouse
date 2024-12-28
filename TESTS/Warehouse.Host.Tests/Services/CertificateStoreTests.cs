@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
@@ -23,8 +23,8 @@ namespace Warehouse.Host.Services.Tests
     [TestFixture]
     internal sealed class CertificateStoreTests
     {
-        private Mock<IConfiguration> _mockConfiguration = null!;
         private Mock<IAmazonSecretsManager> _mockSecretsManager = null!;
+        private Mock<IHostEnvironment> _mockHostEnvironment = null!;
         private Mock<IOptions<JsonOptions>> _mockJsonOptions = null!;
         private Mock<Func<string, string, X509Certificate2>> _mockCreateCert = null!;
         private CertificateStore _certificateStore = null!;
@@ -32,14 +32,18 @@ namespace Warehouse.Host.Services.Tests
         [SetUp]
         public void SetupTest()
         {
-            _mockConfiguration = new(MockBehavior.Strict);
+            _mockHostEnvironment = new(MockBehavior.Strict);
+            _mockHostEnvironment
+                .SetupGet(e => e.EnvironmentName)
+                .Returns("local");
+
             _mockSecretsManager = new(MockBehavior.Strict);
             _mockJsonOptions = new(MockBehavior.Strict);    
             _mockCreateCert = new(MockBehavior.Strict);
 
             _certificateStore = new
             (
-                _mockConfiguration.Object,
+                _mockHostEnvironment.Object,
                 _mockSecretsManager.Object,
                 _mockJsonOptions.Object
             )
@@ -51,18 +55,6 @@ namespace Warehouse.Host.Services.Tests
         [Test]
         public async Task GetCertificate_ShouldReturnTheCertificate()
         {
-            Mock<IConfigurationSection> mockEnv = new(MockBehavior.Strict);
-            mockEnv
-                .SetupGet(s => s.Value)
-                .Returns("local");
-            mockEnv
-                .SetupGet(s => s.Path)
-                .Returns((string) null!);
-
-            _mockConfiguration
-                .Setup(c => c.GetSection("ASPNETCORE_ENVIRONMENT"))
-                .Returns(mockEnv.Object);
-
             _mockJsonOptions
                 .SetupGet(o => o.Value)
                 .Returns(new JsonOptions());

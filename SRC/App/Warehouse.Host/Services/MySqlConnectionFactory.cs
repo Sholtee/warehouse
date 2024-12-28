@@ -14,15 +14,13 @@ using System.Text.Json.Serialization;
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
 
 namespace Warehouse.Host.Services
 {
-    using Core.Extensions;
-
     internal sealed class MySqlConnectionFactory: IDisposable
     {
         private sealed record DbSecret
@@ -38,13 +36,13 @@ namespace Warehouse.Host.Services
         private DbDataSource _dataSource;
         #pragma warning restore CA2213
 
-        public MySqlConnectionFactory(IConfiguration configuration, IAmazonSecretsManager secretsManager, IOptions<JsonOptions> jsonOptions, ILoggerFactory logger)
+        public MySqlConnectionFactory(IHostEnvironment env, IAmazonSecretsManager secretsManager, IOptions<JsonOptions> jsonOptions, ILoggerFactory logger)
         {
             GetSecretValueResponse resp = secretsManager.GetSecretValueAsync
             (
                 new GetSecretValueRequest
                 {
-                    SecretId = $"{configuration.GetRequiredValue<string>("ASPNETCORE_ENVIRONMENT")}-warehouse-db-secret"
+                    SecretId = $"{env.EnvironmentName}-warehouse-db-secret"
                 }
             ).GetAwaiter().GetResult();
 
