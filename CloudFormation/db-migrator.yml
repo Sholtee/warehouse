@@ -44,7 +44,6 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${prefix}-warehouse-db-migrator-lambda"
-      RetentionInDays: 365
 
   DbMigratorLambdaRole:
     Type: AWS::IAM::Role
