@@ -7,6 +7,7 @@
 ********************************************************************************/
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 
 using AutoMapper;
@@ -32,7 +33,7 @@ namespace Warehouse.API.Controllers
         /// </summary>
         /// <returns>No content</returns>
         /// <response code="204">If the health check was successful</response>
-        [HttpGet("healthcheck")]
+        [HttpGet("healthcheck"), ResponseCode(HttpStatusCode.NoContent)]
         [AllowAnonymous]
         [ApiExplorerSettings(IgnoreApi = true)]
         public async Task HealthCheck()

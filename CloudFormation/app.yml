@@ -90,7 +90,7 @@ Resources:
       Port: !Ref port
       Protocol: HTTPS
       Matcher:
-        HttpCode: 200
+        HttpCode: 204
 
   ListenerRule:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule

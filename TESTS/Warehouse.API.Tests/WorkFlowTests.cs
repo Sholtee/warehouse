@@ -125,7 +125,7 @@ namespace Warehouse.API.Tests
 
             await Assert.MultipleAsync(async () =>
             {
-                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
                 Assert.That(resp.Content.Headers.ContentType, Is.Null);
                 Assert.That(await resp.Content.ReadAsStringAsync(), Is.Empty);
             });
