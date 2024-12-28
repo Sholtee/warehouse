@@ -123,7 +123,12 @@ namespace Warehouse.API.Tests
             using HttpClient client = _appFactory.CreateClient();
             using HttpResponseMessage resp = await client.GetAsync("api/v1/healthcheck");
 
-            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+            await Assert.MultipleAsync(async () =>
+            {
+                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+                Assert.That(resp.Content.Headers.ContentType, Is.Null);
+                Assert.That(await resp.Content.ReadAsStringAsync(), Is.Empty);
+            });
         }
 
         [Test]
@@ -201,6 +206,7 @@ namespace Warehouse.API.Tests
             HttpResponseMessage resp = await requestBuilder.PostAsync();
 
             Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(resp.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/json"));
         }
 
         [Test]
