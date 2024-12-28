@@ -37,17 +37,25 @@ aws s3 cp `
   --region $region `
   ($PATH::Combine('.', '.tmp', 'DbMigrator.zip') | Resolve-Path) s3://${prefix}-warehouse-lambda-binaries/${prefix}-warehouse-db-migrator-${version}.zip
 
+$stackName = "${prefix}-warehouse-db-migrator"
+
 aws cloudformation ${action}-stack `
   --profile $profile `
-  --stack-name "${prefix}-warehouse-db-migrator" `
+  --stack-name  $stackName`
   --region $region `
   --template-body file://./db-migrator.yml `
   --parameters "ParameterKey=prefix,ParameterValue=${prefix}" "ParameterKey=lambdaVersion,ParameterValue=${version}" `
   --capabilities CAPABILITY_NAMED_IAM
 
 if ($runMigrations) {
-  $fnName = "${prefix}-warehouse-db-migrator-lambda"
+  aws cloudformation wait stack-${action}-complete `
+    --profile $profile `
+    --region $region `
+    --stack-name $stackName
 
-  aws lambda wait function-updated --function-name $fnName --profile $profile --region $region
-  aws lambda invoke --function-name $fnName --profile $profile --region $region ($PATH::Combine('.', '.tmp', "db-migrator-invocation-$((New-Guid).ToString('N')).log"))
+  aws lambda invoke `
+    --function-name "${prefix}-warehouse-db-migrator-lambda" `
+    --profile $profile `
+    --region $region `
+    ($PATH::Combine('.', '.tmp', "db-migrator-invocation-$((New-Guid).ToString('N')).log"))
 }
