@@ -9,7 +9,7 @@
 function OpenSSL([Parameter(Position=0, Mandatory=$true)][string]$args) {
   Start-Process `
     -FilePath ([System.IO.Path]::Combine($Env:ProgramFiles, 'Git', 'usr', 'bin', 'openssl.exe') | Resolve-Path) `
-    -ArgumentList ${args} `
+    -ArgumentList $args `
     -NoNewWindow `
     -Wait
 }
