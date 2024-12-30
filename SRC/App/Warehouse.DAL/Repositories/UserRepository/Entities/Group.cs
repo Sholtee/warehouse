@@ -9,6 +9,8 @@ using ServiceStack.DataAnnotations;
 
 namespace Warehouse.DAL.Entities
 {
+    using Core.Auth;
+
     internal sealed class Group : EntityBase
     {
         [Index(Unique = true)]
@@ -16,5 +18,7 @@ namespace Warehouse.DAL.Entities
 
         [StringLength(1024)]
         public string? Description { get; init; }
+
+        public Roles Roles { get; init; }
     }
 }

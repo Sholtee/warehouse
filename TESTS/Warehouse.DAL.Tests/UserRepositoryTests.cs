@@ -47,15 +47,17 @@ namespace Warehouse.DAL.Tests
             (
                 Schema.Dump
                 (
-                    new CreateGroupParam { Name = "Admins", Roles = Roles.Admin | Roles.User },
+                    new CreateGroupParam { Name = "Admins", Roles = Roles.Admin },
                     new CreateGroupParam { Name = "Users",  Roles = Roles.User }
                 )
             );
 
             connection.CreateFunction("UUID", Guid.NewGuid);
+            connection.CreateAggregate<int, int>("BIT_OR", static (accu, curr) => accu | curr);
+
             connection.ExecuteNonQuery(schemaSetup.ToString());
 
-            _userRepository = new UserRepository(_connection = connection);
+            _userRepository = new UserRepository(_connection = connection, SqliteDialect.Provider);
         }
 
         [TearDown]

@@ -16,18 +16,12 @@ using ServiceStack.OrmLite;
 
 namespace Warehouse.DAL
 {
-    using Core.Auth;
-
     using GroupEntity = Entities.Group;
-    using GroupRoleEntity = Entities.GroupRole;
-    using RoleEntity = Entities.Role;
     using UserEntity = Entities.User;
     using UserGroupEntity = Entities.UserGroup;
 
-    internal sealed class UserRepository(IDbConnection connection) : IUserRepository
+    internal sealed class UserRepository(IDbConnection connection, IOrmLiteDialectProvider dialectProvider) : IUserRepository
     {
-        private sealed record UserRoleView(string ClientId, string ClientSecretHash, Roles Role);
-
         public async Task<bool> CreateUser(CreateUserParam param)
         {
             Guid userId = Guid.NewGuid();
@@ -77,35 +71,35 @@ namespace Warehouse.DAL
         {
             string sql = connection
                 .From<UserEntity>()
-                .SelectDistinct<UserEntity, RoleEntity>
+                .Select<UserEntity>
                 (
-                    static (user, role) => new
+                    user => new
                     {
                         user.ClientId,
                         user.ClientSecretHash,
-                        Role = role.Name
+                        Roles = Sql.Custom($"BIT_OR({
+                            typeof(GroupEntity)
+                                .GetModelMetadata()
+                                .GetFieldDefinition<GroupEntity>(static group => group.Roles)
+                                .GetQuotedName(dialectProvider)
+                        })")
                     }
                 )
                 .Join<UserEntity, UserGroupEntity>(static (user, ug) => user.Id == ug.UserId)
-                .Join<UserGroupEntity, GroupRoleEntity>(static (ug, gr) => ug.GroupId == gr.GroupId)
-                .Join<GroupRoleEntity, RoleEntity>(static (gr, role) => gr.RoleId == role.Id)
+                .Join<UserGroupEntity, GroupEntity>(static (ug, gr) => ug.GroupId == gr.Id)
+                .GroupBy<UserEntity>
+                (
+                    static user => new
+                    {
+                        user.ClientId,
+                        user.ClientSecretHash
+                    }
+                )
                 .Where<UserEntity>(user => user.ClientId == clientId && user.DeletedUtc == null)
                 .ToMergedParamsSelectStatement();
 
-            List<UserRoleView> tmp = await connection.SelectAsync<UserRoleView>(sql);
-
-            return tmp
-                .GroupBy(static r => new { r.ClientId, r.ClientSecretHash })
-                .Select
-                (
-                    static grp => new User
-                    {
-                        ClientId = grp.Key.ClientId,
-                        ClientSecretHash = grp.Key.ClientSecretHash,
-                        Roles = grp.Aggregate(Roles.None, static (current, role) => current | role.Role)
-                    }
-                )
-                .SingleOrDefault();
+            List<User> result = await connection.SelectAsync<User>(sql);
+            return result.SingleOrDefault();
         }
 
         public async Task<bool> DeleteUser(string clientId) => await connection.UpdateAsync<UserEntity>

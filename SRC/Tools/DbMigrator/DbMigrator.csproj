@@ -25,7 +25,7 @@
     <None Update="Evolutions\01-Auth.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Evolutions\02-GroupRoles.sql">
+    <None Update="Evolutions\02-Groups.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

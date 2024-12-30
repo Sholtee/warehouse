@@ -16,8 +16,6 @@ using ServiceStack.OrmLite;
 
 namespace Warehouse.DAL
 {
-    using Core.Auth;
-    using Core.Extensions;
     using Entities;
 
     /// <summary>
@@ -30,7 +28,7 @@ namespace Warehouse.DAL
         /// </summary>
         /// <example>
         /// <code>
-        /// Schema.Dump("Auth");
+        /// Schema.Dump();
         /// </code>
         /// </example>
         public static string Dump()
@@ -74,69 +72,24 @@ namespace Warehouse.DAL
         }
 
         /// <summary>
-        /// Dumps the script to initialize the group-role relations.
+        /// Dumps the script to initialize the group entities.
         /// </summary>
         public static string Dump(params CreateGroupParam[] groups)
         {
             ArgumentNullException.ThrowIfNull(groups, nameof(groups));
 
-            IOrmLiteDialectProvider dialectProvider = OrmLiteConfig.DialectProvider;
-
-            List<string> lines = [];
-
-            IReadOnlyDictionary<Roles, Guid> roles = groups.SelectMany(static grp => grp.Roles.SetFlags()).Distinct().ToDictionary(static role => role, role =>
-            {
-                Guid id = Guid.NewGuid();
-
-                lines.Add
+            return OrmLiteConfig.DialectProvider.ToInsertRowsSql
+            (
+                groups.Select
                 (
-                    dialectProvider.ToInsertRowSql
-                    (
-                        new Role
-                        {
-                            Id = id,
-                            Name = role.ToString()
-                        }
-                    )
-                );
-
-                return id;
-            });
-
-            foreach (CreateGroupParam group in groups)
-            {
-                Guid groupId = Guid.NewGuid();
-
-                lines.Add
-                (
-                    dialectProvider.ToInsertRowSql
-                    (
-                        new Group
-                        {
-                            Id = groupId,
-                            Name = group.Name,
-                            Description = group.Description
-                        }
-                    )
-                );
-
-                foreach (Roles role in group.Roles.SetFlags())
-                {
-                    lines.Add
-                    (
-                        dialectProvider.ToInsertRowSql
-                        (
-                            new GroupRole
-                            {
-                                GroupId = groupId,
-                                RoleId = roles[role]
-                            }
-                        )
-                    );
-                }
-            }
-
-            return $"{string.Join($";{Environment.NewLine}", lines)};";
+                    static grp => new Group
+                    {
+                        Name = grp.Name,
+                        Description = grp.Description,
+                        Roles = grp.Roles
+                    }
+                )
+            );
         }
     }
 }

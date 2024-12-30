@@ -63,6 +63,8 @@ namespace Warehouse.API.Tests
                 );
 
                 _connection.CreateFunction("UUID", Guid.NewGuid);
+                _connection.CreateAggregate<int, int>("BIT_OR", static (accu, curr) => accu | curr);
+
                 _connection.ExecuteNonQuery(schemaSetup.ToString());             
             }
 
