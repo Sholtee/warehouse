@@ -51,6 +51,7 @@ namespace Warehouse.API.Controllers
         /// <response code="401">The client is unathorized to execute the operation.</response>
         [HttpGet("login")]
         [ApiExplorerBasicAuthorization]
+        [ProducesResponseType(204), ProducesResponseType(401)]
         public async Task<IActionResult> Login()
         {
             const string HEADER_PREFIX = "Basic ";
@@ -129,6 +130,7 @@ namespace Warehouse.API.Controllers
         /// <response code="204">The operation completed successfully</response>
         [HttpGet("logout")]
         [ApiExplorerSessionCookieAuthorization]
+        [ProducesResponseType(204)]
         public IActionResult Logout()
         {
             string sessionCookie = configuration.GetRequiredValue<string>("Auth:SessionCookieName");
