@@ -13,11 +13,13 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Filters;
 
 namespace Warehouse.Host.Infrastructure.Registrations
 {
     using Core.Extensions;
     using Filters;
+    using System.Linq;
 
     internal static partial class Registrations
     {
@@ -56,17 +58,21 @@ namespace Warehouse.Host.Infrastructure.Registrations
                 }
             });
 
-            options.IncludeXmlComments
-            (
-                Path.Combine
-                (
-                    AppContext.BaseDirectory,
-                    $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"
-                )
-            );
+            foreach (string docFile in Directory.EnumerateFiles(AppContext.BaseDirectory, "Warehouse.*.xml", new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = false }))
+            {
+                //
+                // Ensure we have an XML doc file
+                //
+
+                if (File.ReadLines(docFile).Skip(1).Take(1).SingleOrDefault()?.Equals("<doc>", StringComparison.OrdinalIgnoreCase) is true)
+                {
+                    options.IncludeXmlComments(docFile);
+                }
+            }
 
             options.OperationFilter<AuthorizationOperationFilter>();
             options.DocumentFilter<CustomModelDocumentFilter<ErrorDetails>>();
+            options.ExampleFilters();
         });
 
         public static IApplicationBuilder UseSwagger(this IApplicationBuilder applicationBuilder, IConfiguration configuration) => applicationBuilder

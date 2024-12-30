@@ -47,7 +47,7 @@ namespace Warehouse.API.Controllers
         }
 
         /// <summary>
-        /// Lists products matching on the given <paramref name="filter"/>.
+        /// Lists products matching on the given <paramref name="param"/>.
         /// </summary>
         /// <param name="param">Parameter contining a the filter pattern.</param>
         /// <returns>Product list matching the given criteria.</returns>
@@ -65,12 +65,12 @@ namespace Warehouse.API.Controllers
                     mapper.Map<DAL.ListProductOverviewsParam>(param)
                 )
             )
-        }; 
+        };
 
         /// <summary>
         /// Gets a product associated with the given <paramref name="id"/>
         /// </summary>
-        /// <param name="id">The product id</param>
+        /// <param name="id" example="00000000-0000-0000-0000-000000000000">The product id</param>
         /// <returns>The product details.</returns>
         /// <response code="200">The product details</response>
         /// <response code="400">The provided <paramref name="id"/> is not in a valid form</response>

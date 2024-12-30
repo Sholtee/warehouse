@@ -127,66 +127,7 @@ namespace Warehouse.API.Tests
                 })
             );
 
-            ListProductOverviewsParam param = new()
-            {
-                Filter = new()
-                {
-                    Block = new()
-                    {
-                        String = new()
-                        {
-                            Comparison = StringComparisonType.Equals,
-                            Value = "Samsung",
-                            Property = nameof(ProductOverview.Name)
-                        },
-                        And = new()
-                        {
-                            Decimal = new()
-                            {
-                                Comparison = StructComparisonType.LessThan,
-                                Value = 1000,
-                                Property = nameof(ProductOverview.Price)
-                            }
-                        }
-                    },
-                    Or = new()
-                    {
-                        Block = new()
-                        {
-                            String = new()
-                            {
-                                Comparison = StringComparisonType.Equals,
-                                Value = "Sony",
-                                Property = nameof(ProductOverview.Name)
-                            },
-                            And = new()
-                            {
-                                Decimal = new()
-                                {
-                                    Comparison = StructComparisonType.LessThan,
-                                    Value = 1500,
-                                    Property = nameof(ProductOverview.Price)
-                                }
-                            }
-                        }
-                    }
-                },
-                SortBy = new()
-                {
-                    Properties =
-                    [
-                        new() { Property = nameof(ProductOverview.Name), Kind = SortKind.Ascending },
-                        new() { Property = nameof(ProductOverview.Price), Kind = SortKind.Descending }
-                    ]
-                },
-                Page = new()
-                {
-                    Size = 5,
-                    Skip = 3
-                }
-            };
-
-            DAL.ListProductOverviewsParam mapped = mapper.Map<DAL.ListProductOverviewsParam>(param);
+            DAL.ListProductOverviewsParam mapped = mapper.Map<DAL.ListProductOverviewsParam>(new ListProductOverviewsParamExample().GetExamples());
 
             Assert.Multiple(() =>
             {

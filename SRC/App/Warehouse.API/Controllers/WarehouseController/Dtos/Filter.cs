@@ -8,15 +8,27 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Warehouse.API.Controllers
 {
     using Core.Attributes;
 
+    /// <summary>
+    /// Comparison types for structs 
+    /// </summary>
+    #pragma warning disable CS1591  // Missing XML comment for publicly visible type or member
     public enum StructComparisonType { Equals, NotEquals, LessThan, LessThanOrEqual, GreaterThan, GreaterThanOrEqual }
 
+    /// <summary>
+    /// Comparison types for strings
+    /// </summary>
     public enum StringComparisonType { Equals, NotEquals, Like, NotLike }
+    #pragma warning restore CS1591
 
+    /// <summary>
+    /// Base class of property filters.
+    /// </summary>
     public abstract class PropertyFilter<TValue, TComparison> where TComparison: struct, Enum
     {
         /// <summary>
@@ -39,7 +51,7 @@ namespace Warehouse.API.Controllers
 
     /// <summary>
     /// Entity to describe primitive filter patterns. For instance
-    /// <code>(Brand == "Samsung" && "Price" < 1000) || (Brand == "Sony" && "Price" < 1500)</code>
+    /// <code>(Brand == "Samsung"  &amp;&amp; "Price" &lt; 1000) || (Brand == "Sony" &amp;&amp; "Price" &lt; 1500)</code>
     /// can be translated as
     /// <code>
     /// {
@@ -82,28 +94,56 @@ namespace Warehouse.API.Controllers
         where TDateFilter: PropertyFilter<DateTime, StructComparisonType>
         where TStringFilter: PropertyFilter<string, StringComparisonType>
     {
+        /// <summary>
+        /// Int filter
+        /// </summary>
         [ValidateObject]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public TIntFilter? Int { get; init; }
 
+        /// <summary>
+        /// Decimal filter
+        /// </summary>
         [ValidateObject]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public TDecimalFilter? Decimal { get; init; }
 
+        /// <summary>
+        /// Date filter
+        /// </summary>
         [ValidateObject]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public TDateFilter? Date { get; init; }
 
+        /// <summary>
+        /// String filter
+        /// </summary>
         [ValidateObject]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public TStringFilter? String { get; init; }
 
+        /// <summary>
+        /// Condition block
+        /// </summary>
         [ValidateObject]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Filter<TIntFilter, TDecimalFilter, TDateFilter, TStringFilter>? Block { get; init; }
 
+        /// <summary>
+        /// "and" filter
+        /// </summary>
         [ValidateObject]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Filter<TIntFilter, TDecimalFilter, TDateFilter, TStringFilter>? And { get; init; }
 
+        /// <summary>
+        /// "or" filter
+        /// </summary>
         [ValidateObject]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Filter<TIntFilter, TDecimalFilter, TDateFilter, TStringFilter>? Or { get; init; }
 
-        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
         {
             if (And is not null && Or is not null)
                 yield return new ValidationResult($"'{nameof(And)}' and '{nameof(Or)}' cannot be provided simultaneously", [nameof(And), nameof(Or)]);

@@ -7,6 +7,7 @@
 ********************************************************************************/
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Warehouse.API.Controllers
 {
@@ -18,6 +19,7 @@ namespace Warehouse.API.Controllers
     public sealed class ListProductOverviewsParam
     {
         #region Property selectors
+        #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public sealed class DecimalFilter : PropertyFilter<decimal, StructComparisonType>
         {
             [Required, AllowedValues(nameof(ProductOverview.Price))]
@@ -50,11 +52,12 @@ namespace Warehouse.API.Controllers
             [Required, AllowedValues(nameof(ProductOverview.Name), nameof(ProductOverview.Brand), nameof(ProductOverview.Price), nameof(ProductOverview.ReleaseDateUtc))]
             public override required string Property { get; init; }
         }
+        #pragma warning restore CS1591
         #endregion
 
         /// <summary>
         /// Filter to be used. For instance
-        /// <code>(Brand == "Samsung" && "Price" < 1000) || (Brand == "Sony" && "Price" < 1500)</code>
+        /// <code>(Brand == "Samsung" &amp;&amp; "Price" &lt; 1000) || (Brand == "Sony" &amp;&amp; "Price" &lt; 1500)</code>
         /// can be translated as
         /// <code>
         /// {
@@ -106,12 +109,14 @@ namespace Warehouse.API.Controllers
         /// </code>
         /// </summary>
         [ValidateObject]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SortBy<SortProperties>? SortBy { get; init; }
 
         /// <summary>
         /// Pagination config. If not provided the first 10 item is returend
         /// </summary>
-        [Required, ValidateObject]
+        [ValidateObject]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Pagination Page { get; init; } = Pagination.Default;
     }
 }

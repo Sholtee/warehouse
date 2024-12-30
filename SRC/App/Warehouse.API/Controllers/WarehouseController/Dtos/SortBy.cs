@@ -12,7 +12,12 @@ namespace Warehouse.API.Controllers
 {
     using Core.Attributes;
 
+    /// <summary>
+    /// Sort type
+    /// </summary>
+    #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public enum SortKind { Ascending, Descending }
+    #pragma warning restore CS1591
 
     /// <summary>
     /// Specifies a property by which we want to sort
