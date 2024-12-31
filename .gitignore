@@ -9,4 +9,5 @@ launchSettings.json
 *.key
 *.csr
 *.pubxml
+*.dia~
 serial
