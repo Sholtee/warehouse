@@ -10,8 +10,8 @@ $ErrorActionPreference = "Stop"
 
 dotnet tool install --global dotnet-coverage --version 17.13.1
 
-$PATH=[System.IO.Path]
-$artifacts=$PATH::Combine("$(Get-Location)", 'Artifacts')
+$PATH = [System.IO.Path]
+$artifacts = $PATH::Combine("$(Get-Location)", 'Artifacts')
 
 dotnet-coverage collect `
   --settings $PATH::Combine("$(Get-Location)", 'CoverageSettings.xml') `
