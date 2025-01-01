@@ -29,4 +29,5 @@ csmacnz.Coveralls `
   --commitEmail $Env:APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL `
   --commitMessage `"$Env:APPVEYOR_REPO_COMMIT_MESSAGE`" `
   --serviceName appveyor `
-  --serviceNumber $Env:APPVEYOR_BUILD_NUMBER
+  --serviceNumber $Env:APPVEYOR_BUILD_NUMBER `
+  --useRelativePaths
