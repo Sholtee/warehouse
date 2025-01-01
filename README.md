@@ -3,7 +3,7 @@
 > REST API over ASP.NET Core running on AWS infra 
 
 ## Architecture
-![Dependency Graph](CloudFormation/architecture/architecture.png)
+![Architecture](Assets/Architecture/architecture.png)
 
 ## Stack
 - FW: ASP.NET Core, .NET 9
@@ -18,3 +18,5 @@
 
 ## Authentication
 The API uses stateless authentication (bearer token in session cookie)
+
+![Auth flow](Assets/Auth/auth.png)
