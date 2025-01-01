@@ -22,8 +22,8 @@ dotnet tool install --global coveralls.net --version 4.0.1
 
 $i=0
 
-Get-ChildItem -Path ($artifacts, "Coverage.xml") | foreach {
-  Write-Host "Uploading overage report: $($_.Name)"
+Get-ChildItem -Path $PATH::Combine($artifacts, "Coverage.xml") | foreach {
+  Write-Host "Uploading coverage report: $($_.Name)"
   $i+=1
   
   csmacnz.Coveralls `
