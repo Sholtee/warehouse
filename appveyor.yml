@@ -9,7 +9,9 @@
 # common configuration for ALL branches
 image: Visual Studio 2022
 
-#environment:
+environment:
+  COVERALLS_REPO_TOKEN:  
+    secure: 7MfvIuvrUWcs4nKjyLY/izB23UNNMLo3R/EeDhjKaXgNp5AABe3HMPzk1VFJSqDG
 # APPVEYOR_RDP_PASSWORD:
 #   secure: IvxSZoWD+DpqNjUP7mFjPA==
 
