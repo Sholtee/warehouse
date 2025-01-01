@@ -21,7 +21,7 @@ Get-ChildItem -Path $PATH::Combine($artifacts, "*.Tests.Results.xml") | foreach 
 dotnet tool install --global coveralls.net --version 4.0.1
 
 csmacnz.Coveralls `
-  --dynamiccodecoverage -i `"$PATH::Combine($artifacts, "Coverage.xml")`" `
+  --dynamiccodecoverage -i `"$($PATH::Combine($artifacts, "Coverage.xml"))`" `
   --repoToken $Env:COVERALLS_REPO_TOKEN  `
   --commitId $Env:APPVEYOR_REPO_COMMIT `
   --commitBranch $Env:APPVEYOR_REPO_BRANCH `
@@ -29,5 +29,4 @@ csmacnz.Coveralls `
   --commitEmail $Env:APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL `
   --commitMessage `"$Env:APPVEYOR_REPO_COMMIT_MESSAGE`" `
   --serviceName appveyor `
-  --serviceNumber $Env:APPVEYOR_BUILD_NUMBER `
-  --useRelativePaths
+  --serviceNumber $Env:APPVEYOR_BUILD_NUMBER
