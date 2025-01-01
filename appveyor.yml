@@ -34,8 +34,8 @@ clone_script:
 test_script:
   - ps: .\Run-Tests.ps1
 
-#after_test:
-#  - ps: Push-Test-Results
+after_test:
+  - ps: .\Push-TestResults.ps1
 
 # after build failure or success
 #on_finish:
