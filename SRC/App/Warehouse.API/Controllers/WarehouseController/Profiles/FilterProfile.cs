@@ -72,10 +72,10 @@ namespace Warehouse.API.Controllers.Profiles
             );
 
             if (source.Or is not null)
-                return Expression.Or(left, context.Mapper.Map<Expression>(source.Or));
+                return Expression.OrElse(left, context.Mapper.Map<Expression>(source.Or));
 
             if (source.And is not null)
-                return Expression.And(left, context.Mapper.Map<Expression>(source.And));
+                return Expression.AndAlso(left, context.Mapper.Map<Expression>(source.And));
 
             return left;
         }

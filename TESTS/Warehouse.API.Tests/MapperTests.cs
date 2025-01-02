@@ -78,7 +78,7 @@ namespace Warehouse.API.Tests
             };
 
             Expression<Func<DAL.ProductOverview, bool>> mapped = mapper.Map<Expression<Func<DAL.ProductOverview, bool>>>(filter);
-            Assert.That(mapped.ToString(), Is.EqualTo("productOverview => (((productOverview.Name == \"Samsung\") And (productOverview.Price < 1000)) Or ((productOverview.Name == \"Sony\") And (productOverview.Price < 1500)))"));
+            Assert.That(mapped.ToString(), Is.EqualTo("productOverview => (((productOverview.Name == \"Samsung\") AndAlso (productOverview.Price < 1000)) OrElse ((productOverview.Name == \"Sony\") AndAlso (productOverview.Price < 1500)))"));
         }
 
         [Test]
