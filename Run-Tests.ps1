@@ -18,6 +18,10 @@ dotnet-coverage collect `
   --output $PATH::Combine($artifacts, 'Coverage.xml') `
   "dotnet test --test-adapter-path:. --logger:nunit;LogFilePath=$($PATH::Combine($artifacts, '{assembly}.Results.xml'))"
 
+if (!$?) {
+  throw "Test session failed"
+}
+
 dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.4.1
 
 reportgenerator `
