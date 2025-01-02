@@ -93,6 +93,9 @@ To query items using cURL:
     }'
   ```
   
+## Running the tests
+Simply run the `.\Run-Tests.ps1` script. It places the tests result and coverage report to the `.\Artifacts` folder
+  
 ## Deploying the app to AWS
 - `.\CloudFormation\Deploy-Foundation.ps1 -action [create|update] -prefix [dev|test|prod] -region region-name -profile profile-name -certificate cert.crt -privateKey private.key`
 - `.\CloudFormation\Deploy-Migrator.ps1 -action [create|update] -prefix [dev|test|prod] -region region-name -profile profile-name [-runMigrations]`
