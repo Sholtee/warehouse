@@ -20,3 +20,80 @@
 The API uses stateless authentication (bearer token in session cookie)
 
 ![Auth flow](Assets/Auth/auth.png)
+
+## Launching the local environment
+Requirements
+- [PowerShell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.4)
+- [Docker](https://docs.docker.com/desktop/setup/install/windows-install/)
+- [Git](https://git-scm.com/downloads/win) (OpenSSL binaries provided by Git are used during the setup process, for more details see `.\SRC\Tools\LocalStackSetup\Cert\Create-Certs.ps1`)
+
+Launching the app
+- (Optional) Set up the `root` password by changing the value of `ROOT_PASSWORD` in `docker-compose.yml`
+- Run `.\Run-Local.ps1`
+
+To access the app via the API explorer go to [https://localhost:1986/](https://localhost:1986/)
+
+Query items using cURL:
+- `curl --location 'https://localhost:1986/api/v1/login' --header 'Authorization: Basic cm9vdDptZWR2ZWRpc3pub2VtYmVy'`
+- Grab the session token from the `Set-Cookie` header 
+- List the 3rd page of items satisfying the following filter: `(Brand == "Samsung" && "Price" < 1000) || (Brand == "Sony" && "Price" < 1500)`
+  ```
+  curl --location 'https://localhost:1986/api/v1/products' \
+    --header 'Content-Type: application/json' \
+    --header 'Cookie: warehouse-session=eyJhbGc...' \
+    --data '{
+      "filter": {
+	    "block": {
+	      "string": {
+	  	    "property": "Name",
+		    "comparison": "equals",
+		    "value": "Samsung"
+	      },
+	      "and": {
+		    "decimal": {
+		      "property": "Price",
+		      "value": 1000,
+		      "comparison": "lessThan"
+		    }
+	      }
+	    },
+	    "or": {
+	      "block": {
+		    "string": {
+		      "property": "Name",
+		      "comparison": "equals",
+		      "value": "Sony"
+		    },
+		    "and": {
+		      "decimal": {
+			    "property": "Price",
+			    "value": 1500,
+			    "comparison": "lessThan"
+		      }
+		    }
+	      }
+	    }
+      },
+      "sortBy": {
+	    "properties": [
+	      {
+		    "property": "Name",
+		    "kind": "ascending"
+	      },
+	      {
+		    "property": "Price",
+		    "kind": "descending"
+	      }
+	    ]
+      },
+      "page": {
+	    "skip": 3,
+	    "size": 5
+      }
+    }'
+  ```
+  
+## Deploying the app to AWS
+- `.\CloudFormation\Deploy-Foundation.ps1 -action [create|update] -prefix [dev|test|prod] -region region-name -profile profile-name -certificate cert.crt -privateKey private.key`
+- `.\CloudFormation\Deploy-Migrator.ps1 -action [create|update] -prefix [dev|test|prod] -region region-name -profile profile-name [-runMigrations]`
+- `.\CloudFormation\Deploy-App.ps1 -action [create|update] -prefix [dev|test|prod] -region region-name -profile profile-name [-skipImageUpdate]`
