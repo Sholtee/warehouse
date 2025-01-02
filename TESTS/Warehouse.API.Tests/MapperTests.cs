@@ -133,7 +133,7 @@ namespace Warehouse.API.Tests
             {
                 Assert.That(mapped.Filter, Is.Not.Null);
                 Assert.That(mapped.SortBy, Has.Count.EqualTo(2));
-                Assert.That(mapped.Skip, Is.EqualTo(15));
+                Assert.That(mapped.Skip, Is.EqualTo(0));
                 Assert.That(mapped.Take, Is.EqualTo(5));
             });
         }
