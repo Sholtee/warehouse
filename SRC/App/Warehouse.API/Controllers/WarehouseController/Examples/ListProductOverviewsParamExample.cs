@@ -21,7 +21,7 @@ namespace Warehouse.API.Controllers
                     {
                         Comparison = StringComparisonType.Equals,
                         Value = "Samsung",
-                        Property = nameof(ProductOverview.Name)
+                        Property = nameof(ProductOverview.Brand)
                     },
                     And = new()
                     {
@@ -39,9 +39,9 @@ namespace Warehouse.API.Controllers
                     {
                         String = new()
                         {
-                            Comparison = StringComparisonType.Equals,
+                            Comparison = StringComparisonType.Like,
                             Value = "Sony",
-                            Property = nameof(ProductOverview.Name)
+                            Property = nameof(ProductOverview.Brand)
                         },
                         And = new()
                         {
@@ -65,8 +65,7 @@ namespace Warehouse.API.Controllers
             },
             Page = new()
             {
-                Size = 5,
-                Skip = 3
+                Size = 5
             }
         };
     }
