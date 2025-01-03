@@ -10,7 +10,6 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-
 namespace Warehouse.DAL.Registrations
 {
     /// <summary>
@@ -24,6 +23,8 @@ namespace Warehouse.DAL.Registrations
 
             services.TryAddScoped<IUserRepository, UserRepository>();
             services.TryAddScoped<IWarehouseRepository, WarehouseRepository>();
+
+            DapperExtensions.ExtendMappers();
 
             return services;
         }

@@ -32,11 +32,18 @@ namespace Warehouse.DAL
                     .Select(static _ => 1)
                     .Where<UserEntity>(user => user.ClientId == param.ClientId),
                 selectNewUser = connection
-                    .From<UserEntity>()
-                    .Select(_ => new { param.ClientId, param.ClientSecretHash, Id = userId, CreatedUtc = DateTime.UtcNow })
+                    .From<UserEntity>(static expr => expr.FromExpression = " ")
+                    .Select
+                    (
+                        _ => new
+                        {
+                            param.ClientId,
+                            param.ClientSecretHash,
+                            Id = userId,
+                            CreatedUtc = DateTime.UtcNow 
+                        }
+                    )
                     .UnsafeWhere($"NOT EXISTS ({userExists.ToMergedParamsSelectStatement()})");
-
-            selectNewUser.FromExpression = " ";
 
             #pragma warning disable CA2000 // false positive, Dispose() is being called on the transaction
             using IDbTransaction? transaction = connection.OpenTransactionIfNotExists();
@@ -50,7 +57,16 @@ namespace Warehouse.DAL
 
                 SqlExpression<GroupEntity> selectNewUserGroup = connection
                     .From<GroupEntity>()
-                    .Select<GroupEntity>(grp => new { GroupId = grp.Id, UserId = userId, Id = Sql.Custom("UUID()"), CreatedUtc = DateTime.UtcNow })
+                    .Select<GroupEntity>
+                    (
+                        grp => new
+                        {
+                            GroupId = grp.Id,
+                            UserId = userId,
+                            Id = Sql.Custom("UUID()"),
+                            CreatedUtc = DateTime.UtcNow
+                        }
+                    )
                     .Where<GroupEntity>(grp => Sql.In(grp.Name, param.Groups));
 
                 rowsInserted = await connection.InsertIntoSelectAsync<UserGroupEntity>(selectNewUserGroup);

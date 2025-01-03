@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -15,29 +16,81 @@ using ServiceStack.OrmLite;
 
 namespace Warehouse.DAL
 {
+    using Views;
+
     /// <summary>
-    /// TODO: implement
+    /// TODO: finish the implementation
     /// </summary>
     internal sealed class WarehouseRepository(IDbConnection connection, IOrmLiteDialectProvider dialectProvider) : IWarehouseRepository
     {
-        public async Task<bool> IsHealthy() => await connection.SqlScalarAsync<int>("SELECT 1") is 1;
-
-        public Task<ProductDetails?> GetProductDetailsById(Guid productId) => Task.FromResult
+        public async Task<bool> IsHealthy() => await connection.SqlScalarAsync<int>
         (
-            productId != Guid.Empty ? null : new ProductDetails
-            {
-                Id = productId,
-                Brand = "Samsung",
-                Name = "Galaxy Tab A9+",
-                Types = ["tablet"],
-                Description = "The Samsung Galaxy Tab A9 is a budget Android tablet computer and part of the Samsung Galaxy Tab series designed by Samsung Electronics.",
-                Quantity = 10,
-                Price = 10000,
-                ReleaseDateUtc = new DateTime(2023, 10, 17),
-                MainImage = "main.image",
-                Images = []
-            }
-        );
+            connection
+                .From<object>(static expr => expr.FromExpression = " ")
+                .Select(static _ => 1)
+        ) is 1;
+
+        public async Task<ProductDetails?> GetProductDetailsById(Guid productId)
+        {
+            //
+            // TODO: implement a real query
+            //
+
+            string testData = connection
+                .From<object>(static expr => expr.FromExpression = " ")
+                .Select(static _ => new
+                {
+                    Id = Guid.Empty,
+                    Brand = "Samsung",
+                    Name = "Galaxy Tab A9+",
+                    Description = "The Samsung Galaxy Tab A9 is a budget Android tablet computer and part of the Samsung Galaxy Tab series designed by Samsung Electronics.",
+                    Quantity = 10,
+                    Price = 900,
+                    ReleaseDateUtc = "10/17/2023",
+                    MainImage = "main.png",
+                    TagName = "tablets",
+                    ImagePath = Sql.Custom("{0}")
+                })
+                .SelectExpression;
+
+            SqlExpression<ProductDetails> query = connection
+                .From<ProductDetails>
+                (
+                    expr => expr.FromExpression = $"""
+                        FROM (
+                        {
+                            string.Join
+                            (
+                                "\nUNION\n",
+                                testData.SqlFmt("image1.png"),
+                                testData.SqlFmt("image2.png")
+                            )
+                        }) AS {dialectProvider.GetQuotedTableName("TestData")}
+                    """
+                )
+                .Select("*")
+                .Where(product => product.Id == productId);
+
+            //
+            // Query the actual view
+            //
+
+            List<ProductDetails> result = await connection.SelectComposite<ProductDetails, TagView, ImageView>
+            (
+                query.ToMergedParamsSelectStatement(),
+                static product => product.Id,
+                static tag => tag.TagName,
+                static (product, tag) =>
+                {
+                    if (!product.Tags.Contains(tag.TagName))
+                        product.Tags.Add(tag.TagName);
+                },
+                static img => img.ImagePath,
+                static (product, img) => product.Images.Add(img.ImagePath)
+            );
+
+            return result.SingleOrDefault();
+        }
 
         public Task<List<ProductOverview>> ListProductOverviews(ListProductOverviewsParam param)
         {
@@ -53,7 +106,7 @@ namespace Warehouse.DAL
                 Quantity = 10,
                 Price = 900,
                 ReleaseDateUtc = "10/17/2023",
-                MainImage = "main.image"
+                MainImage = "main.png"
             }).SelectExpression;
 
             //

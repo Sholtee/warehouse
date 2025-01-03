@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace Warehouse.DAL
 {
     /// <summary>
-    /// TODO: finish design
+    /// TODO: finish the design
     /// </summary>
     public interface IWarehouseRepository
     {

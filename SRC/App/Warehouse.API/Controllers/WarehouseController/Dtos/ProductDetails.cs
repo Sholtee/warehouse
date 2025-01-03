@@ -17,7 +17,7 @@ namespace Warehouse.API.Controllers
         /// <summary>
         /// Product types associated with this item.
         /// </summary>
-        public required IReadOnlyList<string> Types { get; init; }
+        public required IReadOnlyList<string> Tags { get; init; }
 
         /// <summary>
         /// Long description of the product.
