@@ -1,5 +1,5 @@
 /********************************************************************************
-* WarehouseRepository.cs                                                        *
+* ImageView.cs                                                                  *
 *                                                                               *
 * Author: Denes Solti                                                           *
 * Project: Warehouse API (boilerplate)                                          *
