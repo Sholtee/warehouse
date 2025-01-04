@@ -45,7 +45,7 @@ To query items using cURL:
       "filter": {
 	    "block": {
 	      "string": {
-	  	    "property": "Name",
+	  	    "property": "Brand",
 		    "comparison": "equals",
 		    "value": "Samsung"
 	      },
@@ -60,7 +60,7 @@ To query items using cURL:
 	    "or": {
 	      "block": {
 		    "string": {
-		      "property": "Name",
+		      "property": "Brand",
 		      "comparison": "equals",
 		      "value": "Sony"
 		    },
