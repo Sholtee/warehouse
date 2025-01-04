@@ -5,6 +5,9 @@
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Http;
@@ -17,7 +20,26 @@ namespace Warehouse.Host.Infrastructure.Middlewares
     {
         public async Task InvokeAsync(HttpContext context)
         {
-            using (logger.BeginScope(new { Client = context.User?.Identity?.Name }))
+            ClaimsPrincipal user = context.User;
+
+            Dictionary<string, object> scope = new()
+            {
+                {
+                    "@Client",
+                    new
+                    {
+                        Id = user
+                            .Identity
+                            ?.Name ?? "Anonymous",
+                        Roles =  user
+                            .Claims
+                            .Where(static claim => claim.Type == ClaimTypes.Role)
+                            .Select(static claim => claim.Value)
+                    }
+                }
+            };
+
+            using(logger.BeginScope(scope))
             {
                 await next(context);
             }
