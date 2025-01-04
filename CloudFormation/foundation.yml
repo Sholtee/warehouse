@@ -215,6 +215,11 @@ Resources:
         MaxCapacity: 1
       VpcSecurityGroupIds:
         - !Ref DbSecurityGroup
+      EnableCloudwatchLogsExports: 
+        - error
+        - general
+        - slowquery
+        - audit
 
   DbInstance:
     Type: AWS::RDS::DBInstance
