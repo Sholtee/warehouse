@@ -100,3 +100,7 @@ Simply run the `.\Run-Tests.ps1` script. It places the tests result and coverage
 - `.\CloudFormation\Deploy-Foundation.ps1 -action [create|update] -prefix [dev|test|prod] -region region-name -profile profile-name -certificate cert.crt -privateKey private.key`
 - `.\CloudFormation\Deploy-Migrator.ps1 -action [create|update] -prefix [dev|test|prod] -region region-name -profile profile-name [-runMigrations]`
 - `.\CloudFormation\Deploy-App.ps1 -action [create|update] -prefix [dev|test|prod] -region region-name -profile profile-name [-skipImageUpdate]`
+
+### Scaling
+- The app [scales](https://github.com/Sholtee/warehouse/blob/6b05966603814f72b2cd2da055a71de7ddea2be2/CloudFormation/app.yml#L29 ) horizontally between 1 and 2 instances 
+- The database [scales](https://github.com/Sholtee/warehouse/blob/6b05966603814f72b2cd2da055a71de7ddea2be2/CloudFormation/foundation.yml#L213 ) vertically between 0.5 and 1 [ACU](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2.how-it-works.html#aurora-serverless-v2.how-it-works.capacity )s
