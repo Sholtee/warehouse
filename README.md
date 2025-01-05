@@ -16,6 +16,71 @@
 - Infra: [AWS](https://aws.amazon.com/), [LocalStack](https://www.localstack.cloud/)
 - Test FW: [NUnit](https://nunit.org/)
 
+## Folder structure
+```
+root
+│
+└───Artifacts [test ouputs]
+│
+└───Assets [documentation assets: diagrams, images, etc]
+│
+└───CloudFormation [CloudFormation templates & deployment scripts]
+│
+└───BIN [application binaries]
+│   │
+│   └───Debug|Release
+│       │
+│       └───net8.0 [DB Migrator lambda binaries - net9.0 is not supported in AWS Lambda]
+│       │
+│       └───net9.0 [application & test binaries]
+│
+└───SRC [sources root]
+│   │
+│   └───App [application sources]
+│   │   │
+│   │   └───Warehouse.API [business logic]
+│   │   │   │
+│   │   │   └───Controllers [controllers home]
+│   │   │
+│   │   └───Warehouse.Core [common resoures]
+│   │   │   │
+│   │   │   └───Abstractions [interfaces, abstract classes]
+│   │   │   │
+│   │   │   └───Attributes [attributes]
+│   │   │   │
+│   │   │   └───Auth [authentication related stuffs]
+│   │   │   │
+│   │   │   └───Exceptions [exceptions]
+│   │   │   │
+│   │   │   └───Extensions [extension methods]
+│   │   │
+│   │   └───Warehouse.DAL [data access layer]
+│   │   │   │
+│   │   │   └───Repositories [repositories home]
+│   │   │
+│   │   └───Warehouse.Host [application host]
+│   │       │
+│   │       └───Infrastructure [host infrastructure]
+│   │       │   │
+│   │       │   └───Auth [authentication handler related stuffs]
+│   │       │   │
+│   │       │   └───Filters [ASP.NET & Swashbuckle related filters]
+│   │       │   │
+│   │       │   └───Middlewares [ASP.NET middlewares]
+│   │       │   │
+│   │       │   └───Registrations [service registrations]
+│   │       │
+│   │       └───Services [internal services]
+│   │
+│   └───Tools [tooling]
+│       │
+│       └───LocalStackSetup [initializes the infra on the dev machine, used only locally]
+│       │
+│       └───DbMigrator [AWS Lambda, that runs the database migration scripts]
+│
+└───TESTS [test sources]
+```
+
 ## Authentication
 The API uses stateless authentication (bearer token in session cookie)
 
