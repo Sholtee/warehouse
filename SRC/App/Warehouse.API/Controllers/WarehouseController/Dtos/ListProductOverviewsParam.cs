@@ -113,7 +113,7 @@ namespace Warehouse.API.Controllers
         public SortBy<SortProperties>? SortBy { get; init; }
 
         /// <summary>
-        /// Pagination config. If not provided the first 10 item is returend
+        /// Pagination config. If not provided the first 10 item is returned
         /// </summary>
         [ValidateObject]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

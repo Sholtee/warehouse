@@ -24,7 +24,7 @@ namespace Warehouse.DAL
     public static class Schema
     {
         /// <summary>
-        /// Dumps the SQL script to initilize the given schema
+        /// Dumps the SQL script to initialize the given schema
         /// </summary>
         /// <example>
         /// <code>

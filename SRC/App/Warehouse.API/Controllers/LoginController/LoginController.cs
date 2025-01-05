@@ -48,7 +48,7 @@ namespace Warehouse.API.Controllers
         /// Uses Basic Auth to create a new login session
         /// </summary>
         /// <response code="204">Login was successful, the session cookie is provided via the Set-Cookie header</response>
-        /// <response code="401">The client is unathorized to execute the operation.</response>
+        /// <response code="401">The client is unauthorized to execute the operation.</response>
         [HttpGet("login")]
         [ApiExplorerBasicAuthorization]
         [ProducesResponseType(204), ProducesResponseType(401)]

@@ -49,11 +49,11 @@ namespace Warehouse.API.Controllers
         /// <summary>
         /// Lists products matching on the given <paramref name="param"/>.
         /// </summary>
-        /// <param name="param">Parameter contining a the filter pattern.</param>
+        /// <param name="param">Parameter containing a the filter pattern.</param>
         /// <returns>Product list matching the given criteria.</returns>
         /// <response code="200">Returns the matching product list</response>
         /// <response code="400">The provided parameter is not in a valid form</response>
-        /// <response code="403">The client is unathorized to execute the operation.</response>
+        /// <response code="403">The client is unauthorized to execute the operation.</response>
         [HttpPost("products")]
         [RequiredRoles(Roles.User)]
         public async Task<ListProductOverviewsResult> ListProductOverviews([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] ListProductOverviewsParam param) => new ListProductOverviewsResult
@@ -74,7 +74,7 @@ namespace Warehouse.API.Controllers
         /// <returns>The product details.</returns>
         /// <response code="200">The product details</response>
         /// <response code="400">The provided <paramref name="id"/> is not in a valid form</response>
-        /// <response code="403">The client is unathorized to execute the operation.</response>
+        /// <response code="403">The client is unauthorized to execute the operation.</response>
         /// <response code="404">The provided <paramref name="id"/> is not a valid product id</response>
         [HttpGet("product/{id}")]
         [RequiredRoles(Roles.User)]
