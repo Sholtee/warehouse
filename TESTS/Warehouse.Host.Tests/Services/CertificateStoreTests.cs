@@ -7,7 +7,6 @@
 ********************************************************************************/
 using System;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
 
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
@@ -53,7 +52,7 @@ namespace Warehouse.Host.Services.Tests
         }
 
         [Test]
-        public async Task GetCertificate_ShouldReturnTheCertificate()
+        public void GetCertificate_ShouldReturnTheCertificate()
         {
             _mockJsonOptions
                 .SetupGet(o => o.Value)
@@ -85,10 +84,67 @@ namespace Warehouse.Host.Services.Tests
                 .Setup(c => c.Invoke("certificate", "privateKey"))
                 .Returns(cert);
 
-            Assert.That(await _certificateStore.GetCertificateAsync("warehouse-app-certificate"), Is.EqualTo(cert));
+            Assert.That(_certificateStore.GetCertificate("warehouse-app-certificate"), Is.EqualTo(cert));
 
             _mockCreateCert.Verify(c => c.Invoke(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
             _mockSecretsManager.Verify(t => t.GetSecretValueAsync(It.IsAny<GetSecretValueRequest>(), default), Times.Once);
+        }
+
+        [Test]
+        public void GetCertificateFactory_ShouldReturnTheCertificate()
+        {
+            _mockJsonOptions
+                .SetupGet(o => o.Value)
+                .Returns(new JsonOptions());
+
+            _mockSecretsManager
+                .Setup
+                (
+                    t => t.GetSecretValueAsync
+                    (
+                        It.Is<GetSecretValueRequest>
+                        (
+                            r => r.SecretId == "local-warehouse-app-certificate"
+                        ),
+                        default
+                    )
+                )
+                .ReturnsAsync
+                (
+                    new GetSecretValueResponse
+                    {
+                        SecretString = "{\"privateKey\": \"privateKey\", \"certificate\": \"certificate\"}"
+                    }
+                );
+
+            X509Certificate2 cert = new();
+            _mockCreateCert
+                .Setup(c => c.Invoke("certificate", "privateKey"))
+                .Returns(cert);
+
+            Mock<IServiceProvider> mockServiceProvider = new(MockBehavior.Strict);
+            mockServiceProvider
+                .Setup(sp => sp.GetService(typeof(CertificateStore)))
+                .Returns(_certificateStore);
+
+            Assert.That(CertificateStore.GetCertificate(mockServiceProvider.Object, "warehouse-app-certificate"), Is.EqualTo(cert));
+
+            _mockCreateCert.Verify(c => c.Invoke(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            _mockSecretsManager.Verify(t => t.GetSecretValueAsync(It.IsAny<GetSecretValueRequest>(), default), Times.Once);
+        }
+
+        [Test]
+        public void GetCertificateFactory_ShouldThrowOnInvalidName()
+        {
+            Mock<IServiceProvider> mockServiceProvider = new(MockBehavior.Strict);
+            mockServiceProvider
+                .Setup(sp => sp.GetService(typeof(CertificateStore)))
+                .Returns(_certificateStore);
+
+            Assert.Throws<ArgumentException>(() => CertificateStore.GetCertificate(mockServiceProvider.Object, 0));
+
+            _mockCreateCert.Verify(c => c.Invoke(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            _mockSecretsManager.Verify(t => t.GetSecretValueAsync(It.IsAny<GetSecretValueRequest>(), default), Times.Never);
         }
     }
 }
