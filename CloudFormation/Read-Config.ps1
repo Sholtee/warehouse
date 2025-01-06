@@ -19,8 +19,16 @@ param(
 $ErrorActionPreference = "Stop"
 
 $config = (Get-Content $path -Raw | ConvertFrom-Json -AsHashTable) + $extra
+
 $config.GetEnumerator() | ForEach-Object `
   -Begin {$params=""} `
-  -Process {$params += "`"ParameterKey=$($_.Key),ParameterValue=$($_.Value)`" "}
+  -Process {
+      $value = $_.Value
+      if ($value -Is [HashTable]) {
+          $value = (Get-Content $value.read -Raw)
+      }
+
+      $params += "`"ParameterKey=$($_.Key),ParameterValue=$value`" "
+  }
 
 return $params
