@@ -8,13 +8,13 @@
 Description: Lambda for db migrations
 
 Parameters:
+  deploymentId:
+    Type: String
+    Description: Unique deployment id
   prefix:
     Type: String
     Description: The prefix for this full deployment.
     MaxLength: '14'
-  lambdaVersion:
-    Type: String
-    Description: The lambda version to be deployed
 
 Resources:
   DbMigratorLambdaFunction:
@@ -23,7 +23,7 @@ Resources:
       Code:
         S3Bucket:
           Fn::ImportValue: !Sub "${prefix}-warehouse-lambda-binaries-bucket-name"
-        S3Key: !Sub "${prefix}-warehouse-db-migrator-${lambdaVersion}.zip"
+        S3Key: !Sub "${prefix}-warehouse-db-migrator-${deploymentId}.zip"
       FunctionName: !Sub "${prefix}-warehouse-db-migrator-lambda"
       Environment:
         Variables:

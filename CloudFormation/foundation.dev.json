@@ -1,0 +1,5 @@
+{
+    "prefix": "dev",
+    "dbClusterMinCapacity": 0.5,
+    "dbClusterMaxCapacity": 1
+}

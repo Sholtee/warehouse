@@ -8,13 +8,22 @@
 Description: App infrastructure. Can be deployed in any region
 
 Parameters:
+  deploymentId:
+    Type: String
+    Description: Unique deployment id
   prefix:
     Type: String
     Description: The prefix for this full deployment.
     MaxLength: '14'
-  image:
-    Type: String
-    Description: Image to be deployed
+  scalingCpuUsageThreshold:
+    Type: Number
+    Description: Average CPU usage that triggers scaling
+  scalingMinInstances:
+    Type: Number
+    Description: The minimum autoscaling capacity
+  scalingMaxInstances:
+    Type: Number
+    Description: The maximum autoscaling capacity
   port:
     Type: Number
     Description: Port on which the service will be listening
@@ -23,10 +32,6 @@ Parameters:
     Type: Number
     Description: Seconds after which a new healthcheck cycle should be triggered
     Default: 60
-  maxInstances:
-    Type: Number
-    Description: The maximum autoscaling capacity
-    Default: 2
 
 Resources:
   Service:
@@ -57,8 +62,8 @@ Resources:
   ServiceAutoscalingTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
     Properties:
-      MinCapacity: 1
-      MaxCapacity: !Ref maxInstances
+      MinCapacity: !Ref scalingMinInstances
+      MaxCapacity: !Ref scalingMaxInstances
       ResourceId: !Join
         - "/"
         - - service
@@ -77,7 +82,7 @@ Resources:
       TargetTrackingScalingPolicyConfiguration:
         PredefinedMetricSpecification:
           PredefinedMetricType: ECSServiceAverageCPUUtilization
-        TargetValue: 50.0
+        TargetValue: !Ref scalingCpuUsageThreshold
 
   ServiceTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
@@ -156,7 +161,11 @@ Resources:
               Value: !Ref prefix
             - Name: WAREHOUSE_SERVICE_PORT
               Value: !Ref port
-          Image: !Ref image
+          Image: !Join
+            - ""
+            - - Fn::ImportValue: !Sub "${prefix}-warehouse-ecr-repository-uri"
+              - !Sub ":${prefix}-warehouse-app-"
+              - !Ref deploymentId
           PortMappings:
             - ContainerPort: !Ref port
 

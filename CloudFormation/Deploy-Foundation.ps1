@@ -1,7 +1,7 @@
 #
 # Deploy-Foundation.ps1
 #
-# Usage: Deploy-Foundation.ps1 -action [create|update] -prefix prefix -region region-name -profile profile-name -certificate cert.crt -privateKey private.key
+# Usage: Deploy-Foundation.ps1 -action [create|update] -prefix prefix -region region-name -profile profile-name -certificate cert.crt -privateKey private.key [-deploymentId ...]
 #
 # Author: Denes Solti
 # Project: Warehouse API (boilerplate)
@@ -27,7 +27,10 @@ param(
 
   [Parameter(Position=5, Mandatory=$true)]
   [ValidatePattern("^.+\.key$")]
-  [string]$privateKey
+  [string]$privateKey,
+
+  [Parameter(Position=5)]
+  [Guid]$deploymentId = (New-Guid)
 )
 
 $ErrorActionPreference = 'Stop'
@@ -36,8 +39,20 @@ $stackName = "${prefix}-warehouse-foundation"
 
 aws cloudformation ${action}-stack `
   --profile ${profile} `
-  --stack-name ${stackName} `
   --region ${region} `
+  --stack-name ${stackName} `
   --template-body file://./foundation.yml `
-  --parameters "ParameterKey=prefix,ParameterValue=${prefix}" "ParameterKey=certificate,ParameterValue=$(Get-Content -Path $certificate)" "ParameterKey=privateKey,ParameterValue=$(Get-Content -Path $privateKey)"`
+  --parameters (./Read-Config.ps1 ./foundation.${prefix}.json -extra @{deploymentId=$deploymentId}) `
   --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
+
+aws cloudformation wait stack-${action}-complete `
+  --profile $profile `
+  --region $region `
+  --stack-name $stackName
+
+# We don't want the certificate to be stored in CloudFormation parameter list so copy it directly
+aws secretsmanager put-secret-value `
+  --profile $profile `
+  --region $region `
+  --secret-id ${prefix}-warehouse-app-cert `
+  --secret-string $(@{certificate=(Get-Content -Path $certificate -Raw); privateKey=(Get-Content -Path $privateKey -Raw)} | ConvertTo-Json)

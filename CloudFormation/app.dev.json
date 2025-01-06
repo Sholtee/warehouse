@@ -1,0 +1,6 @@
+{
+    "prefix": "dev",
+    "scalingCpuUsageThreshold": 50.0,
+    "scalingMinInstances": 1,
+    "scalingMaxInstances": 2
+}
