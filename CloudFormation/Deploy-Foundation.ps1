@@ -55,4 +55,4 @@ aws secretsmanager put-secret-value `
   --profile $profile `
   --region $region `
   --secret-id ${prefix}-warehouse-app-cert `
-  --secret-string "{`"privateKey`": $(Get-Content -Path $certificate -Raw | ConvertTo-Json), `"certificate`": $(Get-Content -Path $privateKey -Raw | ConvertTo-Json)}"
+  --secret-string $(@{certificate=(Get-Content -Path $certificate -Raw); privateKey=(Get-Content -Path $privateKey -Raw)} | ConvertTo-Json)
