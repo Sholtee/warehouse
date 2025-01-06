@@ -39,10 +39,10 @@ aws cloudformation ${action}-stack `
   --region ${region} `
   --stack-name ${stackName} `
   --template-body file://./foundation.yml `
-  --parameters (./Read-Config.ps1 ./foundation.${prefix}.json) `
+  --parameters (./Read-Config.ps1 ./foundation.${prefix}.json -extra @{deploymentId=(New-Guid)}) `
   --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
-aws cloudformation wait stack-update-complete `
+aws cloudformation wait stack-${action}-complete `
   --profile $profile `
   --region $region `
   --stack-name $stackName

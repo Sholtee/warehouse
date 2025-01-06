@@ -20,6 +20,9 @@ Parameters:
   dbClusterMaxCapacity:
     Type: Number
     Description: Maximum ACUs to apply
+  deploymentId:
+    Type: String
+    Description: Unique deployment id
 
 Mappings:
   AZsByIndex:
