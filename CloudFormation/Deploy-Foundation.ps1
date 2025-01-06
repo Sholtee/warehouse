@@ -1,7 +1,7 @@
 #
 # Deploy-Foundation.ps1
 #
-# Usage: Deploy-Foundation.ps1 -action [create|update] -prefix prefix -region region-name -profile profile-name -certificate cert.crt -privateKey private.key
+# Usage: Deploy-Foundation.ps1 -action [create|update] -prefix prefix -region region-name -profile profile-name -certificate cert.crt -privateKey private.key [-deploymentId ...]
 #
 # Author: Denes Solti
 # Project: Warehouse API (boilerplate)
@@ -27,7 +27,10 @@ param(
 
   [Parameter(Position=5, Mandatory=$true)]
   [ValidatePattern("^.+\.key$")]
-  [string]$privateKey
+  [string]$privateKey,
+
+  [Parameter(Position=5)]
+  [Guid]$deploymentId = (New-Guid)
 )
 
 $ErrorActionPreference = 'Stop'
@@ -39,7 +42,7 @@ aws cloudformation ${action}-stack `
   --region ${region} `
   --stack-name ${stackName} `
   --template-body file://./foundation.yml `
-  --parameters (./Read-Config.ps1 ./foundation.${prefix}.json -extra @{deploymentId=(New-Guid)}) `
+  --parameters (./Read-Config.ps1 ./foundation.${prefix}.json -extra @{deploymentId=$deploymentId}) `
   --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
 aws cloudformation wait stack-${action}-complete `
@@ -52,4 +55,4 @@ aws secretsmanager put-secret-value `
   --profile $profile `
   --region $region `
   --secret-id ${prefix}-warehouse-app-cert `
-  --secret-string "{`"privateKey`": `"$(Get-Content -Path $certificate)`", `"certificate`": `"$(Get-Content -Path $privateKey)`"}"
+  --secret-string "{`"privateKey`": $(Get-Content -Path $certificate -Raw | ConvertTo-Json), `"certificate`": $(Get-Content -Path $privateKey -Raw | ConvertTo-Json)}"

@@ -10,6 +10,9 @@ Description: Foundation infrastructure. Can be deployed in any region
 Transform: AWS::LanguageExtensions
 
 Parameters:
+  deploymentId:
+    Type: String
+    Description: Unique deployment id
   prefix:
     Type: String
     Description: Prefix, for instance "dev" or "prod"
@@ -20,9 +23,6 @@ Parameters:
   dbClusterMaxCapacity:
     Type: Number
     Description: Maximum ACUs to apply
-  deploymentId:
-    Type: String
-    Description: Unique deployment id
 
 Mappings:
   AZsByIndex:
