@@ -1,7 +1,7 @@
 #
 # Deploy-App.ps1
 #
-# Usage: Deploy-App.ps1 -action [create|update] -prefix prefix -region region-name -profile profile-name [-skipImageUpdate]
+# Usage: Deploy-App.ps1 -action [create|update] -prefix prefix -region region-name -profile profile-name [-deploymentId ...]
 #
 # Author: Denes Solti
 # Project: Warehouse API (boilerplate)
@@ -21,40 +21,34 @@ param(
   [Parameter(Position=4, Mandatory=$true)]
   [string]$region,
 
-  [switch]$skipImageUpdate = $false
+  [Parameter(Position=5)]
+  [Guid]$deploymentId = (New-Guid)
 )
 
 $ErrorActionPreference = "Stop"
 
+$PATH = [System.IO.Path]
+
 $stackName = "${prefix}-warehouse-app"
+$ecrHost = "$(aws sts get-caller-identity --profile ${profile} --region ${region} --query Account --output text).dkr.ecr.${region}.amazonaws.com"
 
-if (!$skipImageUpdate) {
-  $PATH = [System.IO.Path]
+aws ecr get-login-password --profile $profile --region $region | docker login --username AWS --password-stdin $ecrHost
+try {
+  $context = $PATH::Combine($PSScriptRoot, '..', 'SRC', 'App') | Resolve-Path
+  $image = "${ecrHost}/${prefix}-warehouse-ecr-repository:${stackName}-${deploymentId}"
 
-  $ecrHost = "$(aws sts get-caller-identity --profile ${profile} --region ${region} --query Account --output text).dkr.ecr.${region}.amazonaws.com"
+  docker build `
+    --file $($PATH::Combine($context, 'dockerfile') | Resolve-Path) `
+    --build-arg CONFIG=Release `
+    --platform linux/amd64 `
+    --force-rm `
+    --tag $image `
+    $context
 
-  aws ecr get-login-password --profile $profile --region $region | docker login --username AWS --password-stdin $ecrHost
-  try {
-    $context = $PATH::Combine($PSScriptRoot, '..', 'SRC', 'App') | Resolve-Path
-    $image = "${ecrHost}/${prefix}-warehouse-ecr-repository:${stackName}-$((New-Guid).ToString('N'))"
-
-    docker build `
-      --file $($PATH::Combine($context, 'dockerfile') | Resolve-Path) `
-      --build-arg CONFIG=Release `
-      --platform linux/amd64 `
-      --force-rm `
-      --tag $image `
-      $context
-
-    docker push $image
-    docker rmi $image --force
-  } finally {
-    docker logout ${ecrHost}
-  }
-
-  $imageParam = "ParameterValue=${image}"
-} else {
-  $imageParam = "UsePreviousValue=true"
+  docker push $image
+  docker rmi $image --force
+} finally {
+  docker logout ${ecrHost}
 }
 
 aws cloudformation ${action}-stack `
@@ -62,5 +56,5 @@ aws cloudformation ${action}-stack `
   --stack-name $stackName `
   --region $region `
   --template-body file://./app.yml `
-  --parameters "ParameterKey=prefix,ParameterValue=${prefix}" "ParameterKey=image,$imageParam" `
+  --parameters (./Read-Config.ps1 ./app.${prefix}.json -extra @{deploymentId=$deploymentId}) `
   --capabilities CAPABILITY_NAMED_IAM
