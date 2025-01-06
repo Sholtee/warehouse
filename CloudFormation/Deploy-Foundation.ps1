@@ -36,8 +36,20 @@ $stackName = "${prefix}-warehouse-foundation"
 
 aws cloudformation ${action}-stack `
   --profile ${profile} `
-  --stack-name ${stackName} `
   --region ${region} `
+  --stack-name ${stackName} `
   --template-body file://./foundation.yml `
-  --parameters "ParameterKey=prefix,ParameterValue=${prefix}" "ParameterKey=certificate,ParameterValue=$(Get-Content -Path $certificate)" "ParameterKey=privateKey,ParameterValue=$(Get-Content -Path $privateKey)"`
+  --parameters (./Read-Config.ps1 ./foundation.${prefix}.json) `
   --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
+
+aws cloudformation wait stack-update-complete `
+  --profile $profile `
+  --region $region `
+  --stack-name $stackName
+
+# We don't want the certificate to be stored in CloudFormation parameter list so copy it directly
+aws secretsmanager put-secret-value `
+  --profile $profile `
+  --region $region `
+  --secret-id ${prefix}-warehouse-app-cert `
+  --secret-string "{`"privateKey`": `"$(Get-Content -Path $certificate)`", `"certificate`": `"$(Get-Content -Path $privateKey)`"}"

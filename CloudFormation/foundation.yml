@@ -14,12 +14,12 @@ Parameters:
     Type: String
     Description: Prefix, for instance "dev" or "prod"
     MaxLength: '32'
-  certificate:
-    Type: String
-    Description: PEM certificate
-  privateKey:
-    Type: String
-    Description: PEM private key
+  dbClusterMinCapacity:
+    Type: Number
+    Description: Minimum ACUs to apply
+  dbClusterMaxCapacity:
+    Type: Number
+    Description: Maximum ACUs to apply
 
 Mappings:
   AZsByIndex:
@@ -211,8 +211,8 @@ Resources:
       DatabaseName: WarehouseDb
       EnableHttpEndpoint: false
       ServerlessV2ScalingConfiguration:
-        MinCapacity: 0.5
-        MaxCapacity: 1
+        MinCapacity: !Ref dbClusterMinCapacity
+        MaxCapacity: !Ref dbClusterMaxCapacity
       VpcSecurityGroupIds:
         - !Ref DbSecurityGroup
       EnableCloudwatchLogsExports: 
@@ -296,7 +296,7 @@ Resources:
     Description: We cannot grab the private key from ACM so we store the PEM in SM
     Properties:
       Name: !Sub "${prefix}-warehouse-app-cert"
-      SecretString: !Sub '{"privateKey": "${privateKey}", "certificate": "${certificate}"}'
+      SecretString: "PLACEHOLDER"
 
 #####################
 # S3
