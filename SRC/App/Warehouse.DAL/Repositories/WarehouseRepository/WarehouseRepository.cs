@@ -16,12 +16,13 @@ using ServiceStack.OrmLite;
 
 namespace Warehouse.DAL
 {
+    using Extensions;
     using Views;
 
     /// <summary>
     /// TODO: finish the implementation
     /// </summary>
-    internal sealed class WarehouseRepository(IDbConnection connection, IOrmLiteDialectProvider dialectProvider) : IWarehouseRepository
+    internal sealed class WarehouseRepository(IDbConnection connection) : IWarehouseRepository
     {
         public async Task<bool> IsHealthy() => await connection.SqlScalarAsync<int>
         (
@@ -37,7 +38,7 @@ namespace Warehouse.DAL
             //
 
             string testData = connection
-                .From<object>(static expr => expr.FromExpression = " ")
+                .From<object>()
                 .Select(static _ => new
                 {
                     Id = Guid.Empty,
@@ -54,19 +55,14 @@ namespace Warehouse.DAL
                 .SelectExpression;
 
             SqlExpression<ProductDetails> query = connection
-                .From<ProductDetails>
+                .With<ProductDetails>
                 (
-                    expr => expr.FromExpression = $"""
-                        FROM (
-                        {
-                            string.Join
-                            (
-                                "\nUNION\n",
-                                testData.SqlFmt("image1.png"),
-                                testData.SqlFmt("image2.png")
-                            )
-                        }) AS {dialectProvider.GetQuotedTableName("TestData")}
-                    """
+                    string.Join
+                    (
+                        "\nUNION\n",
+                        testData.SqlFmt("image1.png"),
+                        testData.SqlFmt("image2.png")
+                    )
                 )
                 .Select("*")
                 .Where(product => product.Id == productId);
@@ -114,7 +110,7 @@ namespace Warehouse.DAL
             //
 
             SqlExpression<ProductOverview> queryAgainstCTE = connection
-                .From<ProductOverview>()
+                .With<ProductOverview>(productViewQuery)
                 .Select()
                 .Where(param.Filter)
                 .Skip((int) param.Skip)
@@ -139,12 +135,7 @@ namespace Warehouse.DAL
                 }
             }
 
-            string finalQuery = $"""
-                WITH {dialectProvider.GetQuotedTableName(typeof(ProductOverview))} AS ({productViewQuery})
-                {queryAgainstCTE.ToMergedParamsSelectStatement()}
-            """;
-
-            return connection.SqlListAsync<ProductOverview>(finalQuery);
+            return connection.SqlListAsync<ProductOverview>(queryAgainstCTE.ToMergedParamsSelectStatement());
         }
     }
 }

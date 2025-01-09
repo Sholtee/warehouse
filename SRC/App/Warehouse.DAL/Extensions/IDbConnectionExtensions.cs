@@ -1,5 +1,5 @@
 /********************************************************************************
-* DapperExtensions.cs                                                           *
+* IDbConnectionExtensions.cs                                                    *
 *                                                                               *
 * Author: Denes Solti                                                           *
 * Project: Warehouse API (boilerplate)                                          *
@@ -12,23 +12,31 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
+using ServiceStack.OrmLite;
 using ServiceStack.OrmLite.Dapper;
 
-namespace Warehouse.DAL
+namespace Warehouse.DAL.Extensions
 {
-    internal static class DapperExtensions
+    internal static class IDbConnectionExtensions
     {
-        private sealed class GuidTypeHandler : SqlMapper.TypeHandler<Guid>
+        /*
+        public static SqlExpression<TTempTable> With<TTempTable, TFrom>(this IDbConnection connection, Action<SqlExpression<TFrom>> tempTableQuery)
         {
-            public override void SetValue(IDbDataParameter parameter, Guid guid) => parameter.Value = guid.ToString();
-
-            public override Guid Parse(object value) => Guid.Parse((string)value);
+            SqlExpression<TFrom> from = connection.From<TFrom>();
+            tempTableQuery(from);
+            return connection.With<TTempTable>(from.ToMergedParamsSelectStatement());
         }
-
-        public static void ExtendMappers()
-        {
-            SqlMapper.AddTypeHandler(new GuidTypeHandler());
-        }
+        */
+        public static SqlExpression<TTempTable> With<TTempTable>(this IDbConnection connection, string tempTableQuery) => connection
+            .From<TTempTable>()
+            .WithSqlFilter
+            (
+                sql =>
+                $"""
+                    WITH {connection.GetDialectProvider().GetQuotedTableName(typeof(TTempTable))} AS ({tempTableQuery})
+                    {sql}
+                """
+            );
 
         public static async Task<List<TParent>> SelectComposite<TParent, TNested1, TNested2>
         (
@@ -56,7 +64,7 @@ namespace Warehouse.DAL
 
                     if (nested1 is not null)
                         addNested1(existing, nested1);
-  
+
                     if (nested2 is not null)
                         addNested2(existing, nested2);
 
@@ -67,7 +75,7 @@ namespace Warehouse.DAL
 
             return result.Distinct().ToList();
 
-            static string GetPropertyName(LambdaExpression expr) => ((MemberExpression) expr.Body).Member.Name;
+            static string GetPropertyName(LambdaExpression expr) => ((MemberExpression)expr.Body).Member.Name;
         }
     }
 }

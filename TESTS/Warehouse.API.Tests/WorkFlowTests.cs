@@ -134,7 +134,7 @@ namespace Warehouse.API.Tests
         }
 
         [Test]
-        public async Task TestLoginAndGetItem()
+        public async Task TestLoginAndGetProduct()
         {
             RequestBuilder requestBuilder = _appFactory.Server.CreateRequest($"http://localhost/api/v1/product/{Guid.Empty}");
             requestBuilder.AddHeader("Cookie", await GetSessionCookie());
@@ -145,7 +145,7 @@ namespace Warehouse.API.Tests
         }
 
         [Test]
-        public async Task TestLoginAndQueryItems()
+        public async Task TestLoginAndQueryProducts()
         {
             RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/api/v1/products/");
             requestBuilder.AddHeader("Cookie", await GetSessionCookie());

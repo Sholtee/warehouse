@@ -12,6 +12,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Warehouse.DAL.Registrations
 {
+    using Extensions;
+
     /// <summary>
     /// Registers the repositories from this assembly.
     /// </summary>

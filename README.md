@@ -56,6 +56,8 @@ root
 │   │   │
 │   │   └───Warehouse.DAL [data access layer]
 │   │   │   │
+│   │   │   └───Extensions [extension methods]
+│   │   │   │
 │   │   │   └───Repositories [repositories home]
 │   │   │
 │   │   └───Warehouse.Host [application host]
