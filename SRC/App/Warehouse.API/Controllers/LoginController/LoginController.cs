@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
@@ -26,7 +27,7 @@ namespace Warehouse.API.Controllers
     /// <summary>
     /// Login endpoints.
     /// </summary>
-    [ApiController, Route("api/v1")]
+    [ApiController, Route("api/v1"), EnableRateLimiting("fixed")]
     public sealed class LoginController
     (
         IUserRepository userRepository,

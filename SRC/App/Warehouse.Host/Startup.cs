@@ -62,6 +62,7 @@ namespace Warehouse.Host
             services.AddRootUserRegistrar();
             services.AddSessionCookieAuthentication();
             services.AddSwagger(configuration);
+            services.AddRateLimiter(configuration);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -71,6 +72,7 @@ namespace Warehouse.Host
             app
                 .UseExceptionHandler(static _ => { })
                 .UseRouting()
+                .UseRateLimiter()
                 .UseAuthorization()
                 .UseMiddleware<LoggingMiddleware>()
                 .UseEndpoints(static endpoints => endpoints.MapControllers());
