@@ -1,5 +1,5 @@
 /********************************************************************************
-* UnhandledExceptionFilterTests.cs                                              *
+* UnhandledExceptionHandlerTests.cs                                             *
 *                                                                               *
 * Author: Denes Solti                                                           *
 * Project: Warehouse API (boilerplate)                                          *
@@ -11,6 +11,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -23,6 +24,7 @@ namespace Warehouse.Host.Infrastructure.Tests
 {
     using Core.Exceptions;
     using Filters;
+    using Middlewares;
 
     [ApiController]
     public sealed class ErrorTestController : ControllerBase
@@ -42,7 +44,7 @@ namespace Warehouse.Host.Infrastructure.Tests
 
 
     [TestFixture]
-    internal sealed class UnhandledExceptionFilterTests
+    internal sealed class UnhandledExceptionHandlerTests
     {
         private sealed class TestHostFactory : WebApplicationFactory<Warehouse.Tests.Host.Program>
         {
@@ -50,15 +52,22 @@ namespace Warehouse.Host.Infrastructure.Tests
                 .UseEnvironment("local")
                 .ConfigureTestServices
                 (
-                    services => services
+                    static services => services
+                       .AddExceptionHandler<UnhandledExceptionHandler>()
                         .AddMvcCore(static options =>
                         {
-                            options.Filters.Add<UnhandledExceptionFilter>();
                             options.Filters.Add<ValidateModelStateFilter>();
                         })
                         .ConfigureApiBehaviorOptions(static options => options.SuppressModelStateInvalidFilter = true)
-                        .AddApplicationPart(typeof(AuthTestController).Assembly)
+                        .AddApplicationPart(typeof(ErrorTestController).Assembly)
                         .AddControllersAsServices()
+                )
+                .Configure
+                (
+                    static app => app
+                        .UseExceptionHandler(static _ => { })
+                        .UseRouting()
+                        .UseEndpoints(static endpoints => endpoints.MapControllers())
                 );
         }
 
@@ -68,7 +77,7 @@ namespace Warehouse.Host.Infrastructure.Tests
         public void SetupTest() => _appFactory = new TestHostFactory();
 
         [TearDown]
-        public void TeardDownTest()
+        public void TearDownTest()
         {
             _appFactory?.Dispose();
             _appFactory = null!;

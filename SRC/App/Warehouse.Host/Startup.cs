@@ -6,6 +6,7 @@
 * License: MIT                                                                  *
 ********************************************************************************/
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -31,7 +32,6 @@ namespace Warehouse.Host
             services
                 .AddMvcCore(static options =>
                 {
-                    options.Filters.Add<UnhandledExceptionFilter>();
                     options.Filters.Add<ValidateModelStateFilter>();
                 })
                 .AddControllers()
@@ -55,6 +55,7 @@ namespace Warehouse.Host
         
             services.TryAddSingleton(TimeProvider.System);
 
+            services.AddExceptionHandler<UnhandledExceptionHandler>();
             services.AddAwsServices();
             services.AddCertificateStore();
             services.AddDbConnection();
@@ -62,22 +63,26 @@ namespace Warehouse.Host
             services.AddRootUserRegistrar();
             services.AddSessionCookieAuthentication();
             services.AddSwagger(configuration);
+            services.AddRateLimiter();
         }
 
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Startup methods cannot be static")]
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {         
             app.UseHttpsRedirection();
             app.AddRootUser();
             app
+                .UseExceptionHandler(static _ => { })
                 .UseRouting()
                 .UseAuthorization()
+                .UseRateLimiter()
                 .UseMiddleware<LoggingMiddleware>()
                 .UseEndpoints(static endpoints => endpoints.MapControllers());
 
             if (env.IsLocal() || env.IsDev())
             {
                 app.UseDeveloperExceptionPage();        
-                app.UseSwagger(configuration);
+                app.UseSwagger();
             }
         }
     }
