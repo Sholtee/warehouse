@@ -1,20 +1,22 @@
 /********************************************************************************
-* UnhandledExceptionFilter.cs                                                   *
+* UnhandledExceptionHandler.cs                                                  *
 *                                                                               *
 * Author: Denes Solti                                                           *
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
+using System;
 using System.Text.Json.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
 
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 
-namespace Warehouse.Host.Infrastructure.Filters
+namespace Warehouse.Host.Infrastructure.Middlewares
 {
     using Core.Exceptions;
     using Core.Extensions;
@@ -54,38 +56,39 @@ namespace Warehouse.Host.Infrastructure.Filters
         public object? DeveloperMessage { get; init; }
     }
 
-    internal sealed class UnhandledExceptionFilter(IWebHostEnvironment env, ILogger<UnhandledExceptionFilter> logger) : IExceptionFilter
+    internal sealed class UnhandledExceptionHandler(IWebHostEnvironment env, ILogger<UnhandledExceptionHandler> logger) : IExceptionHandler
     {
-        public void OnException(ExceptionContext context)
+        public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
-            if (context.Exception is RequestException requestException)
+            if (exception is RequestException requestException)
             {
-                context.Result = GetResult(requestException.HttpStatus, requestException.Errors, requestException.DeveloperMessage);
+                await HandleCore(requestException.HttpStatus, requestException.Errors, requestException.DeveloperMessage);
             }
             else
             {
-                logger.LogError(new EventId(context.Exception.HResult), "Unhandled exception occured: {exception}", context.Exception);
+                logger.LogError(new EventId(exception.HResult), "Unhandled exception occurred: {exception}", exception);
 
-                context.Result = GetResult(StatusCodes.Status500InternalServerError, null, context.Exception.ToString());
+                await HandleCore(StatusCodes.Status500InternalServerError, null, exception.ToString());
             }
 
-            context.ExceptionHandled = true;
+            return true;
 
-            ObjectResult GetResult(int statusCode, object? errors, object? developerMessage)
+            async Task HandleCore(int statusCode, object? errors, object? developerMessage)
             {
-                ErrorDetails result = new()
-                {
-                    Title = ReasonPhrases.GetReasonPhrase(statusCode),
-                    Status = statusCode,
-                    TraceId = context.HttpContext.TraceIdentifier,
-                    Errors = errors,
-                    DeveloperMessage = env.IsLocal() || env.IsDev() ? developerMessage : null
-                };
+                httpContext.Response.StatusCode = statusCode;
 
-                return new ObjectResult(result)
-                {
-                    StatusCode = statusCode
-                };
+                await httpContext.Response.WriteAsJsonAsync
+                (
+                    new ErrorDetails()
+                    {
+                        Title = ReasonPhrases.GetReasonPhrase(statusCode),
+                        Status = statusCode,
+                        TraceId = httpContext.TraceIdentifier,
+                        Errors = errors,
+                        DeveloperMessage = env.IsLocal() || env.IsDev() ? developerMessage : null
+                    },
+                    cancellationToken
+                );
             }
         }
     }

@@ -17,6 +17,7 @@ using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -194,7 +195,7 @@ namespace Warehouse.Host.Infrastructure.Tests
         {
             protected override void ConfigureWebHost(IWebHostBuilder builder) => builder
                 .UseEnvironment("local")
-                .ConfigureTestServices(services =>
+                .ConfigureTestServices(static services =>
                 {
                     Mock<IMemoryCache> mockMemoryCache = new(MockBehavior.Strict);
                     mockMemoryCache
@@ -221,7 +222,8 @@ namespace Warehouse.Host.Infrastructure.Tests
                         .AddMvc()
                         .AddApplicationPart(typeof(AuthTestController).Assembly)
                         .AddControllersAsServices();
-                });
+                })
+                .Configure(static app => app.UseRouting().UseAuthorization().UseEndpoints(static endpoints => endpoints.MapControllers()));
         }
 
         private TestHostFactory _appFactory = null!;
@@ -238,7 +240,7 @@ namespace Warehouse.Host.Infrastructure.Tests
         public void SetupTest() => _appFactory = new TestHostFactory();
 
         [TearDown]
-        public void TeardDownTest()
+        public void TearDownTest()
         {
             _appFactory?.Dispose();
             _appFactory = null!;

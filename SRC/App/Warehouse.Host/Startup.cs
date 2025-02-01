@@ -31,7 +31,6 @@ namespace Warehouse.Host
             services
                 .AddMvcCore(static options =>
                 {
-                    options.Filters.Add<UnhandledExceptionFilter>();
                     options.Filters.Add<ValidateModelStateFilter>();
                 })
                 .AddControllers()
@@ -55,6 +54,7 @@ namespace Warehouse.Host
         
             services.TryAddSingleton(TimeProvider.System);
 
+            services.AddExceptionHandler<UnhandledExceptionHandler>();
             services.AddAwsServices();
             services.AddCertificateStore();
             services.AddDbConnection();
@@ -69,6 +69,7 @@ namespace Warehouse.Host
             app.UseHttpsRedirection();
             app.AddRootUser();
             app
+                .UseExceptionHandler(static _ => { })
                 .UseRouting()
                 .UseAuthorization()
                 .UseMiddleware<LoggingMiddleware>()
