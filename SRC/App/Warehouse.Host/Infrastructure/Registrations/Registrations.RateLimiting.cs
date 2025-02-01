@@ -22,15 +22,12 @@ namespace Warehouse.Host.Infrastructure.Registrations
         public static IServiceCollection AddRateLimiter(this IServiceCollection services) => services.AddRateLimiter(opts =>
         {
             opts
-                .AddPolicy("fixed", static httpContext =>
+                .AddPolicy("fixed", static httpContext => RateLimitPartition.GetFixedWindowLimiter("fixed", _ =>
                 {
-                    return RateLimitPartition.GetFixedWindowLimiter("fixed", _ =>
-                    {
-                        FixedWindowRateLimiterOptions opts = new();
-                        httpContext.RequestServices.GetRequiredService<IConfiguration>().GetRequiredSection("RateLimiting:Fixed").Bind(opts);
-                        return opts;
-                    });
-                })
+                    FixedWindowRateLimiterOptions opts = new();
+                    httpContext.RequestServices.GetRequiredService<IConfiguration>().GetRequiredSection("RateLimiting:Fixed").Bind(opts);
+                    return opts;
+                }))
                 .AddPolicy("userBound", static httpContext =>
                 {
                     string? userId = httpContext.User.Identity?.Name;
