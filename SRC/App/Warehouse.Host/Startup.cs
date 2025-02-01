@@ -63,7 +63,7 @@ namespace Warehouse.Host
             services.AddRootUserRegistrar();
             services.AddSessionCookieAuthentication();
             services.AddSwagger(configuration);
-            services.AddRateLimiter(configuration);
+            services.AddRateLimiter();
         }
 
         [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Startup methods cannot be static")]
@@ -74,8 +74,8 @@ namespace Warehouse.Host
             app
                 .UseExceptionHandler(static _ => { })
                 .UseRouting()
-                .UseRateLimiter()
                 .UseAuthorization()
+                .UseRateLimiter()
                 .UseMiddleware<LoggingMiddleware>()
                 .UseEndpoints(static endpoints => endpoints.MapControllers());
 

@@ -223,7 +223,13 @@ namespace Warehouse.Host.Infrastructure.Tests
                         .AddApplicationPart(typeof(AuthTestController).Assembly)
                         .AddControllersAsServices();
                 })
-                .Configure(static app => app.UseRouting().UseAuthorization().UseEndpoints(static endpoints => endpoints.MapControllers()));
+                .Configure
+                (
+                    static app => app
+                        .UseRouting()
+                        .UseAuthorization()
+                        .UseEndpoints(static endpoints => endpoints.MapControllers())
+                );
         }
 
         private TestHostFactory _appFactory = null!;

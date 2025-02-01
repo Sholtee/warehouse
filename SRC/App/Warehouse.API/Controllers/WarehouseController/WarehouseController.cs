@@ -14,6 +14,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Warehouse.API.Controllers
 {
@@ -25,17 +26,16 @@ namespace Warehouse.API.Controllers
     /// <summary>
     /// TODO: finish implementation
     /// </summary>
-    [ApiController, Consumes("application/json"), Produces("application/json"), Route("api/v1"), Authorize, ApiExplorerSessionCookieAuthorization]
+    [ApiController, Consumes("application/json"), Produces("application/json"), Route("api/v1"), Authorize, EnableRateLimiting("userBound"), ApiExplorerSessionCookieAuthorization]
     public sealed class WarehouseController(IWarehouseRepository warehouseRepository, IMapper mapper) : ControllerBase
     {
         /// <summary>
-        /// Healthcheck endpoint
+        /// Health check endpoint
         /// </summary>
         /// <returns>No content</returns>
         /// <response code="204">If the health check was successful</response>
         [HttpGet("healthcheck"), ResponseCode(HttpStatusCode.NoContent)]
-        [AllowAnonymous]
-        [ApiExplorerSettings(IgnoreApi = true)]
+        [AllowAnonymous, DisableRateLimiting, ApiExplorerSettings(IgnoreApi = true)]
         public async Task HealthCheck()
         {
             if (!await warehouseRepository.IsHealthy())
