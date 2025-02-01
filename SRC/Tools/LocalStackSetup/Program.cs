@@ -44,7 +44,7 @@ namespace Warehouse.Tools.LocalStackSetup
             public required string Version { get; init; }
         }
 
-        private static async Task WiatForServices(params string[] services)
+        private static async Task WaitForServices(params string[] services)
         {
             //
             // Wait for LocalStack to be ready
@@ -260,11 +260,11 @@ namespace Warehouse.Tools.LocalStackSetup
 
         public static async Task Main()
         {
-            await WiatForServices("lambda", "resourcegroupstaggingapi", "secretsmanager");
+            await WaitForServices("lambda", "resourcegroupstaggingapi", "secretsmanager");
 
             if (await HasAppResources())
             {
-                Console.WriteLine("LocalStack alread initialized, terminating...");
+                Console.WriteLine("LocalStack already initialized, terminating...");
                 return;
             }
 

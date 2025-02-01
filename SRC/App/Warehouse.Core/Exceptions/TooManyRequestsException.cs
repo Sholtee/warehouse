@@ -1,5 +1,5 @@
 /********************************************************************************
-* TooManyRequests.cs                                                            *
+* TooManyRequestsException.cs                                                   *
 *                                                                               *
 * Author: Denes Solti                                                           *
 * Project: Warehouse API (boilerplate)                                          *

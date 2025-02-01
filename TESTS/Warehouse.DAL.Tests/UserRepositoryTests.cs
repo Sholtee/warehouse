@@ -86,7 +86,7 @@ namespace Warehouse.DAL.Tests
         }
 
         [Test]
-        public async Task CreateUser_ShouldCreateANewUser_Mutiple()
+        public async Task CreateUser_ShouldCreateANewUser_Multiple()
         {
             await _userRepository.CreateUser(new CreateUserParam { ClientId = TEST_USER_2, ClientSecretHash = "hash", Groups = ["Users"] });
             await CreateUser_ShouldCreateANewUser();
@@ -128,6 +128,6 @@ namespace Warehouse.DAL.Tests
         }
 
         [Test]
-        public async Task DeleteUser_ShouldReturnFalseIfTheUserDoesntExist() => Assert.That(await _userRepository.DeleteUser(TEST_USER), Is.False);
+        public async Task DeleteUser_ShouldReturnFalseOnNonExistingUser() => Assert.That(await _userRepository.DeleteUser(TEST_USER), Is.False);
     }
 }
