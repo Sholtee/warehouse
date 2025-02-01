@@ -75,11 +75,14 @@ namespace Warehouse.Host.Infrastructure.Registrations
             options.ExampleFilters();
         });
 
-        public static IApplicationBuilder UseSwagger(this IApplicationBuilder applicationBuilder, IConfiguration configuration) => applicationBuilder
-            .UseSwagger()
+        public static IApplicationBuilder UseSwagger(this IApplicationBuilder applicationBuilder) => SwaggerBuilderExtensions
+            .UseSwagger(applicationBuilder)
             .UseSwaggerUI(options =>
-            {
-                string version = configuration.GetRequiredValue<string>("Swagger:Version");
+            {               
+                string version = applicationBuilder
+                    .ApplicationServices
+                    .GetRequiredService<IConfiguration>()
+                    .GetRequiredValue<string>("Swagger:Version");
 
                 options.SwaggerEndpoint($"/swagger/{version}/swagger.json", version);
                 options.RoutePrefix = string.Empty;

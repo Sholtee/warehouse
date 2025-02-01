@@ -6,6 +6,7 @@
 * License: MIT                                                                  *
 ********************************************************************************/
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -65,6 +66,7 @@ namespace Warehouse.Host
             services.AddRateLimiter(configuration);
         }
 
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Startup methods cannot be static")]
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {         
             app.UseHttpsRedirection();
@@ -80,7 +82,7 @@ namespace Warehouse.Host
             if (env.IsLocal() || env.IsDev())
             {
                 app.UseDeveloperExceptionPage();        
-                app.UseSwagger(configuration);
+                app.UseSwagger();
             }
         }
     }
