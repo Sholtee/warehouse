@@ -7,7 +7,7 @@
 ********************************************************************************/
 using System;
 using System.IO;
-using System.Reflection;
+using System.Linq;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -19,7 +19,7 @@ namespace Warehouse.Host.Infrastructure.Registrations
 {
     using Core.Extensions;
     using Filters;
-    using System.Linq;
+    using Middlewares;
 
     internal static partial class Registrations
     {
