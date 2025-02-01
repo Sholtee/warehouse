@@ -19,7 +19,7 @@ namespace Warehouse.Host.Infrastructure.Registrations
 
     internal static partial class Registrations
     {
-        public static IServiceCollection AddRateLimiter(this IServiceCollection services) => services.AddRateLimiter(opts =>
+        public static IServiceCollection AddRateLimiter(this IServiceCollection services) => services.AddRateLimiter(static opts =>
         {
             opts
                 .AddPolicy("fixed", static httpContext => RateLimitPartition.GetFixedWindowLimiter("fixed", _ =>
