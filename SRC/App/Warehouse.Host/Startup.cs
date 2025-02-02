@@ -69,9 +69,10 @@ namespace Warehouse.Host
         [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Startup methods cannot be static")]
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {         
-            app.UseHttpsRedirection();
             app.AddRootUser();
+
             app
+                .UseHttpsRedirection()
                 .UseExceptionHandler(static _ => { })
                 .UseRouting()
                 .UseAuthorization()
@@ -80,8 +81,7 @@ namespace Warehouse.Host
                 .UseEndpoints(static endpoints => endpoints.MapControllers());
 
             if (env.IsLocal() || env.IsDev())
-            {
-                app.UseDeveloperExceptionPage();        
+            {        
                 app.UseSwagger();
             }
         }
