@@ -24,9 +24,7 @@ namespace Warehouse.Host.Infrastructure.Registrations
         {
             services.AddMiniProfiler(options =>
             {
-                IConfigurationSection profilerConfig = configuration.GetRequiredSection("MiniProfiler");
-
-                options.RouteBasePath = profilerConfig.GetRequiredValue<string>("RouteBasePath");
+                options.RouteBasePath = configuration.GetRequiredValue<string>("MiniProfiler:RouteBasePath");
 
                 string? endpoint = configuration.GetValue<string>("WAREHOUSE_REDIS_ENDPOINT");
                 if (!string.IsNullOrWhiteSpace(endpoint))
@@ -36,8 +34,14 @@ namespace Warehouse.Host.Infrastructure.Registrations
                 // Only the root is allowed to see the profiling results
                 //
 
-                options.ResultsAuthorizeAsync = options.ResultsListAuthorizeAsync = async req =>
+                options.ResultsAuthorizeAsync = options.ResultsListAuthorizeAsync = async static req =>
                 {
+                    IConfigurationSection profilerConfig = req
+                        .HttpContext
+                        .RequestServices
+                        .GetRequiredService<IConfiguration>()
+                        .GetRequiredSection("MiniProfiler");
+
                     if (!req.Path.StartsWithSegments(profilerConfig.GetRequiredValue<string>("RouteBasePath"), StringComparison.OrdinalIgnoreCase))
                         return false;
 
