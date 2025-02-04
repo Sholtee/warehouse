@@ -31,7 +31,7 @@ namespace Warehouse.Host.Infrastructure.Registrations
                     options.Storage = new RedisStorage(endpoint);
 
                 //
-                // Only the root is allowed to see the profiling results
+                // Only the allowed user can see the profiling results
                 //
 
                 options.ResultsAuthorizeAsync = options.ResultsListAuthorizeAsync = async static req =>
