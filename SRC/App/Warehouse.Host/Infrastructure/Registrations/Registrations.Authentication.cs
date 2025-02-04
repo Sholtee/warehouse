@@ -19,16 +19,17 @@ namespace Warehouse.Host.Infrastructure.Registrations
 
     internal static partial class Registrations
     {
-        public static AuthenticationBuilder AddSessionCookieAuthentication(this IServiceCollection services)
+        public static IServiceCollection AddSessionCookieAuthentication(this IServiceCollection services)
         {
             services.TryAddScoped(typeof(IPasswordHasher<>), typeof(PasswordHasher<>));
-            services.TryAddScoped<IJwtService, JwtService>(); 
-            services.AddAwsServices();
-            services.AddMemoryCache();
-
-            return services
+            services.TryAddScoped<IJwtService, JwtService>();
+            services
+                .AddAwsServices()
+                .AddMemoryCache()
                 .AddAuthentication()
                 .AddScheme<AuthenticationSchemeOptions, SessionCookieAuthenticationHandler>(WarehouseAuthentication.SCHEME, null);
+
+            return services;
         }
     }
 }

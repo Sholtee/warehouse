@@ -14,6 +14,8 @@ services:
       MYSQL_ROOT_PASSWORD: kerekesfacapa
     ports:
       - 3306:3306
+  redis:
+    image: redis:7.4.2
   localstack:
     image: localstack/localstack:4.0.3
     restart: always
@@ -57,3 +59,4 @@ services:
       - AWS_REGION=local
       - AWS_ACCESS_KEY_ID=local
       - AWS_SECRET_ACCESS_KEY=local
+      - WAREHOUSE_REDIS_ENDPOINT=redis:6379 
