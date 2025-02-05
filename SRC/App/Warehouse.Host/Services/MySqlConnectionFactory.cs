@@ -18,6 +18,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
+using StackExchange.Profiling;
+using StackExchange.Profiling.Data;
 
 namespace Warehouse.Host.Services
 {
@@ -86,7 +88,13 @@ namespace Warehouse.Host.Services
         {
             DbConnection connection = DataSource.CreateConnection();
             connection.Open();
-            return connection;
+
+            //
+            // ProfiledDbConnection does nothing if the underlying profiler is not active
+            // (MiniProfiler.Current != null)
+            //
+
+            return new ProfiledDbConnection(connection, MiniProfiler.Current);
         }
     }
 }
