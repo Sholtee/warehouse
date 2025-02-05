@@ -23,69 +23,80 @@ namespace Warehouse.Host.Infrastructure.Registrations
 
     internal static partial class Registrations
     {
-        public static IServiceCollection AddSwagger(this IServiceCollection services, IConfiguration configuration) => services.AddEndpointsApiExplorer().AddSwaggerGen(options =>
+        public static IServiceCollection AddSwagger(this IServiceCollection services, IConfiguration configuration)
         {
-            OpenApiInfo info = new();
-            configuration.GetRequiredSection("Swagger").Bind(info);
+            IConfigurationSection? swaggerConfig = configuration.GetSection("Swagger");
+            if (swaggerConfig is null)
+                return services;
 
-            options.SwaggerDoc(info.Version, info);
-
-            options.AddSecurityDefinition("session-cookie", new OpenApiSecurityScheme()
+            return services.AddEndpointsApiExplorer().AddSwaggerGen(options =>
             {
-                In = ParameterLocation.Cookie,
-                Name = configuration.GetRequiredValue<string>("Auth:SessionCookieName"),
-                Type = SecuritySchemeType.ApiKey,
-                Scheme = "session-cookie",
-                Description = "JSON Web Token in session cookie.",
-                Reference = new OpenApiReference
+                OpenApiInfo info = new();
+                swaggerConfig.Bind(info);
+
+                options.SwaggerDoc(info.Version, info);
+
+                options.AddSecurityDefinition("session-cookie", new OpenApiSecurityScheme()
                 {
-                    Id = "session-cookie",
-                    Type = ReferenceType.SecurityScheme
-                }
-            });
+                    In = ParameterLocation.Cookie,
+                    Name = configuration.GetRequiredValue<string>("Auth:SessionCookieName"),
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "session-cookie",
+                    Description = "JSON Web Token in session cookie.",
+                    Reference = new OpenApiReference
+                    {
+                        Id = "session-cookie",
+                        Type = ReferenceType.SecurityScheme
+                    }
+                });
 
-            options.AddSecurityDefinition("basic", new OpenApiSecurityScheme()
-            {
-                In = ParameterLocation.Header,
-                Name = "Authorization",
-                Type = SecuritySchemeType.Http,
-                Scheme = "basic",
-                Description = "Basic authentication",
-                Reference = new OpenApiReference
+                options.AddSecurityDefinition("basic", new OpenApiSecurityScheme()
                 {
-                    Id = "basic",
-                    Type = ReferenceType.SecurityScheme
-                }
-            });
+                    In = ParameterLocation.Header,
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "basic",
+                    Description = "Basic authentication",
+                    Reference = new OpenApiReference
+                    {
+                        Id = "basic",
+                        Type = ReferenceType.SecurityScheme
+                    }
+                });
 
-            foreach (string docFile in Directory.EnumerateFiles(AppContext.BaseDirectory, "Warehouse.*.xml", new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = false }))
-            {
-                //
-                // Ensure we have an XML doc file
-                //
-
-                if (File.ReadLines(docFile).Skip(1).Take(1).SingleOrDefault()?.Equals("<doc>", StringComparison.OrdinalIgnoreCase) is true)
+                foreach (string docFile in Directory.EnumerateFiles(AppContext.BaseDirectory, "Warehouse.*.xml", new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = false }))
                 {
-                    options.IncludeXmlComments(docFile);
+                    //
+                    // Ensure we have an XML doc file
+                    //
+
+                    if (File.ReadLines(docFile).Skip(1).Take(1).SingleOrDefault()?.Equals("<doc>", StringComparison.OrdinalIgnoreCase) is true)
+                    {
+                        options.IncludeXmlComments(docFile);
+                    }
                 }
-            }
 
-            options.OperationFilter<AuthorizationOperationFilter>();
-            options.DocumentFilter<CustomModelDocumentFilter<ErrorDetails>>();
-            options.ExampleFilters();
-        });
-
-        public static IApplicationBuilder UseSwagger(this IApplicationBuilder applicationBuilder) => SwaggerBuilderExtensions
-            .UseSwagger(applicationBuilder)
-            .UseSwaggerUI(options =>
-            {               
-                string version = applicationBuilder
-                    .ApplicationServices
-                    .GetRequiredService<IConfiguration>()
-                    .GetRequiredValue<string>("Swagger:Version");
-
-                options.SwaggerEndpoint($"/swagger/{version}/swagger.json", version);
-                options.RoutePrefix = string.Empty;
+                options.OperationFilter<AuthorizationOperationFilter>();
+                options.DocumentFilter<CustomModelDocumentFilter<ErrorDetails>>();
+                options.ExampleFilters();
             });
+        }
+
+        public static IApplicationBuilder UseSwagger(this IApplicationBuilder applicationBuilder)
+        {
+            string? version = applicationBuilder
+                .ApplicationServices
+                .GetRequiredService<IConfiguration>()
+                .GetValue<string>("Swagger:Version");
+
+            if (!string.IsNullOrEmpty(version))
+                SwaggerBuilderExtensions.UseSwagger(applicationBuilder).UseSwaggerUI(options =>
+                {
+                    options.SwaggerEndpoint($"/swagger/{version}/swagger.json", version);
+                    options.RoutePrefix = string.Empty;
+                });
+
+            return applicationBuilder;
+        }
     }
 }

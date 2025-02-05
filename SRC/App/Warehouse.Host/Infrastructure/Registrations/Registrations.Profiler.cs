@@ -9,8 +9,11 @@ using System;
 using System.Security.Principal;
 
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using StackExchange.Profiling;
 using StackExchange.Profiling.Storage;
 
 namespace Warehouse.Host.Infrastructure.Registrations
@@ -22,6 +25,10 @@ namespace Warehouse.Host.Infrastructure.Registrations
     {
         public static IServiceCollection AddProfiler(this IServiceCollection services, IConfiguration configuration)
         {
+            if (configuration.GetSection("MiniProfiler") is null)
+                return services;
+
+            services.TryAddScoped(_ => MiniProfiler.Current!);
             services.AddMiniProfiler(options =>
             {
                 options.RouteBasePath = configuration.GetRequiredValue<string>("MiniProfiler:RouteBasePath");
@@ -56,8 +63,15 @@ namespace Warehouse.Host.Infrastructure.Registrations
                     return identity?.IsAuthenticated is true && identity.Name == profilerConfig.GetRequiredValue<string>("AllowedUser");
                 };
             });
+
             return services;
         }
 
+        public static IApplicationBuilder UseProfiling(this IApplicationBuilder builder)
+        {
+            if (builder.ApplicationServices.GetRequiredService<IConfiguration>().GetSection("MiniProfiler") is not null)
+                builder.UseMiniProfiler();
+            return builder;
+        }
     }
 }
