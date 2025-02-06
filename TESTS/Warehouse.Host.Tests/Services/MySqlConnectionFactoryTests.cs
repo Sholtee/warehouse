@@ -5,6 +5,7 @@
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
+using System.Data;
 using System.Data.Common;
 using System.Text.Json;
 
@@ -17,6 +18,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 using NUnit.Framework;
+using StackExchange.Profiling.Data;
 
 
 namespace Warehouse.Host.Services.Tests
@@ -102,7 +104,14 @@ namespace Warehouse.Host.Services.Tests
 
             connectionFactory.DataSource = _mockDataSource.Object;
 
-            Assert.That(connectionFactory.CreateConnection(), Is.EqualTo(mockConnection.Object));
+            ProfiledDbConnection? wrap = connectionFactory.CreateConnection() as ProfiledDbConnection;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(wrap is not null);
+                Assert.That(wrap!.WrappedConnection, Is.EqualTo(mockConnection.Object));
+            });
+
             mockConnection.Verify(c => c.Open(), Times.Once);
         }
     }
