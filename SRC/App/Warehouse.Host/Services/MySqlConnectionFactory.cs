@@ -91,7 +91,7 @@ namespace Warehouse.Host.Services
 
             //
             // ProfiledDbConnection does nothing if the underlying profiler is not active
-            // (MiniProfiler.Current != null)
+            // (MiniProfiler.Current == null)
             //
 
             return new ProfiledDbConnection(connection, MiniProfiler.Current);
