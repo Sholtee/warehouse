@@ -16,7 +16,7 @@ using ServiceStack.OrmLite;
 
 namespace Warehouse.DAL.Registrations
 {
-    internal sealed class RepositoryHealthCheck(IDbConnection connection) : IRepositoryHealthCheck
+    internal sealed class RepositoryHealthCheck(IDbConnection connection) : IHealthCheck
     {
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {

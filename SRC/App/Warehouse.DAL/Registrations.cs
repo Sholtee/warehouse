@@ -25,7 +25,9 @@ namespace Warehouse.DAL.Registrations
 
             services.TryAddScoped<IUserRepository, UserRepository>();
             services.TryAddScoped<IWarehouseRepository, WarehouseRepository>();
-            services.TryAddScoped<IRepositoryHealthCheck, RepositoryHealthCheck>();
+            services
+                .AddHealthChecks()  // does nothing if already set up
+                .AddCheck<RepositoryHealthCheck>(nameof(RepositoryHealthCheck));
 
             DapperExtensions.ExtendMappers();  // does nothing if the mapper had already been registered
 
