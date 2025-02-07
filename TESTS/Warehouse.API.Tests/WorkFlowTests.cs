@@ -13,10 +13,13 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
+using Amazon.SecurityToken;
+using Amazon.SecurityToken.Model;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -88,6 +91,14 @@ namespace Warehouse.API.Tests
                         .Setup(s => s.GetSecretValueAsync(It.Is<GetSecretValueRequest>(r => r.SecretId == "local-warehouse-root-user-password"), default))
                         .ReturnsAsync(new GetSecretValueResponse { SecretString = "password" });
 
+                    Mock<IAmazonSecurityTokenService> mockSts = new(MockBehavior.Strict);
+                    mockSts
+                        .Setup(s => s.GetCallerIdentityAsync(It.IsAny<GetCallerIdentityRequest>(), It.IsAny<CancellationToken>()))
+                        .ReturnsAsync(new GetCallerIdentityResponse());
+                    mockSts
+                        .Setup(s => s.Dispose());
+
+                    services.AddSingleton(mockSts.Object);
                     services.AddSingleton(mockSecretsManager.Object);
                     services.AddSingleton<IDbConnection>(_connection);
                     services.AddSingleton<IOrmLiteDialectProvider>(SqliteDialect.Provider);
@@ -117,20 +128,6 @@ namespace Warehouse.API.Tests
         {
             _appFactory?.Dispose();
             _appFactory = null!;
-        }
-
-        [Test]
-        public async Task TestHealthCheck()
-        {
-            using HttpClient client = _appFactory.CreateClient();
-            using HttpResponseMessage resp = await client.GetAsync("api/v1/healthcheck");
-
-            await Assert.MultipleAsync(async () =>
-            {
-                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
-                Assert.That(resp.Content.Headers.ContentType, Is.Null);
-                Assert.That(await resp.Content.ReadAsStringAsync(), Is.Empty);
-            });
         }
 
         [Test]

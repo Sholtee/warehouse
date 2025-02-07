@@ -23,6 +23,7 @@ using NUnit.Framework.Constraints;
 namespace Warehouse.Host.Infrastructure.Tests
 {
     using Core.Exceptions;
+    using Dtos;
     using Filters;
     using Middlewares;
 

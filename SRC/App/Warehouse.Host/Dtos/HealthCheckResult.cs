@@ -1,29 +1,30 @@
 /********************************************************************************
-* IWarehouseRepository.cs                                                       *
+* HealthCheckResult.cs                                                          *
 *                                                                               *
 * Author: Denes Solti                                                           *
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
-namespace Warehouse.DAL
+namespace Warehouse.Host.Dtos
 {
     /// <summary>
-    /// TODO: finish the design
+    /// Health check result
     /// </summary>
-    public interface IWarehouseRepository
+    #pragma warning disable CA1515 // This type is part of the public API
+    public sealed class HealthCheckResult
+    #pragma warning restore CA1515
     {
         /// <summary>
-        /// Queries product overviews by the given criteria
+        /// Short, human readable status.
         /// </summary>
-        Task<List<ProductOverview>> ListProductOverviews(ListProductOverviewsParam param);
+        public required string Status { get; init; }
 
         /// <summary>
-        /// Queries detailed product information.
+        /// Detailed error information (should not be present in production environments).
         /// </summary>
-        Task<ProductDetails?> GetProductDetailsById(Guid productId);
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public object? Details { get; init; }
     }
 }

@@ -24,6 +24,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+using Moq;
 using NUnit.Framework;
 
 namespace Warehouse.Host.Infrastructure.Tests
@@ -32,7 +33,6 @@ namespace Warehouse.Host.Infrastructure.Tests
     using Core.Attributes;
     using Core.Auth;
     using Middlewares;
-    using Moq;
     using Registrations;
 
     [ApiController, EnableRateLimiting("fixed")]
