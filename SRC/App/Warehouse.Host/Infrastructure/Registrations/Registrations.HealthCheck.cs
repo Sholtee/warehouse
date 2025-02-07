@@ -36,33 +36,37 @@ namespace Warehouse.Host.Infrastructure.Registrations
             {
                 HttpResponse resp = context.Response;
 
+                resp.Headers.ContentType = "application/json";
+
                 if (report.Status is HealthStatus.Healthy)
                 {
                     resp.StatusCode = StatusCodes.Status200OK;
-                    return resp.WriteAsync(report.Status.ToString());
+                }
+                else
+                {
+                    resp.StatusCode = StatusCodes.Status500InternalServerError;
+
+                    IHostEnvironment environment = context.RequestServices.GetRequiredService<IHostEnvironment>();
+
+                    if (environment.IsLocal() || environment.IsDev())
+                        //
+                        // Write verbose response when running on dev environment
+                        //
+
+                        return resp.WriteAsJsonAsync(new
+                        {
+                            Status = report.Status.ToString(),
+                            Details = report.Entries.Select(static entry => new
+                            {
+                                Name = entry.Key,
+                                Exception = entry.Value.Exception?.Message,
+                                entry.Value.Data,
+                                entry.Value.Description
+                            }).ToList()
+                        });
                 }
 
-                resp.StatusCode = StatusCodes.Status500InternalServerError;
-
-                IHostEnvironment environment = context.RequestServices.GetRequiredService<IHostEnvironment>();
-                if (environment.IsLocal() || environment.IsDev())
-                    //
-                    // Write verbose response when running on dev environment
-                    //
-
-                    return resp.WriteAsJsonAsync(new
-                    {
-                        report.Status,
-                        Details = report.Entries.Select(static entry => new
-                        {
-                            Name = entry.Key,
-                            Exception = entry.Value.Exception?.Message,
-                            entry.Value.Data,
-                            entry.Value.Description   
-                        })
-                    });
-
-                return resp.WriteAsync(report.Status.ToString());
+                return resp.WriteAsJsonAsync(new { Status = report.Status.ToString() });
             }
         });
     }
