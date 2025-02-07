@@ -8,9 +8,11 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,6 +31,7 @@ using ServiceStack.OrmLite;
 
 namespace Warehouse.Host.Infrastructure.Tests
 {
+    using Dtos;
     using Registrations;
 
     [TestFixture]
@@ -96,10 +99,10 @@ namespace Warehouse.Host.Infrastructure.Tests
                 Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
                 Assert.That(resp.Content.Headers.ContentType?.ToString(), Does.StartWith("application/json"));
 
-                IDictionary<string, string>? content = await resp.Content.ReadFromJsonAsync<IDictionary<string, string>>();
-
-                Assert.That(content?.Count, Is.EqualTo(1));
-                Assert.That(content!["status"], Is.EqualTo("Healthy"));
+                HealthCheckResult? result = await resp.Content.ReadFromJsonAsync<HealthCheckResult>();
+            
+                Assert.That(result?.Status, Is.EqualTo("Healthy"));
+                Assert.That(result!.Details, Is.Null);
             });
         }
 
@@ -134,10 +137,15 @@ namespace Warehouse.Host.Infrastructure.Tests
                 Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError));
                 Assert.That(resp.Content.Headers.ContentType?.ToString(), Does.StartWith("application/json"));
 
-                IDictionary<string, object>? content = await resp.Content.ReadFromJsonAsync<IDictionary<string, object>>();
+                HealthCheckResult? result = await resp.Content.ReadFromJsonAsync<HealthCheckResult>();
 
-                Assert.That(content?.Count, Is.EqualTo(2));
-                Assert.That(content!["status"].ToString(), Is.EqualTo("Unhealthy"));
+                Assert.That(result?.Status, Is.EqualTo("Unhealthy"));
+                Assert.That(result!.Details, Is.Not.Null);
+
+                List<IDictionary<string, object>>? details = JsonSerializer.Deserialize<List<IDictionary<string, object>>>(result!.Details!.ToString()!);
+                Assert.That(details!.Count, Is.EqualTo(2));
+                Assert.That(details.Any(d => d["name"].ToString() == "AwsHealthCheck" && d["exception"].ToString() == "STS exception"));
+                Assert.That(details.Any(d => d["name"].ToString() == "DbConnectionHealthCheck" && d["exception"].ToString() == "DB exception"));
             });
         }
     }

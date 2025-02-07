@@ -18,8 +18,8 @@ using Swashbuckle.AspNetCore.Filters;
 namespace Warehouse.Host.Infrastructure.Registrations
 {
     using Core.Extensions;
+    using Dtos;
     using Filters;
-    using Middlewares;
 
     internal static partial class Registrations
     {
@@ -72,6 +72,7 @@ namespace Warehouse.Host.Infrastructure.Registrations
 
             options.OperationFilter<AuthorizationOperationFilter>();
             options.DocumentFilter<CustomModelDocumentFilter<ErrorDetails>>();
+            options.DocumentFilter<CustomModelDocumentFilter<HealthCheckResult>>();
             options.ExampleFilters();
         });
 

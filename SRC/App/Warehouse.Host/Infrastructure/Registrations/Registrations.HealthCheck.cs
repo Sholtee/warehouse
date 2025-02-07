@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Http;
 namespace Warehouse.Host.Infrastructure.Registrations
 {
     using Core.Extensions;
+    using Dtos;
     using Services;
 
     internal static partial class Registrations
@@ -47,26 +48,34 @@ namespace Warehouse.Host.Infrastructure.Registrations
                     resp.StatusCode = StatusCodes.Status500InternalServerError;
 
                     IHostEnvironment environment = context.RequestServices.GetRequiredService<IHostEnvironment>();
-
                     if (environment.IsLocal() || environment.IsDev())
                         //
                         // Write verbose response when running on dev environment
                         //
 
-                        return resp.WriteAsJsonAsync(new
-                        {
-                            Status = report.Status.ToString(),
-                            Details = report.Entries.Select(static entry => new
+                        return resp.WriteAsJsonAsync
+                        (
+                            new HealthCheckResult
                             {
-                                Name = entry.Key,
-                                Exception = entry.Value.Exception?.Message,
-                                entry.Value.Data,
-                                entry.Value.Description
-                            }).ToList()
-                        });
+                                Status = report.Status.ToString(),
+                                Details = report.Entries.Select(static entry => new
+                                {
+                                    Name = entry.Key,
+                                    Exception = entry.Value.Exception?.Message,
+                                    entry.Value.Data,
+                                    entry.Value.Description
+                                }).ToList()
+                            }
+                        );
                 }
 
-                return resp.WriteAsJsonAsync(new { Status = report.Status.ToString() });
+                return resp.WriteAsJsonAsync
+                (
+                    new HealthCheckResult
+                    {
+                        Status = report.Status.ToString()
+                    }
+                );
             }
         });
     }
