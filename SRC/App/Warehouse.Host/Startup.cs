@@ -55,15 +55,17 @@ namespace Warehouse.Host
         
             services.TryAddSingleton(TimeProvider.System);
 
-            services.AddExceptionHandler<UnhandledExceptionHandler>();
-            services.AddAwsServices();
-            services.AddCertificateStore();
-            services.AddDbConnection();
-            services.AddRepositories();
-            services.AddRootUserRegistrar();
-            services.AddSessionCookieAuthentication();
-            services.AddSwagger(configuration);
-            services.AddRateLimiter();
+            services
+                .AddExceptionHandler<UnhandledExceptionHandler>()
+                .AddAwsServices()
+                .AddCertificateStore()
+                .AddDbConnection()
+                .AddRepositories()
+                .AddRootUserRegistrar()
+                .AddSessionCookieAuthentication()
+                .AddSwagger(configuration)
+                .AddRateLimiter()
+                .AddHealthCheck();
         }
 
         [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Startup methods cannot be static")]
@@ -78,6 +80,7 @@ namespace Warehouse.Host
                 .UseAuthorization()
                 .UseRateLimiter()
                 .UseMiddleware<LoggingMiddleware>()
+                .UseHealthCheck()
                 .UseEndpoints(static endpoints => endpoints.MapControllers());
 
             if (env.IsLocal() || env.IsDev())

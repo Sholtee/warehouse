@@ -1,5 +1,5 @@
 /********************************************************************************
-* RepositoryHealthCheck.cs                                                      *
+* DbConnectionHealthCheck.cs                                                    *
 *                                                                               *
 * Author: Denes Solti                                                           *
 * Project: Warehouse API (boilerplate)                                          *
@@ -13,10 +13,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using ServiceStack.OrmLite;
 
-
-namespace Warehouse.DAL.Registrations
+namespace Warehouse.Host.Services
 {
-    internal sealed class RepositoryHealthCheck(IDbConnection connection) : IHealthCheck
+    internal sealed class DbConnectionHealthCheck(IDbConnection connection) : IHealthCheck
     {
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {

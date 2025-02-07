@@ -13,7 +13,6 @@ using Microsoft.Extensions.Hosting;
 
 namespace Warehouse.Host.Infrastructure.Registrations
 {
-    using Core.Abstractions;
     using DAL.Registrations;
     using Services;
 
