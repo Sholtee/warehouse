@@ -13,12 +13,12 @@ namespace Warehouse.Host.Services
 {
     using Core.Abstractions;
 
-    internal sealed class Profiler(MiniProfiler core) : IProfiler
+    internal sealed class Profiler(MiniProfiler? core) : IProfiler
     {
-        public IDisposable CustomTiming(string category, string commandString) => core.CustomTiming(category, commandString);
+        public IDisposable? CustomTiming(string category, string commandString) => core?.CustomTiming(category, commandString);
 
-        public IDisposable Ignore() => core.Ignore();
+        public IDisposable? Ignore() => core?.Ignore();
 
-        public IDisposable Step(string name) => core.Step(name);
+        public IDisposable? Step(string name) => core?.Step(name);
     }
 }

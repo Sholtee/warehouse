@@ -27,11 +27,18 @@ namespace Warehouse.Host.Infrastructure.Registrations
     {
         public static IServiceCollection AddProfiler(this IServiceCollection services, IConfiguration configuration)
         {
+            //
+            // Register the profiler service anyway so the clients don't have to null check when
+            // they request it (the implementation does nothing if the underlying service is not
+            // active)
+            //
+
+            services.TryAddScoped<IProfiler>(static _ => new Profiler(MiniProfiler.Current!));
+
             IConfigurationSection profilerConfiguration = configuration.GetSection("MiniProfiler");
             if (!profilerConfiguration.Exists())
                 return services;
 
-            services.TryAddScoped<IProfiler>(static _ => new Profiler(MiniProfiler.Current!));
             services.AddMiniProfiler(options =>
             {
                 options.RouteBasePath = configuration.GetRequiredValue<string>("MiniProfiler:RouteBasePath");
