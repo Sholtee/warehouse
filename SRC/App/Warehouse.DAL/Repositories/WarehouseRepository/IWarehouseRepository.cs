@@ -17,11 +17,6 @@ namespace Warehouse.DAL
     public interface IWarehouseRepository
     {
         /// <summary>
-        /// Returns whether the database is healthy
-        /// </summary>
-        Task<bool> IsHealthy();
-
-        /// <summary>
         /// Queries product overviews by the given criteria
         /// </summary>
         Task<List<ProductOverview>> ListProductOverviews(ListProductOverviewsParam param);
