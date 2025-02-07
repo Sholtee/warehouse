@@ -25,8 +25,8 @@ namespace Warehouse.Host.Infrastructure.Registrations
     {
         public static IServiceCollection AddSwagger(this IServiceCollection services, IConfiguration configuration)
         {
-            IConfigurationSection? swaggerConfig = configuration.GetSection("Swagger");
-            if (swaggerConfig is null)
+            IConfigurationSection swaggerConfig = configuration.GetSection("Swagger");
+            if (!swaggerConfig.Exists())
                 return services;
 
             return services.AddEndpointsApiExplorer().AddSwaggerGen(options =>

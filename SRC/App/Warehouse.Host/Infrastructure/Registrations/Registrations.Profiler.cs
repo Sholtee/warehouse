@@ -17,18 +17,21 @@ using StackExchange.Profiling;
 using StackExchange.Profiling.Storage;
 
 namespace Warehouse.Host.Infrastructure.Registrations
-{
+{  
+    using Core.Abstractions;
     using Core.Auth;
     using Core.Extensions;
+    using Services;
 
     internal static partial class Registrations
     {
         public static IServiceCollection AddProfiler(this IServiceCollection services, IConfiguration configuration)
         {
-            if (configuration.GetSection("MiniProfiler") is null)
+            IConfigurationSection profilerConfiguration = configuration.GetSection("MiniProfiler");
+            if (!profilerConfiguration.Exists())
                 return services;
 
-            services.TryAddScoped(_ => MiniProfiler.Current!);
+            services.TryAddScoped<IProfiler>(static _ => new Profiler(MiniProfiler.Current!));
             services.AddMiniProfiler(options =>
             {
                 options.RouteBasePath = configuration.GetRequiredValue<string>("MiniProfiler:RouteBasePath");
@@ -69,7 +72,7 @@ namespace Warehouse.Host.Infrastructure.Registrations
 
         public static IApplicationBuilder UseProfiling(this IApplicationBuilder builder)
         {
-            if (builder.ApplicationServices.GetRequiredService<IConfiguration>().GetSection("MiniProfiler") is not null)
+            if (builder.ApplicationServices.GetRequiredService<IConfiguration>().GetSection("MiniProfiler").Exists())
                 builder.UseMiniProfiler();
             return builder;
         }
