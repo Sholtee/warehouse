@@ -26,6 +26,7 @@ namespace Warehouse.Host.Infrastructure.Registrations
                 {
                     FixedWindowRateLimiterOptions opts = new();
                     httpContext.RequestServices.GetRequiredService<IConfiguration>().GetRequiredSection("RateLimiting:Fixed").Bind(opts);
+                    opts.AutoReplenishment = true;  // can't be overridden from config
                     return opts;
                 }))
                 .AddPolicy("userBound", static httpContext =>
@@ -38,11 +39,9 @@ namespace Warehouse.Host.Infrastructure.Registrations
 
                     RateLimitPartition<string> GetLimiter(string partitionKey, string config) => RateLimitPartition.GetTokenBucketLimiter(partitionKey, _ =>
                     {
-                        TokenBucketRateLimiterOptions opts = new()
-                        {
-                            AutoReplenishment = true
-                        };
+                        TokenBucketRateLimiterOptions opts = new();
                         httpContext.RequestServices.GetRequiredService<IConfiguration>().GetRequiredSection($"RateLimiting:{config}").Bind(opts);
+                        opts.AutoReplenishment = true;
                         return opts;
                     });
                 });
