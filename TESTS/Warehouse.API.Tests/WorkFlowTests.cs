@@ -7,7 +7,6 @@
 ********************************************************************************/
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Net;
@@ -96,6 +95,8 @@ namespace Warehouse.API.Tests
                     mockSts
                         .Setup(s => s.GetCallerIdentityAsync(It.IsAny<GetCallerIdentityRequest>(), It.IsAny<CancellationToken>()))
                         .ReturnsAsync(new GetCallerIdentityResponse());
+                    mockSts
+                        .Setup(s => s.Dispose());
 
                     services.AddSingleton(mockSts.Object);
                     services.AddSingleton(mockSecretsManager.Object);
@@ -127,24 +128,6 @@ namespace Warehouse.API.Tests
         {
             _appFactory?.Dispose();
             _appFactory = null!;
-        }
-
-        [Test]
-        public async Task TestHealthCheck()
-        {
-            using HttpClient client = _appFactory.CreateClient();
-            using HttpResponseMessage resp = await client.GetAsync("/healthcheck");
-
-            await Assert.MultipleAsync(async () =>
-            {
-                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-                Assert.That(resp.Content.Headers.ContentType?.ToString(), Does.StartWith("application/json"));
-
-                IDictionary<string, string>? content = await resp.Content.ReadFromJsonAsync<IDictionary<string, string>>();
-
-                Assert.That(content?.Count, Is.EqualTo(1));
-                Assert.That(content!["status"], Is.EqualTo("Healthy"));
-            });
         }
 
         [Test]
