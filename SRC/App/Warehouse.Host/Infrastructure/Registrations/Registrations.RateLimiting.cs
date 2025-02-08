@@ -51,7 +51,7 @@ namespace Warehouse.Host.Infrastructure.Registrations
                 context
                     .HttpContext
                     .RequestServices
-                    .GetService<ILoggerFactory>()!
+                    .GetRequiredService<ILoggerFactory>()
                     .CreateLogger("RateLimiter")
                     .LogWarning("Too many requests on endpoint: {endpoint}", context.HttpContext.GetEndpoint()?.DisplayName);
                 throw new TooManyRequestsException();
