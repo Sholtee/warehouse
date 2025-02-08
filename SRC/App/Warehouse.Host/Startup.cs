@@ -19,7 +19,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace Warehouse.Host
 {
     using API.Registrations;
-    using Core.Extensions;
     using DAL.Registrations;
     using Infrastructure.Filters;
     using Infrastructure.Middlewares;
@@ -81,12 +80,8 @@ namespace Warehouse.Host
                 .UseRateLimiter()
                 .UseMiddleware<LoggingMiddleware>()
                 .UseHealthCheck()
+                .UseSwagger()
                 .UseEndpoints(static endpoints => endpoints.MapControllers());
-
-            if (env.IsLocal() || env.IsDev())
-            {        
-                app.UseSwagger();
-            }
         }
     }
 }

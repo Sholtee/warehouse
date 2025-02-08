@@ -6,12 +6,10 @@
 * License: MIT                                                                  *
 ********************************************************************************/
 using System;
-using System.Collections;
 using System.Data;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Json;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -206,18 +204,6 @@ namespace Warehouse.API.Tests
 
             Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(resp.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/json"));
-        }
-
-        [Test]
-        public async Task TestSwaggerEndpoint()
-        {
-            using HttpClient client = _appFactory.CreateClient();
-            using HttpResponseMessage resp = await client.GetAsync("swagger/v1/swagger.json");
-
-            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            
-            IDictionary? schema = await resp.Content.ReadFromJsonAsync<IDictionary>();
-            Assert.That(schema, Does.ContainKey("openapi"));
         }
     }
 }

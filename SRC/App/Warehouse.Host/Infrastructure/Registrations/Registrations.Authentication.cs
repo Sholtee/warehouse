@@ -13,7 +13,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Warehouse.Host.Infrastructure.Registrations
 {
-
     using Auth;
     using Core.Abstractions;
     using Core.Auth;

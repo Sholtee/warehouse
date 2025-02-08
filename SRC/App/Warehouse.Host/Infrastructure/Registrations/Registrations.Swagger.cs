@@ -8,6 +8,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -23,70 +24,95 @@ namespace Warehouse.Host.Infrastructure.Registrations
 
     internal static partial class Registrations
     {
-        public static IServiceCollection AddSwagger(this IServiceCollection services, IConfiguration configuration) => services.AddEndpointsApiExplorer().AddSwaggerGen(options =>
+        /// <summary>
+        /// Set ups swagger for the application. Should be called after MVC setup
+        /// </summary>
+        public static IServiceCollection AddSwagger(this IServiceCollection services, IConfiguration configuration)
         {
-            OpenApiInfo info = new();
-            configuration.GetRequiredSection("Swagger").Bind(info);
+            IConfigurationSection swaggerConfig = configuration.GetSection("Swagger");
+            if (!swaggerConfig.Exists())
+                return services;
 
-            options.SwaggerDoc(info.Version, info);
+            string asmPrefix = Assembly.GetExecutingAssembly().GetName().Name!.Split('.', 2)[0];
 
-            options.AddSecurityDefinition("session-cookie", new OpenApiSecurityScheme()
-            {
-                In = ParameterLocation.Cookie,
-                Name = configuration.GetRequiredValue<string>("Auth:SessionCookieName"),
-                Type = SecuritySchemeType.ApiKey,
-                Scheme = "session-cookie",
-                Description = "JSON Web Token in session cookie.",
-                Reference = new OpenApiReference
+            Assembly[] appAssemblies = AppDomain
+                .CurrentDomain
+                .GetAssemblies()
+                .Where(asm => asm.GetName().Name?.StartsWith(asmPrefix, StringComparison.OrdinalIgnoreCase) is true)
+                .ToArray();
+
+            return services
+                .AddEndpointsApiExplorer()    
+                .AddSwaggerGen(options =>
                 {
-                    Id = "session-cookie",
-                    Type = ReferenceType.SecurityScheme
-                }
-            });
+                    OpenApiInfo info = new();
+                    swaggerConfig.Bind(info);
 
-            options.AddSecurityDefinition("basic", new OpenApiSecurityScheme()
-            {
-                In = ParameterLocation.Header,
-                Name = "Authorization",
-                Type = SecuritySchemeType.Http,
-                Scheme = "basic",
-                Description = "Basic authentication",
-                Reference = new OpenApiReference
-                {
-                    Id = "basic",
-                    Type = ReferenceType.SecurityScheme
-                }
-            });
+                    options.SwaggerDoc(info.Version, info);
 
-            foreach (string docFile in Directory.EnumerateFiles(AppContext.BaseDirectory, "Warehouse.*.xml", new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = false }))
-            {
+                    options.AddSecurityDefinition("session-cookie", new OpenApiSecurityScheme
+                    {
+                        In = ParameterLocation.Cookie,
+                        Name = configuration.GetRequiredValue<string>("Auth:SessionCookieName"),
+                        Type = SecuritySchemeType.ApiKey,
+                        Scheme = "session-cookie",
+                        Description = "JSON Web Token in session cookie.",
+                        Reference = new OpenApiReference
+                        {
+                            Id = "session-cookie",
+                            Type = ReferenceType.SecurityScheme
+                        }
+                    });
+
+                    options.AddSecurityDefinition("basic", new OpenApiSecurityScheme
+                    {
+                        In = ParameterLocation.Header,
+                        Name = "Authorization",
+                        Type = SecuritySchemeType.Http,
+                        Scheme = "basic",
+                        Description = "Basic authentication",
+                        Reference = new OpenApiReference
+                        {
+                            Id = "basic",
+                            Type = ReferenceType.SecurityScheme
+                        }
+                    });
+
+                    foreach (string docFile in appAssemblies.Select(static asm => Path.ChangeExtension(asm.Location, "xml")).Where(File.Exists))
+                    {
+                        options.IncludeXmlComments(docFile);
+                    }
+
+                    options.OperationFilter<AuthorizationOperationFilter>();
+                    options.DocumentFilter<CustomModelDocumentFilter<ErrorDetails>>();
+                    options.DocumentFilter<CustomModelDocumentFilter<HealthCheckResult>>();
+                    options.ExampleFilters();
+                })
+
                 //
-                // Ensure we have an XML doc file
+                // Should not be called multiple times as it uses AddSingleton() internally instead 
+                // of TryAddSingleton()
                 //
 
-                if (File.ReadLines(docFile).Skip(1).Take(1).SingleOrDefault()?.Equals("<doc>", StringComparison.OrdinalIgnoreCase) is true)
-                {
-                    options.IncludeXmlComments(docFile);
-                }
-            }
+                .AddSwaggerExamplesFromAssemblies(appAssemblies);
+        }
 
-            options.OperationFilter<AuthorizationOperationFilter>();
-            options.DocumentFilter<CustomModelDocumentFilter<ErrorDetails>>();
-            options.DocumentFilter<CustomModelDocumentFilter<HealthCheckResult>>();
-            options.ExampleFilters();
-        });
+        public static IApplicationBuilder UseSwagger(this IApplicationBuilder applicationBuilder)
+        {
+            IConfigurationSection swaggerConfig = applicationBuilder
+                .ApplicationServices
+                .GetRequiredService<IConfiguration>()
+                .GetSection("Swagger");
+            if (!swaggerConfig.Exists())
+                return applicationBuilder;
 
-        public static IApplicationBuilder UseSwagger(this IApplicationBuilder applicationBuilder) => SwaggerBuilderExtensions
-            .UseSwagger(applicationBuilder)
-            .UseSwaggerUI(options =>
-            {               
-                string version = applicationBuilder
-                    .ApplicationServices
-                    .GetRequiredService<IConfiguration>()
-                    .GetRequiredValue<string>("Swagger:Version");
+            return SwaggerBuilderExtensions.UseSwagger(applicationBuilder).UseSwaggerUI(options =>
+            {
+                string version = swaggerConfig.GetRequiredValue<string>("Version");
 
                 options.SwaggerEndpoint($"/swagger/{version}/swagger.json", version);
                 options.RoutePrefix = string.Empty;
             });
+        }
     }
 }
