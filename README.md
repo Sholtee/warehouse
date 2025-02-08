@@ -98,8 +98,6 @@ Launching the app
 - (Optional) Set up the `root` password by changing the value of `services.localstack-setup.environment.ROOT_PASSWORD` in `docker-compose.yml`
 - Run `.\Run-Local.ps1`
 
-To access the app via API explorer go to [https://localhost:1986/](https://localhost:1986/)
-
 To query items using cURL:
 - `curl --location 'https://localhost:1986/api/v1/login' --header 'Authorization: Basic cm9vdDptZWR2ZWRpc3pub2VtYmVy'`
 - Grab the session token from the `Set-Cookie` header 
@@ -159,6 +157,10 @@ To query items using cURL:
       }
     }'
   ```
+
+## API explorer
+- Available at `<base_url>/` (defaults to [https://localhost:1986/](https://localhost:1986/))
+- Can be disabled from configuration by removing the [Swagger section](https://github.com/Sholtee/warehouse/blob/4570720e4c2decb051d1155c16ff1fa253da7446/SRC/App/Warehouse.Host/appsettings.local.json#L7)
 
 ## Throttling 
 - Login endpoints are protected by [fixed time window rate limiter](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit?view=aspnetcore-9.0#fixed-window-limiter ), set to allow [100 requests / minute](https://github.com/Sholtee/warehouse/blob/61feabed42df1d2f99d96574e89b575950d56f7a/SRC/App/Warehouse.Host/appsettings.json#L33)
