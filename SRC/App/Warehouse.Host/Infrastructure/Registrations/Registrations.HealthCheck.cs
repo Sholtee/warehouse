@@ -7,6 +7,7 @@
 ********************************************************************************/
 using System.Linq;
 
+using Amazon.SecurityToken;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +25,10 @@ namespace Warehouse.Host.Infrastructure.Registrations
     {
         public static IServiceCollection AddHealthCheck(this IServiceCollection services)
         {
+            services
+                .TryAddAWSService<IAmazonSecurityTokenService>() // for AwsHealthCheck
+                .AddDbConnection();
+
             services.AddHealthChecks()
                 .AddCheck<AwsHealthCheck>(nameof(AwsHealthCheck))
                 .AddCheck<DbConnectionHealthCheck>(nameof(DbConnectionHealthCheck));
