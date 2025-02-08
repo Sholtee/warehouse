@@ -79,19 +79,29 @@ namespace Warehouse.Host.Services
             return _handler.WriteToken(token);
         }
 
-        public async Task<TokenValidationResult> ValidateTokenAsync(string token) => await _handler.ValidateTokenAsync
-        (
-            token,
-            new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidIssuer = _domain,
-                ValidAudience = _domain,
-                IssuerSigningKey = await SecurityKey,
-                ValidAlgorithms = [_algorithm]
-            }
-        );
+        public async Task<TokenValidationResult> ValidateTokenAsync(string token)
+        {
+            TokenValidationResult result = await _handler.ValidateTokenAsync
+            (
+                token,
+                new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidIssuer = _domain,
+                    ValidAudience = _domain,
+                    IssuerSigningKey = await SecurityKey,
+                    ValidAlgorithms = [_algorithm]
+                }
+            );
+
+            if (result.IsValid)
+                logger.LogInformation("Token validation completed for user: {user}", result.Claims[ClaimTypes.Name]);
+            else
+                logger.LogInformation("Token validation failed: {reason}", result.Exception?.ToString());
+
+            return result;
+        }
     }
 }
