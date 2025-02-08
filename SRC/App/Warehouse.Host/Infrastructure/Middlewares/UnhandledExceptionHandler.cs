@@ -27,6 +27,8 @@ namespace Warehouse.Host.Infrastructure.Middlewares
         {
             if (exception is RequestException requestException)
             {
+                logger.LogInformation(new EventId(exception.HResult), "Request exception occurred: [{status}] {details}", requestException.HttpStatus, requestException.Errors);
+
                 await HandleCore(requestException.HttpStatus, requestException.Errors, requestException.DeveloperMessage);
             }
             else
