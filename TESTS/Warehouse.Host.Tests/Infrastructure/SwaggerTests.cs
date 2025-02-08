@@ -34,13 +34,19 @@ namespace Warehouse.Host.Infrastructure.Tests
     [TestFixture]
     internal sealed class SwaggerTests
     {
-        private sealed class TestHostFactory : WebApplicationFactory<Warehouse.Tests.Host.Program>
+        private sealed class TestHostFactory(string env) : WebApplicationFactory<Warehouse.Tests.Host.Program>
         {
             public IConfiguration Configuration { get; set; } = null!;
 
             protected override void ConfigureWebHost(IWebHostBuilder builder) => builder
-                .UseEnvironment("local")
-                .ConfigureAppConfiguration(config => Configuration = config.Build())
+                .UseEnvironment(env)
+                .ConfigureAppConfiguration
+                (
+                    config => Configuration = config
+                        .AddJsonFile("appsettings.json")
+                        .AddJsonFile($"appsettings.{env}.json", optional: true)
+                        .Build()
+                )
                 .ConfigureTestServices
                 (
                     services =>
@@ -54,35 +60,32 @@ namespace Warehouse.Host.Infrastructure.Tests
                         services.AddSwagger(Configuration);
                     }
                 )
-                .Configure
-                (
-                    static app => app
-                        .UseSwagger()
-                );
-        }
-
-        private TestHostFactory _appFactory = null!;
-
-        [SetUp]
-        public void SetupTest() => _appFactory = new TestHostFactory();
-
-        [TearDown]
-        public void TearDownTest()
-        {
-            _appFactory?.Dispose();
-            _appFactory = null!;
+                .Configure(static app => app.UseSwagger());
         }
 
         [Test]
         public async Task TestSwaggerEndpoint()
         {
-            using HttpClient client = _appFactory.CreateClient();
+            using TestHostFactory appFactory = new("local");
+
+            using HttpClient client = appFactory.CreateClient();
             using HttpResponseMessage resp = await client.GetAsync("swagger/v1/swagger.json");
 
             Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
             IDictionary? schema = await resp.Content.ReadFromJsonAsync<IDictionary>();
             Assert.That(schema, Does.ContainKey("openapi"));
+        }
+
+        [Test]
+        public async Task EndpointCanBeDisabledFromConfig()
+        {
+            using TestHostFactory appFactory = new("prod");
+
+            using HttpClient client = appFactory.CreateClient();
+            using HttpResponseMessage resp = await client.GetAsync("swagger/v1/swagger.json");
+
+            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
         }
     }
 }
