@@ -22,7 +22,7 @@ services:
     ports:
       - 4566:4566
     environment:
-      - SERVICES=lambda,resourcegroupstaggingapi,secretsmanager
+      - SERVICES=lambda,resourcegroupstaggingapi,secretsmanager,sts
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
   localstack-setup:
