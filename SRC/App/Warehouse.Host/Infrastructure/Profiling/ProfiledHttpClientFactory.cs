@@ -11,7 +11,7 @@ using System.Net.Http;
 using Amazon.Runtime;
 using StackExchange.Profiling;
 
-namespace Warehouse.Host.Helpers
+namespace Warehouse.Host.Infrastructure.Profiling
 {
     internal sealed class ProfiledHttpClientFactory : HttpClientFactory
     {
@@ -21,7 +21,7 @@ namespace Warehouse.Host.Helpers
             HttpClientHandler httpMessageHandler = new();
             #pragma warning restore CA2000
 
-            if (clientConfig.MaxConnectionsPerServer.HasValue)
+            if (clientConfig.MaxConnectionsPerServer is not null)
                 httpMessageHandler.MaxConnectionsPerServer = clientConfig.MaxConnectionsPerServer.Value;
 
             httpMessageHandler.AllowAutoRedirect = clientConfig.AllowAutoRedirect;
@@ -30,14 +30,15 @@ namespace Warehouse.Host.Helpers
 
             IWebProxy? proxy = clientConfig.GetWebProxy();
             if (proxy is not null)
+            {
                 httpMessageHandler.Proxy = proxy;
-
-            if (httpMessageHandler.Proxy is not null && clientConfig.ProxyCredentials is not null)
-                httpMessageHandler.Proxy.Credentials = clientConfig.ProxyCredentials;
+                if (clientConfig.ProxyCredentials is not null)
+                    httpMessageHandler.Proxy.Credentials = clientConfig.ProxyCredentials;
+            }
 
             ProfiledHttpClient httpClient = new(httpMessageHandler, "AWS", MiniProfiler.Current);
 
-            if (clientConfig.Timeout.HasValue)
+            if (clientConfig.Timeout is not null)
                 httpClient.Timeout = clientConfig.Timeout.Value;
 
             return httpClient;

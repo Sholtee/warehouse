@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 using StackExchange.Profiling;
 
-namespace Warehouse.Host.Helpers
+namespace Warehouse.Host.Infrastructure.Profiling
 {
     internal sealed class ProfiledHttpClient(HttpMessageHandler handler, string category, MiniProfiler? profiler): HttpClient(handler, disposeHandler: true)
     {

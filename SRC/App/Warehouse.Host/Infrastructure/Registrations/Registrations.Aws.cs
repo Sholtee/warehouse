@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Warehouse.Host.Infrastructure.Registrations
 {
-    using Helpers;
+    using Profiling;
 
     internal static partial class Registrations
     {
