@@ -153,15 +153,38 @@ namespace Warehouse.Host.Infrastructure.Tests
         }
 
         [Test]
-        public async Task OnlyRootCanAccessTheProfilerResults()
+        public async Task OnlyRootCanAccessTheProfilerResults([Values("profiler/results-index", "profiler/results")] string resultEndpoint)
         {
             //
             // Do some work
             //
 
-            using HttpClient client = _appFactory.CreateClient();
+            HttpResponseMessage resp;
 
-            HttpResponseMessage resp = await client.GetAsync("foo");
+            using (HttpClient client = _appFactory.CreateClient())
+            {
+                resp = await client.GetAsync("foo");
+                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            }
+
+            //
+            // Check that no one can access the profiling results except the root
+            //
+
+            using (HttpClient client = _appFactory.CreateClient())
+            {
+                resp = await client.GetAsync(resultEndpoint);
+                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+            }
+
+            RequestBuilder requestBuilder = _appFactory.Server.CreateRequest($"http://localhost/{resultEndpoint}");
+            requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("test_user", Roles.Admin, DateTimeOffset.Now.AddMinutes(5))}");
+            resp = await requestBuilder.GetAsync();
+            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+
+            requestBuilder = _appFactory.Server.CreateRequest($"http://localhost/{resultEndpoint}");
+            requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("root", Roles.Admin, DateTimeOffset.Now.AddMinutes(5))}");
+            resp = await requestBuilder.GetAsync();
             Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         }
     }
