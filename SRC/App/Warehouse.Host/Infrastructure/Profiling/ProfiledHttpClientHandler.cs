@@ -1,5 +1,5 @@
 /********************************************************************************
-* ProfiledHttpClient.cs                                                         *
+* ProfiledHttpClientHandler.cs                                                  *
 *                                                                               *
 * Author: Denes Solti                                                           *
 * Project: Warehouse API (boilerplate)                                          *
@@ -13,9 +13,9 @@ using StackExchange.Profiling;
 
 namespace Warehouse.Host.Infrastructure.Profiling
 {
-    internal sealed class ProfiledHttpClient(HttpMessageHandler handler, string category, MiniProfiler? profiler): HttpClient(handler, disposeHandler: true)
+    internal sealed class ProfiledHttpClientHandler(string category, MiniProfiler? profiler): HttpClientHandler()
     {
-        public override HttpResponseMessage Send(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override HttpResponseMessage Send(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             using (profiler?.CustomTiming(category, request.RequestUri!.ToString(), request.Method.ToString()))
             {
@@ -23,7 +23,7 @@ namespace Warehouse.Host.Infrastructure.Profiling
             }
         }
 
-        public override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             using (profiler?.CustomTiming(category, request.RequestUri!.ToString(), request.Method.ToString()))
             {

@@ -53,7 +53,7 @@ namespace Warehouse.Host.Services
                 resp.SecretString,
                 new JsonSerializerOptions(jsonOptions.Value.JsonSerializerOptions)
                 {
-                    UnmappedMemberHandling = JsonUnmappedMemberHandling.Skip  // we dont need the cluster id, etc
+                    UnmappedMemberHandling = JsonUnmappedMemberHandling.Skip  // we don't need the cluster id, etc
                 }
             )!;
 

@@ -36,13 +36,8 @@ namespace Warehouse.Tools.LocalStackSetup
             MIGRATOR_NAME = "local-warehouse-db-migrator-lambda";
 
         #pragma warning disable CA1812  // this class is instantiated by the JsonSerializer
-        private sealed class LocalStackStatus
-        #pragma warning restore CA1812 
-        {
-            public required Dictionary<string, string> Services { get; init; }
-            public required string Edition { get; init; }
-            public required string Version { get; init; }
-        }
+        private sealed record LocalStackStatus(Dictionary<string, string> Services, string Edition, string Version);
+        #pragma warning restore CA1812
 
         private static async Task WaitForServices(params string[] services)
         {

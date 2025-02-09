@@ -18,7 +18,7 @@ namespace Warehouse.Host.Infrastructure.Profiling
         public override HttpClient CreateHttpClient(IClientConfig clientConfig)
         {
             #pragma warning disable CA2000 // Handler is disposed by the client
-            HttpClientHandler httpMessageHandler = new();
+            ProfiledHttpClientHandler httpMessageHandler = new("AWS", MiniProfiler.Current);
             #pragma warning restore CA2000
 
             if (clientConfig.MaxConnectionsPerServer is not null)
@@ -36,7 +36,7 @@ namespace Warehouse.Host.Infrastructure.Profiling
                     httpMessageHandler.Proxy.Credentials = clientConfig.ProxyCredentials;
             }
 
-            ProfiledHttpClient httpClient = new(httpMessageHandler, "AWS", MiniProfiler.Current);
+            HttpClient httpClient = new(httpMessageHandler, disposeHandler: true);
 
             if (clientConfig.Timeout is not null)
                 httpClient.Timeout = clientConfig.Timeout.Value;
