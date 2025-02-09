@@ -9,6 +9,9 @@ using System;
 
 namespace Warehouse.Core.Exceptions
 {
+    /// <summary>
+    /// Base class of request exceptions. Transformed to HTTP response using the given <see cref="RequestException.HttpStatus"/>
+    /// </summary>
     public abstract class RequestException() : Exception("Request exception occurred")
     {
         /// <summary>

@@ -41,6 +41,14 @@ root
 │   │   └───Warehouse.API [business logic]
 │   │   │   │
 │   │   │   └───Controllers [controllers home]
+│   │   │       │
+│   │   │       └───[controllers name]
+│   │   │           │
+│   │   │           └───Dtos [data-transfer-objects]
+│   │   │           │
+│   │   │           └───Examples [Swagger example descriptors]
+│   │   │           │
+│   │   │           └───Profiles [AutoMapper profiles, for instance API DTO -> DAL DTO]
 │   │   │
 │   │   └───Warehouse.Core [common resoures]
 │   │   │   │
@@ -56,11 +64,21 @@ root
 │   │   │
 │   │   └───Warehouse.DAL [data access layer]
 │   │   │   │
-│   │   │   └───Extensions [extension methods]
+│   │   │   └───Extensions [private extension methods]
 │   │   │   │
 │   │   │   └───Repositories [repositories home]
+│   │   │       │
+│   │   │       └───[repository name]
+│   │   │           │
+│   │   │           └───Dtos [data-transfer-objects]
+│   │   │           │
+│   │   │           └───Entities [ORM database entities]
+│   │   │           │
+│   │   │           └───Views [ORM database views]
 │   │   │
 │   │   └───Warehouse.Host [application host]
+│   │       │
+│   │       └───Dtos [data-transfer-objects related to the host, such as HealthCheckResult or ErrorDetails]
 │   │       │
 │   │       └───Infrastructure [host infrastructure]
 │   │       │   │
@@ -97,8 +115,6 @@ Requirements
 Launching the app
 - (Optional) Set up the `root` password by changing the value of `services.localstack-setup.environment.ROOT_PASSWORD` in `docker-compose.yml`
 - Run `.\Run-Local.ps1`
-
-To access the app via API explorer go to [https://localhost:1986/](https://localhost:1986/)
 
 To query items using cURL:
 - `curl --location 'https://localhost:1986/api/v1/login' --header 'Authorization: Basic cm9vdDptZWR2ZWRpc3pub2VtYmVy'`
@@ -160,10 +176,19 @@ To query items using cURL:
     }'
   ```
 
+## API explorer
+- Available at `<base_url>/` (defaults to [https://localhost:1986/](https://localhost:1986/))
+- Can be disabled from configuration by removing the [Swagger section](https://github.com/Sholtee/warehouse/blob/4570720e4c2decb051d1155c16ff1fa253da7446/SRC/App/Warehouse.Host/appsettings.local.json#L7)
+
 ## Throttling 
 - Login endpoints are protected by [fixed time window rate limiter](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit?view=aspnetcore-9.0#fixed-window-limiter ), set to allow [100 requests / minute](https://github.com/Sholtee/warehouse/blob/61feabed42df1d2f99d96574e89b575950d56f7a/SRC/App/Warehouse.Host/appsettings.json#L33)
 - Business logic endpoints are protected by a modified [token bucket limiter](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit?view=aspnetcore-9.0#token-bucket-limiter) where each user has its [own bucket](https://github.com/Sholtee/warehouse/blob/61feabed42df1d2f99d96574e89b575950d56f7a/SRC/App/Warehouse.Host/Infrastructure/Registrations/Registrations.RateLimiting.cs#L38 ). By default this limiter is set to allow [10 requests / minute / user](https://github.com/Sholtee/warehouse/blob/61feabed42df1d2f99d96574e89b575950d56f7a/SRC/App/Warehouse.Host/appsettings.json#L38 )
-  
+ 
+## Health checks
+- Available at `<base_url>/healthcheck` (defaults to [https://localhost:1986/healthcheck](https://localhost:1986/))
+- It executes [database connection](https://github.com/Sholtee/warehouse/blob/0ebba5ee75d9338dfa0810ccadf94242437d424c/SRC/App/Warehouse.Host/Services/DbConnectionHealthCheck.cs#L18) & [aws client](https://github.com/Sholtee/warehouse/blob/0ebba5ee75d9338dfa0810ccadf94242437d424c/SRC/App/Warehouse.Host/Services/AwsHealthCheck.cs#L18) checks
+- The endpoint is invoked during [container](https://github.com/Sholtee/warehouse/blob/0ebba5ee75d9338dfa0810ccadf94242437d424c/SRC/App/dockerfile#L28) and [service](https://github.com/Sholtee/warehouse/blob/0ebba5ee75d9338dfa0810ccadf94242437d424c/CloudFormation/app.yml#L90) health checks
+
 ## Running the tests
 Simply run the `.\Run-Tests.ps1` script. It places the tests result and coverage report to the `.\Artifacts` folder
   

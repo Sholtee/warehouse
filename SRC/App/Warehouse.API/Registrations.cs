@@ -9,7 +9,6 @@ using System;
 using System.Reflection;
 
 using Microsoft.Extensions.DependencyInjection;
-using Swashbuckle.AspNetCore.Filters;
 
 namespace Warehouse.API.Registrations
 {
@@ -27,9 +26,7 @@ namespace Warehouse.API.Registrations
 
             Assembly executingAsm = Assembly.GetExecutingAssembly();
 
-            mvcBuilder.Services
-                .AddAutoMapper(executingAsm)
-                .AddSwaggerExamplesFromAssemblies(executingAsm);
+            mvcBuilder.Services.AddAutoMapper(executingAsm);
 
             return mvcBuilder
                 .AddApplicationPart(executingAsm)

@@ -7,6 +7,7 @@
 ********************************************************************************/
 using Amazon;
 using Amazon.SecretsManager;
+using Amazon.SecurityToken;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Warehouse.Host.Infrastructure.Registrations
@@ -25,6 +26,7 @@ namespace Warehouse.Host.Infrastructure.Registrations
             AWSConfigs.HttpClientFactory ??= new ProfiledHttpClientFactory();
 
             return services
+                .TryAddAWSService<IAmazonSecurityTokenService>() // required for the health checks
                 .TryAddAWSService<IAmazonSecretsManager>();
         }
     }

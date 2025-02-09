@@ -24,13 +24,6 @@ namespace Warehouse.DAL
     /// </summary>
     internal sealed class WarehouseRepository(IDbConnection connection) : IWarehouseRepository
     {
-        public async Task<bool> IsHealthy() => await connection.SqlScalarAsync<int>
-        (
-            connection
-                .From<object>(static expr => expr.FromExpression = " ")
-                .Select(static _ => 1)
-        ) is 1;
-
         public async Task<ProductDetails?> GetProductDetailsById(Guid productId)
         {
             //

@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.*" />
     <PackageReference Include="AWSSDK.SecretsManager" Version="3.7.*" />
+    <PackageReference Include="AWSSDK.SecurityToken" Version="3.7.*" />
     <PackageReference Include="MiniProfiler.AspNetCore.Mvc" Version="4.5.*" />
     <PackageReference Include="MiniProfiler.Providers.Redis" Version="4.5.4" />
     <PackageReference Include="MySqlConnector" Version="2.4.*" />
@@ -18,7 +19,7 @@
     <PackageReference Include="ServiceStack.OrmLite.MySqlConnector" Version="8.5.*" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.*" />
     <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.*" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.3.*" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.4.*" />
   </ItemGroup>
 
   <ItemGroup>

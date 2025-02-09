@@ -18,7 +18,7 @@ namespace Warehouse.Tests.Host
         public static void Main() => new HostBuilder()
            .ConfigureHostConfiguration
            (
-               static configBuilder => configBuilder.AddJsonFile("appsettings.json").AddJsonFile("appsettings.local.json")
+               static configBuilder => configBuilder.AddJsonFile("appsettings.json")
            )
            .ConfigureWebHostDefaults
            (

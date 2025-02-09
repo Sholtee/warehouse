@@ -95,7 +95,7 @@ Resources:
       Port: !Ref port
       Protocol: HTTPS
       Matcher:
-        HttpCode: 204
+        HttpCode: 200
 
   ListenerRule:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
@@ -153,7 +153,7 @@ Resources:
           HealthCheck:
             Command:
               - CMD-SHELL
-              - !Sub "curl --fail --insecure https://localhost:${port}/api/v1/healthcheck || exit 1"
+              - !Sub "curl --fail --insecure https://localhost:${port}/healthcheck || exit 1"
             Interval: !Ref healthCheckInterval
             Retries: 2
           Environment:

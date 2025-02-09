@@ -30,23 +30,6 @@ namespace Warehouse.API.Controllers
     public sealed class WarehouseController(IWarehouseRepository warehouseRepository, IMapper mapper) : ControllerBase
     {
         /// <summary>
-        /// Health check endpoint
-        /// </summary>
-        /// <returns>No content</returns>
-        /// <response code="204">If the health check was successful</response>
-        [HttpGet("healthcheck"), ResponseCode(HttpStatusCode.NoContent)]
-        [AllowAnonymous, DisableRateLimiting, ApiExplorerSettings(IgnoreApi = true)]
-        public async Task HealthCheck()
-        {
-            if (!await warehouseRepository.IsHealthy())
-                throw new InvalidOperationException("Repo is not healthy");
-
-            //
-            // TODO: other checks
-            //
-        }
-
-        /// <summary>
         /// Lists products matching on the given <paramref name="param"/>.
         /// </summary>
         /// <param name="param">Parameter containing a the filter pattern.</param>

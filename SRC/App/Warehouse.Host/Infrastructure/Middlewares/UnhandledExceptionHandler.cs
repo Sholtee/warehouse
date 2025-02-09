@@ -6,7 +6,6 @@
 * License: MIT                                                                  *
 ********************************************************************************/
 using System;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,41 +19,7 @@ namespace Warehouse.Host.Infrastructure.Middlewares
 {
     using Core.Exceptions;
     using Core.Extensions;
-
-    /// <summary>
-    /// Error details.
-    /// </summary>
-    #pragma warning disable CA1515 // This type is part of the public API
-    public sealed class ErrorDetails
-    #pragma warning restore CA1515
-    {
-        /// <summary>
-        /// Short, human readable description of the error.
-        /// </summary>
-        public required string Title { get; init; }
-
-        /// <summary>
-        /// HTTP status code.
-        /// </summary>
-        public required int Status { get; init; }
-
-        /// <summary>
-        /// Unique identifier of the request (logs entries should contain the same id).
-        /// </summary>
-        public required string TraceId { get; init; }
-
-        /// <summary>
-        /// Detailed error information (should NOT contain sensitive information).
-        /// </summary>
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public object? Errors { get; init; }
-
-        /// <summary>
-        /// Message to the devs (may contain sensitive information). Won't be set in production environment.
-        /// </summary>
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public object? DeveloperMessage { get; init; }
-    }
+    using Dtos;
 
     internal sealed class UnhandledExceptionHandler(IWebHostEnvironment env, ILogger<UnhandledExceptionHandler> logger) : IExceptionHandler
     {
@@ -62,6 +27,8 @@ namespace Warehouse.Host.Infrastructure.Middlewares
         {
             if (exception is RequestException requestException)
             {
+                logger.LogInformation(new EventId(exception.HResult), "Request exception occurred: [{status}] {details}", requestException.HttpStatus, requestException.Errors);
+
                 await HandleCore(requestException.HttpStatus, requestException.Errors, requestException.DeveloperMessage);
             }
             else

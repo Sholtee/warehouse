@@ -5,6 +5,7 @@
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
+using Amazon.SecretsManager;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,10 +23,10 @@ namespace Warehouse.Host.Infrastructure.Registrations
         public static IServiceCollection AddSessionCookieAuthentication(this IServiceCollection services)
         {
             services.TryAddScoped(typeof(IPasswordHasher<>), typeof(PasswordHasher<>));
-            services.TryAddScoped<IJwtService, JwtService>();
+            services.TryAddScoped<IJwtService, JwtService>(); 
+            services.TryAddAWSService<IAmazonSecretsManager>();
+            services.AddMemoryCache();
             services
-                .AddAwsServices()
-                .AddMemoryCache()
                 .AddAuthentication()
                 .AddScheme<AuthenticationSchemeOptions, SessionCookieAuthenticationHandler>(WarehouseAuthentication.SCHEME, null);
 

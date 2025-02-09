@@ -64,6 +64,7 @@ namespace Warehouse.Host
                 .AddSessionCookieAuthentication()
                 .AddSwagger(configuration)
                 .AddRateLimiter()
+                .AddHealthCheck()
                 .AddProfiler(configuration);
         }
 
@@ -80,8 +81,9 @@ namespace Warehouse.Host
                 .UseAuthorization()
                 .UseRateLimiter()
                 .UseMiddleware<LoggingMiddleware>()
-                .UseEndpoints(static endpoints => endpoints.MapControllers())
-                .UseSwagger();
+                .UseHealthCheck()
+                .UseSwagger()
+                .UseEndpoints(static endpoints => endpoints.MapControllers());
         }
     }
 }

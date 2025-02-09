@@ -5,6 +5,7 @@
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
+using Amazon.SecretsManager;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,9 +32,10 @@ namespace Warehouse.Host.Infrastructure.Registrations
 
         public static IServiceCollection AddRootUserRegistrar(this IServiceCollection services)
         {
-            services.AddAwsServices();
+            services.AddDbConnection();
             services.AddRepositories();
 
+            services.TryAddAWSService<IAmazonSecretsManager>();
             services.TryAddScoped(typeof(IPasswordHasher<>), typeof(PasswordHasher<>));
             services.TryAddScoped<RootUserRegistrar>();
 
