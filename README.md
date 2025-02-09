@@ -13,7 +13,7 @@
 - Logging: [Serilog](https://serilog.net/)
 - Mapping: [AutoMapper](https://automapper.org/)
 - API explorer: [Swashbuckle/Swagger](https://github.com/domaindrivendev/Swashbuckle.AspNetCore/)
-- Infra: [AWS](https://aws.amazon.com/), [LocalStack](https://www.localstack.cloud/)
+- Infra: [AWS](https://aws.amazon.com/), [Docker](https://www.docker.com/products/docker-desktop/), [LocalStack](https://www.localstack.cloud/)
 - Test FW: [NUnit](https://nunit.org/)
 
 ## Folder structure
