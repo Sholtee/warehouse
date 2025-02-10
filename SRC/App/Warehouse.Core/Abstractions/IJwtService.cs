@@ -22,7 +22,13 @@ namespace Warehouse.Core.Abstractions
         /// <summary>
         /// Creates a new JWT
         /// </summary>
-        Task<string> CreateTokenAsync(string user, Roles roles, DateTimeOffset expires);
+        Task<string> CreateTokenAsync(string user, Roles roles);
+
+        /// <summary>
+        /// Creates a refresh token having updated expiration claim in it
+        /// </summary>
+        /// <exception cref="ArgumentException">The given <paramref name="token"/> is not valid</exception>
+        Task<string> RefreshTokenAsync(string token);
 
         /// <summary>
         /// Validates the given JWT

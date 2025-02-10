@@ -99,18 +99,16 @@ namespace Warehouse.API.Controllers
             // Set up the session cookie
             //
 
-            DateTimeOffset expires = timeProvider.GetUtcNow().AddMinutes
-            (
-                configuration.GetValue("Auth:SessionExpirationMinutes", 1440)
-            );
-
             Response.Cookies.Append
             (
                 configuration.GetRequiredValue<string>("Auth:SessionCookieName"),
-                await jwtService.CreateTokenAsync(clientId, user.Roles, expires),
+                await jwtService.CreateTokenAsync(clientId, user.Roles),
                 new CookieOptions
                 {
-                    Expires = expires,
+                    Expires = timeProvider.GetUtcNow().AddMinutes
+                    (
+                        configuration.GetValue("Auth:SessionExpirationMinutes", 1440)
+                    ),
                     Path = "/",
                     HttpOnly = true,
                     SameSite = SameSiteMode.Strict,

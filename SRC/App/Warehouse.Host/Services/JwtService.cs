@@ -6,6 +6,7 @@
 * License: MIT                                                                  *
 ********************************************************************************/
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -25,6 +26,7 @@ namespace Warehouse.Host.Services
     using Core.Abstractions;
     using Core.Auth;
     using Core.Extensions;
+    using Warehouse.DAL;
 
     internal sealed class JwtService
     (
@@ -32,8 +34,9 @@ namespace Warehouse.Host.Services
         IHostEnvironment env,
         IConfiguration configuration,
         IAmazonSecretsManager secretsManager,
-        ILogger<JwtService> logger
-    ): IJwtService
+        ILogger<JwtService> logger,
+        TimeProvider timeProvider
+    ) : IJwtService
     {
         private readonly JwtSecurityTokenHandler _handler = new();
 
@@ -59,24 +62,49 @@ namespace Warehouse.Host.Services
             );
         });
 
-        public async Task<string> CreateTokenAsync(string user, Roles roles, DateTimeOffset expires)
-        {
-            JwtSecurityToken token = new
+        private async Task<string> CreateTokenAsync(IEnumerable<Claim> claims) => _handler.WriteToken
+        (
+            new JwtSecurityToken
             (
                 issuer: _domain,
                 audience: _domain,
-                claims:
+                claims: claims,
+                expires: timeProvider.GetUtcNow().AddMinutes
+                (
+                    configuration.GetValue("Auth:SessionExpirationMinutes", 1440)
+                ).DateTime,
+                signingCredentials: new SigningCredentials(await SecurityKey, _algorithm)
+            )
+        );
+
+        public async Task<string> CreateTokenAsync(string user, Roles roles)
+        {
+            string token = await CreateTokenAsync
+            (
                 [
                     new Claim(ClaimTypes.Name, user),
                     ..roles.SetFlags().Select(static role => new Claim(ClaimTypes.Role, role.ToString()))
-                ],
-                expires: expires.DateTime,
-                signingCredentials: new SigningCredentials(await SecurityKey, _algorithm)
+                ]
             );
 
             logger.LogInformation("Token created for user: {user}", user);
 
-            return _handler.WriteToken(token);
+            return token;
+        }
+
+        public async Task<string> RefreshTokenAsync(string token)
+        {
+            TokenValidationResult result = await ValidateTokenAsync(token);
+            if (!result.IsValid)
+                throw new ArgumentException("The provided token is not valid", nameof(token));
+
+            JwtSecurityToken jwt = (JwtSecurityToken) result.SecurityToken;
+
+            token = await CreateTokenAsync(jwt.Claims);
+
+            logger.LogInformation("Token created for user: {user}", jwt.Claims.Single(static c => c.Type == ClaimTypes.Name).Value);
+
+            return token;
         }
 
         public async Task<TokenValidationResult> ValidateTokenAsync(string token)
