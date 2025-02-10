@@ -26,7 +26,7 @@ namespace Warehouse.Host.Tests
 
         protected abstract void CloseConnection();
 
-        public int RetryCount { get; init; } = 10;
+        public int RetryCount { get; init; } = 20;
 
         ActionTargets ITestAction.Targets { get; } = ActionTargets.Test | ActionTargets.Suite;
 
