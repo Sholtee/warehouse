@@ -26,7 +26,6 @@ namespace Warehouse.Host.Services
     using Core.Abstractions;
     using Core.Auth;
     using Core.Extensions;
-    using Warehouse.DAL;
 
     internal sealed class JwtService
     (
