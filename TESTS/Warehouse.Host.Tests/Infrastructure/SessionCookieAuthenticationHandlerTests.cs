@@ -6,7 +6,6 @@
 * License: MIT                                                                  *
 ********************************************************************************/
 using System;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
@@ -24,11 +23,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
 using NUnit.Framework;
@@ -40,6 +37,7 @@ namespace Warehouse.Host.Infrastructure.Tests
     using Core.Attributes;
     using Core.Auth;
     using Registrations;
+    using Services;
 
     [TestFixture]
     internal sealed class SessionCookieAuthenticationHandlerTests
@@ -47,7 +45,7 @@ namespace Warehouse.Host.Infrastructure.Tests
         private Mock<IOptionsMonitor<AuthenticationSchemeOptions>> _mockOptionsMonitor = null!;
         private Mock<ILoggerFactory> _mockLoggerFactory = null!;
         private Mock<IJwtService> _mockJwtService = null!;
-        private Mock<IConfiguration> _mockConfiguration = null!;
+        private Mock<ISessionManager> _mockSessionManager = null!;
         private Mock<UrlEncoder> _mockUrlEncoder = null!;
         private Mock<ILogger> _mockLogger = null!;
         private Mock<TimeProvider> _mockTimeProvider = null!;
@@ -58,11 +56,6 @@ namespace Warehouse.Host.Infrastructure.Tests
         [SetUp]
         public async Task SetupTest()
         {
-            Mock<IConfigurationSection> mockCookieName = new(MockBehavior.Strict);
-            mockCookieName
-                .SetupGet(s => s.Value)
-                .Returns("session-cookie");
-
             _mockTimeProvider = new Mock<TimeProvider>(MockBehavior.Strict);
             _mockOptionsMonitor = new Mock<IOptionsMonitor<AuthenticationSchemeOptions>>(MockBehavior.Strict);
             _mockOptionsMonitor
@@ -74,10 +67,10 @@ namespace Warehouse.Host.Infrastructure.Tests
                 .Setup(f => f.CreateLogger(typeof(SessionCookieAuthenticationHandler).FullName!))
                 .Returns(_mockLogger.Object);
             _mockJwtService = new Mock<IJwtService>(MockBehavior.Strict);
-            _mockConfiguration = new Mock<IConfiguration>(MockBehavior.Strict);
-            _mockConfiguration
-                .Setup(c => c.GetSection("Auth:SessionCookieName"))
-                .Returns(mockCookieName.Object);
+            _mockSessionManager = new Mock<ISessionManager>(MockBehavior.Strict);
+            _mockSessionManager
+                .SetupGet(c => c.SlidingExpiration)
+                .Returns(false);
             _mockUrlEncoder = new Mock<UrlEncoder>(MockBehavior.Strict);
 
             _context = new DefaultHttpContext();
@@ -86,8 +79,8 @@ namespace Warehouse.Host.Infrastructure.Tests
             (
                 _mockOptionsMonitor.Object,
                 _mockLoggerFactory.Object,
+                _mockSessionManager.Object,
                 _mockJwtService.Object,
-                _mockConfiguration.Object,
                 _mockUrlEncoder.Object
             );
             
@@ -126,6 +119,10 @@ namespace Warehouse.Host.Infrastructure.Tests
         [Test]
         public async Task NoSessionCookie()
         {
+            _mockSessionManager
+                .SetupGet(c => c.Token)
+                .Returns((string?) null);
+
             AuthenticateResult result = await _handler.AuthenticateAsync();
 
             Assert.Multiple(() =>
@@ -138,7 +135,9 @@ namespace Warehouse.Host.Infrastructure.Tests
         [Test]
         public async Task InvalidToken()
         {
-            _context.Request.Headers.Append("cookie", new StringValues("session-cookie=token"));
+            _mockSessionManager
+                .SetupGet(s => s.Token)
+                .Returns("token");
 
             Exception failure = new Exception("Invalid token");
 
@@ -158,7 +157,9 @@ namespace Warehouse.Host.Infrastructure.Tests
         [Test]
         public async Task ValidToken()
         {
-            _context.Request.Headers.Append("cookie", new StringValues("session-cookie=token"));
+            _mockSessionManager
+                .SetupGet(s => s.Token)
+                .Returns("token");
 
             ClaimsIdentity identity = new();
 
@@ -191,11 +192,13 @@ namespace Warehouse.Host.Infrastructure.Tests
     [TestFixture]
     internal class SessionCookieAuthenticationHandlerIntegrationTests
     {
-        private sealed class TestHostFactory : WebApplicationFactory<Warehouse.Tests.Host.Program>
+        private sealed class TestHostFactory() : WebApplicationFactory<Warehouse.Tests.Host.Program>
         {
+            public DateTime Now { get; set; } = DateTime.UtcNow;
+
             protected override void ConfigureWebHost(IWebHostBuilder builder) => builder
                 .UseEnvironment("local")
-                .ConfigureTestServices(static services =>
+                .ConfigureTestServices(services =>
                 {
                     Mock<IMemoryCache> mockMemoryCache = new(MockBehavior.Strict);
                     mockMemoryCache
@@ -214,8 +217,16 @@ namespace Warehouse.Host.Infrastructure.Tests
                         .Setup(s => s.GetSecretValueAsync(It.Is<GetSecretValueRequest>(r => r.SecretId == "local-warehouse-jwt-secret-key"), default))
                         .ReturnsAsync(new GetSecretValueResponse { SecretString = "very-very-very-very-very-secure-secret-key" });
 
-                    services.AddSingleton(mockSecretsManager.Object);
+                    Mock<TimeProvider> mockTimeProvider = new(MockBehavior.Strict);
+                    mockTimeProvider
+                        .Setup(p => p.GetUtcNow())
+                        .Returns(() => Now);
 
+                    services.AddSingleton(mockTimeProvider.Object);
+                    services.AddSingleton(mockSecretsManager.Object);
+                    services.AddScoped<ISessionManager, HttpSessionManager>();
+
+                    services.AddHttpContextAccessor();
                     services.AddSessionCookieAuthentication();
 
                     services
@@ -234,12 +245,12 @@ namespace Warehouse.Host.Infrastructure.Tests
 
         private TestHostFactory _appFactory = null!;
 
-        private async Task<string> CreateToken(string user, Roles role, DateTimeOffset expiration)
+        private async Task<string> CreateToken(string user, Roles role)
         {
             using IServiceScope scope = _appFactory.Services.CreateScope();
 
             IJwtService jwtService = scope.ServiceProvider.GetRequiredService<IJwtService>();
-            return await jwtService.CreateTokenAsync(user, role, expiration);
+            return await jwtService.CreateTokenAsync(user, role);
         }
 
         [SetUp]
@@ -266,10 +277,14 @@ namespace Warehouse.Host.Infrastructure.Tests
         public async Task ValidSession()
         {
             RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/adminaccess");
-            requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("test_user", Roles.Admin, DateTimeOffset.Now.AddMinutes(5))}");
+            requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("test_user", Roles.Admin)}");
             HttpResponseMessage resp = await requestBuilder.GetAsync();
 
-            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.Multiple(() =>
+            {
+                Assert.That(resp.Headers.Contains("Set-Cookie"));
+                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            });
         }
 
         [Test]
@@ -279,7 +294,11 @@ namespace Warehouse.Host.Infrastructure.Tests
 
             HttpResponseMessage resp = await client.GetAsync("adminaccess");
 
-            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+            Assert.Multiple(() =>
+            {
+                Assert.That(resp.Headers.Contains("Set-Cookie"), Is.False);
+                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+            });
         }
 
         [Test]
@@ -289,27 +308,41 @@ namespace Warehouse.Host.Infrastructure.Tests
             requestBuilder.AddHeader("Cookie", "warehouse-session=invalid");
             HttpResponseMessage resp = await requestBuilder.GetAsync();
 
-            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+            Assert.Multiple(() =>
+            {
+                Assert.That(resp.Headers.Contains("Set-Cookie"), Is.False);
+                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+            });
         }
 
         [Test]
         public async Task ExpiredToken()
         {
+            _appFactory.Now = DateTime.UtcNow.AddDays(-7);
+
             RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/adminaccess");
-            requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("test_user", Roles.Admin, DateTimeOffset.Now.AddMinutes(-5))}");
+            requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("test_user", Roles.Admin)}");
             HttpResponseMessage resp = await requestBuilder.GetAsync();
 
-            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+            Assert.Multiple(() =>
+            {
+                Assert.That(resp.Headers.Contains("Set-Cookie"), Is.False);
+                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+            });
         }
 
         [Test]
         public async Task MissingRole()
         {
             RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/adminaccess");
-            requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("test_user", Roles.User, DateTimeOffset.Now.AddMinutes(5))}");
+            requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("test_user", Roles.User)}");
             HttpResponseMessage resp = await requestBuilder.GetAsync();
 
-            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+            Assert.Multiple(() =>
+            {
+                Assert.That(resp.Headers.Contains("Set-Cookie"));
+                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+            });
         }
     }
 }

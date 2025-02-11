@@ -11,9 +11,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.3.*" />
     <!-- [12.30.2024] use exact version as the latest (v1.6.23) one is bugous -->
     <PackageReference Include="Microsoft.OpenApi" Version="1.6.22" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.4.*" />
   </ItemGroup>
 
 </Project>

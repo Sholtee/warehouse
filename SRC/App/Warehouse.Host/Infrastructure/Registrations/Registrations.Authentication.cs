@@ -24,7 +24,9 @@ namespace Warehouse.Host.Infrastructure.Registrations
         {
             services.TryAddScoped(typeof(IPasswordHasher<>), typeof(PasswordHasher<>));
             services.TryAddScoped<IJwtService, JwtService>(); 
+            services.TryAddScoped<ISessionManager, HttpSessionManager>();
             services.TryAddAWSService<IAmazonSecretsManager>();
+            services.AddHttpContextAccessor();
             services.AddMemoryCache();
             services
                 .AddAuthentication()

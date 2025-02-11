@@ -61,50 +61,36 @@ namespace Warehouse.Host.Services
             );
         });
 
-        private async Task<string> CreateTokenAsync(IEnumerable<Claim> claims) => _handler.WriteToken
-        (
-            new JwtSecurityToken
-            (
-                issuer: _domain,
-                audience: _domain,
-                claims: claims,
-                expires: timeProvider.GetUtcNow().AddMinutes
-                (
-                    configuration.GetValue("Auth:SessionExpirationMinutes", 1440)
-                ).DateTime,
-                signingCredentials: new SigningCredentials(await SecurityKey, _algorithm)
-            )
-        );
-
-        public async Task<string> CreateTokenAsync(string user, Roles roles)
+        private async Task<string> CreateTokenAsync(IEnumerable<Claim> claims)
         {
-            string token = await CreateTokenAsync
+            string token = _handler.WriteToken
             (
-                [
-                    new Claim(ClaimTypes.Name, user),
-                    ..roles.SetFlags().Select(static role => new Claim(ClaimTypes.Role, role.ToString()))
-                ]
+                new JwtSecurityToken
+                (
+                    issuer: _domain,
+                    audience: _domain,
+                    claims: claims,
+                    expires: timeProvider.GetUtcNow().AddMinutes  // overrides the "exp" claim if it is present in "claims"
+                    (
+                        configuration.GetValue("Auth:SessionExpirationMinutes", 1440)
+                    ).DateTime,
+                    signingCredentials: new SigningCredentials(await SecurityKey, _algorithm)
+                )
             );
 
-            logger.LogInformation("Token created for user: {user}", user);
-
+            logger.LogInformation("Token created for user: {user}", claims.Single(static c => c.Type == ClaimTypes.Name).Value);
             return token;
         }
 
-        public async Task<string> RefreshTokenAsync(string token)
-        {
-            TokenValidationResult result = await ValidateTokenAsync(token);
-            if (!result.IsValid)
-                throw new ArgumentException("The provided token is not valid", nameof(token));
+        public Task<string> CreateTokenAsync(string user, Roles roles) => CreateTokenAsync
+        (
+            [
+                new Claim(ClaimTypes.Name, user),
+                ..roles.SetFlags().Select(static role => new Claim(ClaimTypes.Role, role.ToString()))
+            ]
+        );
 
-            JwtSecurityToken jwt = (JwtSecurityToken) result.SecurityToken;
-
-            token = await CreateTokenAsync(jwt.Claims);
-
-            logger.LogInformation("Token created for user: {user}", jwt.Claims.Single(static c => c.Type == ClaimTypes.Name).Value);
-
-            return token;
-        }
+        public Task<string> CreateTokenAsync(JwtSecurityToken token) => CreateTokenAsync(token.Claims);
 
         public async Task<TokenValidationResult> ValidateTokenAsync(string token)
         {

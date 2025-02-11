@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 
@@ -31,11 +30,10 @@ namespace Warehouse.API.Controllers
     public sealed class LoginController
     (
         IUserRepository userRepository,
-        IConfiguration configuration,
         IJwtService jwtService,
+        ISessionManager session,
         IPasswordHasher<string> passwordHasher,
-        ILogger<LoginController> logger,
-        TimeProvider timeProvider
+        ILogger<LoginController> logger
     ) : ControllerBase
     {
         private UnauthorizedResult Unauthorized(string reason)
@@ -99,22 +97,7 @@ namespace Warehouse.API.Controllers
             // Set up the session cookie
             //
 
-            Response.Cookies.Append
-            (
-                configuration.GetRequiredValue<string>("Auth:SessionCookieName"),
-                await jwtService.CreateTokenAsync(clientId, user.Roles),
-                new CookieOptions
-                {
-                    Expires = timeProvider.GetUtcNow().AddMinutes
-                    (
-                        configuration.GetValue("Auth:SessionExpirationMinutes", 1440)
-                    ),
-                    Path = "/",
-                    HttpOnly = true,
-                    SameSite = SameSiteMode.Strict,
-                    Secure = true
-                }
-            );
+            session.Token = await jwtService.CreateTokenAsync(clientId, user.Roles);
 
             //
             // TODO: redirect the client to its original destination
@@ -132,13 +115,7 @@ namespace Warehouse.API.Controllers
         [ProducesResponseType(204)]
         public IActionResult Logout()
         {
-            string sessionCookie = configuration.GetRequiredValue<string>("Auth:SessionCookieName");
-
-            if (Request.Cookies[sessionCookie] is not null)
-            {
-                Response.Cookies.Delete(sessionCookie);
-            }
-
+            session.Token = null;
             return NoContent();
         }
     }

@@ -188,12 +188,12 @@ namespace Warehouse.Host.Infrastructure.Tests
 
         private TestHostFactory _appFactory = null!;
 
-        private async Task<string> CreateToken(string user, Roles role, DateTimeOffset expiration)
+        private async Task<string> CreateToken(string user, Roles role)
         {
             using IServiceScope scope = _appFactory.Services.CreateScope();
 
             IJwtService jwtService = scope.ServiceProvider.GetRequiredService<IJwtService>();
-            return await jwtService.CreateTokenAsync(user, role, expiration);
+            return await jwtService.CreateTokenAsync(user, role);
         }
 
         [SetUp]
@@ -240,7 +240,7 @@ namespace Warehouse.Host.Infrastructure.Tests
             async Task<HttpResponseMessage> SendRequest()
             {
                 RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/admin");
-                requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("test_user", Roles.Admin, DateTimeOffset.Now.AddMinutes(5))}");
+                requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("test_user", Roles.Admin)}");
                 return await requestBuilder.GetAsync();
             }
         }
