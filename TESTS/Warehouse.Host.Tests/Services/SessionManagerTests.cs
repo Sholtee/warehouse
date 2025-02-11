@@ -98,7 +98,7 @@ namespace Warehouse.Host.Services.Tests
         [Test]
         public void SetToken_ShouldSetTheSessionCookie()
         {
-            DateTime now = new(year: 1986, month: 10, day: 26);
+            DateTime now = new(year: 1986, month: 10, day: 26, hour: 0, minute: 0, second: 0, DateTimeKind.Utc);
 
             _mockTimeProvider
                 .Setup(t => t.GetUtcNow())
@@ -113,7 +113,7 @@ namespace Warehouse.Host.Services.Tests
 
             sessionManager.Token = "token";
 
-            Assert.That(_context.Response.Headers.SetCookie.ToString(), Is.EqualTo("session-cookie=token; expires=Sun, 26 Oct 1986 22:00:00 GMT; path=/; secure; samesite=strict; httponly"));
+            Assert.That(_context.Response.Headers.SetCookie.ToString(), Is.EqualTo("session-cookie=token; expires=Mon, 27 Oct 1986 00:00:00 GMT; path=/; secure; samesite=strict; httponly"));
         }
     }
 }
