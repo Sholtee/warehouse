@@ -5,7 +5,6 @@
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -51,8 +50,6 @@ namespace Warehouse.Host
                 {
                     options.SuppressModelStateInvalidFilter = true;  // we want to use our own ValidateModelStateFilter
                 });
-        
-            services.TryAddSingleton(TimeProvider.System);
 
             services
                 .AddExceptionHandler<UnhandledExceptionHandler>()
