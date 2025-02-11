@@ -34,7 +34,7 @@ namespace Warehouse.API.Controllers.Tests
         private Mock<IJwtService> _mockIJwtService = null!;
         private Mock<IPasswordHasher<string>> _mockPasswordHasher = null!;
         private Mock<ILogger<LoginController>> _mockLogger = null!;
-        private Mock<TimeProvider> _mockTimeProvider = null!;
+        private Mock<ISessionManager> _mockSessionManager = null!;
 
         [SetUp]
         public void SetupTest()
@@ -44,16 +44,15 @@ namespace Warehouse.API.Controllers.Tests
             _mockIJwtService = new Mock<IJwtService>(MockBehavior.Strict);
             _mockPasswordHasher = new Mock<IPasswordHasher<string>>(MockBehavior.Strict);
             _mockLogger = new Mock<ILogger<LoginController>>(MockBehavior.Loose);
-            _mockTimeProvider = new Mock<TimeProvider>(MockBehavior.Strict);
+            _mockSessionManager = new Mock<ISessionManager>(MockBehavior.Strict);
 
             _loginController = new LoginController
             (
                 _mockUserRepository.Object,
-                _mockConfiguration.Object,
                 _mockIJwtService.Object,
+                _mockSessionManager.Object,
                 _mockPasswordHasher.Object,
-                _mockLogger.Object,
-                _mockTimeProvider.Object
+                _mockLogger.Object
             );
             _loginController.ControllerContext.HttpContext = new DefaultHttpContext();
         }
@@ -98,11 +97,8 @@ namespace Warehouse.API.Controllers.Tests
                 .Setup(c => c.GetSection("Auth:SessionCookieName"))
                 .Returns(mockCookieName.Object);
 
-            DateTimeOffset now = new(1986, 10, 26, 0, 0, 0, TimeSpan.Zero);
-
-            _mockTimeProvider
-                .Setup(t => t.GetUtcNow())
-                .Returns(now);
+            _mockSessionManager
+                .SetupSet(s => s.Token = "token");
 
             _mockIJwtService
                 .Setup(s => s.CreateTokenAsync(CLIENT_ID, user.Roles))
@@ -124,20 +120,12 @@ namespace Warehouse.API.Controllers.Tests
             );
 
             IActionResult result = await _loginController.Login();
-
-            Assert.Multiple(() =>
-            {
-                Assert.That(result, Is.InstanceOf<NoContentResult>());
-                Assert.That
-                (
-                    _loginController.Response.Headers.SetCookie.ToString(),
-                    Is.EqualTo("session-cookie=token; expires=Sun, 26 Oct 1986 00:30:00 GMT; path=/; secure; samesite=strict; httponly")
-                );
-            });
+            Assert.That(result, Is.InstanceOf<NoContentResult>());
 
             _mockUserRepository.Verify(r => r.QueryUser(CLIENT_ID), Times.Once);
             _mockPasswordHasher.Verify(h => h.VerifyHashedPassword(CLIENT_ID, "hash", CLIENT_SECRET), Times.Once);
             _mockIJwtService.Verify(s => s.CreateTokenAsync(CLIENT_ID, user.Roles), Times.Once);
+            _mockSessionManager.VerifySet(s => s.Token = "token", Times.Once);
         }
 
         public static IEnumerable<KeyValuePair<string, StringValues>> InvalidLoginHeaders
@@ -283,30 +271,13 @@ namespace Warehouse.API.Controllers.Tests
                 .SetupGet(s => s.Value)
                 .Returns("session-cookie");
 
-            _mockConfiguration
-                .Setup(c => c.GetSection("Auth:SessionCookieName"))
-                .Returns(mockCookieName.Object);
-
-            _loginController.Request.Headers.Add
-            (
-                new KeyValuePair<string, StringValues>
-                (
-                    "Cookie",
-                    new StringValues("session-cookie=token")
-                )
-            );
+            _mockSessionManager
+                .SetupSet(s => s.Token = null);
 
             IActionResult result = _loginController.Logout();
+            Assert.That(result, Is.InstanceOf<NoContentResult>());
 
-            Assert.Multiple(() =>
-            {
-                Assert.That(result, Is.InstanceOf<NoContentResult>());
-                Assert.That
-                (
-                    _loginController.Response.Headers.SetCookie.ToString(),
-                    Is.EqualTo("session-cookie=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/")
-                );
-            });
+            _mockSessionManager.VerifySet(s => s.Token = null, Times.Once);
         }
     }
 }
