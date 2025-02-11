@@ -92,7 +92,7 @@ namespace Warehouse.Host.Services.Tests
 
             sessionManager.Token = null;
 
-            Assert.That(_context.Response.Headers.SetCookie, Is.EqualTo("session-cookie=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/"));
+            Assert.That(_context.Response.Headers.SetCookie.ToString(), Is.EqualTo("session-cookie=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/"));
         }
 
         [Test]
@@ -113,7 +113,7 @@ namespace Warehouse.Host.Services.Tests
 
             sessionManager.Token = "token";
 
-            Assert.That(_context.Response.Headers.SetCookie, Is.EqualTo("session-cookie=token; expires=Sun, 26 Oct 1986 22:00:00 GMT; path=/; secure; samesite=strict; httponly"));
+            Assert.That(_context.Response.Headers.SetCookie.ToString(), Is.EqualTo("session-cookie=token; expires=Sun, 26 Oct 1986 22:00:00 GMT; path=/; secure; samesite=strict; httponly"));
         }
     }
 }
