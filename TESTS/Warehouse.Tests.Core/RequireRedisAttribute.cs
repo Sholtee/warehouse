@@ -8,14 +8,14 @@ using System.Diagnostics;
 
 using StackExchange.Redis;
 
-namespace Warehouse.Host.Tests
+namespace Warehouse.Tests.Core
 {
-    internal interface IHasRedisConnection
+    public interface IHasRedisConnection
     {
         IConnectionMultiplexer RedisConnection { get; set; }
     }
 
-    internal sealed class RequireRedisAttribute() : RequireExternalServiceAttribute("redis:7.4.1", 6379, "test_redis")
+    public sealed class RequireRedisAttribute() : RequireExternalServiceAttribute("redis:7.4.1", 6379, "test_redis")
     {
         private ConnectionMultiplexer FConnection = null!;
 

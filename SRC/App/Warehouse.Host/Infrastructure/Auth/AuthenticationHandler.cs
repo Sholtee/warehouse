@@ -1,5 +1,5 @@
 /********************************************************************************
-* SessionCookieAuthenticationHandler.cs                                         *
+* AuthenticationHandler.cs                                                      *
 *                                                                               *
 * Author: Denes Solti                                                           *
 * Project: Warehouse API (boilerplate)                                          *
@@ -14,13 +14,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Warehouse.Host.Infrastructure.Auth
 {
     using Core.Abstractions;
 
-    internal sealed class SessionCookieAuthenticationHandler
+    internal sealed class AuthenticationHandler
     (
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
@@ -38,13 +37,13 @@ namespace Warehouse.Host.Infrastructure.Auth
 
             if (string.IsNullOrEmpty(session.Token))
             {
-                return AuthenticateResult.Fail("Missing session cookie");
+                return AuthenticateResult.Fail("Missing session token");
             }
 
-            TokenValidationResult validationResult = await tokenManager.ValidateTokenAsync(session.Token);
-            if (!validationResult.IsValid)
+            ClaimsIdentity? identity = await tokenManager.GetIdentityAsync(session.Token);
+            if (identity is null)
             {
-                return AuthenticateResult.Fail(validationResult.Exception);
+                return AuthenticateResult.Fail("Failed to get the identity from the token");
             }
 
             if (session.SlidingExpiration)
@@ -56,7 +55,7 @@ namespace Warehouse.Host.Infrastructure.Auth
             (
                 new AuthenticationTicket
                 (
-                    new ClaimsPrincipal(validationResult.ClaimsIdentity),
+                    new ClaimsPrincipal(identity),
                     Scheme.Name
                 )
             );

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
       <Configurations>Debug</Configurations>
@@ -10,7 +10,13 @@
       <Optimize>false</Optimize>
       <AnalysisMode>AllEnabledByDefault</AnalysisMode>
       <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-      <NoWarn>CA1062;CA1515</NoWarn>
+      <NoWarn>CA1019;CA1031;CA1033;CA1812;CA2007;CA2234</NoWarn>
   </PropertyGroup>
+    
+  <ItemGroup>
+      <PackageReference Include="Ductus.FluentDocker" Version="2.10.*" />
+      <PackageReference Include="NUnit" Version="4.3.*" />
+      <PackageReference Include="StackExchange.Redis" Version="2.8.*" />
+  </ItemGroup>
 
 </Project>

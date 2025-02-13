@@ -21,7 +21,7 @@ namespace Warehouse.Host.Services
 
         private readonly bool _slidingExpiration = configuration.GetValue("Auth:SlidingExpiration", true);
 
-        private readonly int  _sessionExpirationMinutes = configuration.GetValue("Auth:SessionExpirationMinutes", 1440);
+        private readonly int  _sessionExpirationMinutes = configuration.GetRequiredValue<int>("Auth:SessionExpirationMinutes");
 
         public string? Token
         {

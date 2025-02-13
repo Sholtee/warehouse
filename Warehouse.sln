@@ -5,7 +5,7 @@ VisualStudioVersion = 17.12.35506.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warehouse.Host", "SRC\App\Warehouse.Host\Warehouse.Host.csproj", "{12B4CC9B-1645-44D8-A231-9927586B6BFE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalStack.Setup", "SRC\Tools\LocalStackSetup\LocalStackSetup.csproj", "{BA285C95-E4A0-48DA-A8C5-43F6D3C1BA07}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalStackSetup", "SRC\Tools\LocalStackSetup\LocalStackSetup.csproj", "{BA285C95-E4A0-48DA-A8C5-43F6D3C1BA07}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{D6E112D7-9669-469B-983C-8B37DF328BF9}"
 EndProject
@@ -26,6 +26,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warehouse.API", "SRC\App\Warehouse.API\Warehouse.API.csproj", "{30FA56CB-BB80-4426-9514-091DABFC0427}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warehouse.API.Tests", "TESTS\Warehouse.API.Tests\Warehouse.API.Tests.csproj", "{25242D96-9AEC-4A05-AEE8-708E3CB60F03}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warehouse.Tests.Core", "TESTS\Warehouse.Tests.Core\Warehouse.Tests.Core.csproj", "{94F08937-8103-4A6A-81F2-E4BB93C5483B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -68,6 +70,10 @@ Global
 		{25242D96-9AEC-4A05-AEE8-708E3CB60F03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{25242D96-9AEC-4A05-AEE8-708E3CB60F03}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{25242D96-9AEC-4A05-AEE8-708E3CB60F03}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{94F08937-8103-4A6A-81F2-E4BB93C5483B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94F08937-8103-4A6A-81F2-E4BB93C5483B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94F08937-8103-4A6A-81F2-E4BB93C5483B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94F08937-8103-4A6A-81F2-E4BB93C5483B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -79,5 +85,6 @@ Global
 		{DCCCFFC6-9BCD-4878-B695-7C3A792122DE} = {6966C920-E636-40CF-A243-4E2E781427AE}
 		{0719B4B5-C7D8-4EE0-86AE-9B63175BB793} = {6966C920-E636-40CF-A243-4E2E781427AE}
 		{25242D96-9AEC-4A05-AEE8-708E3CB60F03} = {6966C920-E636-40CF-A243-4E2E781427AE}
+		{94F08937-8103-4A6A-81F2-E4BB93C5483B} = {6966C920-E636-40CF-A243-4E2E781427AE}
 	EndGlobalSection
 EndGlobal

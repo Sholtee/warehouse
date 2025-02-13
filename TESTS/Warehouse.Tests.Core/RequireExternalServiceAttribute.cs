@@ -11,10 +11,10 @@ using Ductus.FluentDocker.Services;
 using NUnit.Framework;
 using NUnit.Framework.Interfaces;
 
-namespace Warehouse.Host.Tests
+namespace Warehouse.Tests.Core
 {
     [AttributeUsage(AttributeTargets.Class)]
-    internal abstract class RequireExternalServiceAttribute(string image, int exposePort, string name, params string[] environment) : Attribute, ITestAction
+    public abstract class RequireExternalServiceAttribute(string image, int exposePort, string name, params string[] environment) : Attribute, ITestAction
     {
         private IContainerService? FService;
 

@@ -9,13 +9,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Ductus.FluentDocker" Version="2.10.*" />
       <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.*" />
       <PackageReference Include="ServiceStack.OrmLite.Sqlite.Data" Version="8.5.*" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\..\SRC\App\Warehouse.Host\Warehouse.Host.csproj" />
+      <ProjectReference Include="..\Warehouse.Tests.Core\Warehouse.Tests.Core.csproj" />
       <ProjectReference Include="..\Warehouse.Tests.Host\Warehouse.Tests.Host.csproj" />
     </ItemGroup>
 

@@ -152,7 +152,7 @@ namespace Warehouse.Host.Infrastructure.Tests
                         .AddExceptionHandler<UnhandledExceptionHandler>()
                         .AddRateLimiter();
 
-                    services.AddSessionCookieAuthentication();
+                    services.AddStatelessAuthentication();
 
                     services
                         .AddMvc()

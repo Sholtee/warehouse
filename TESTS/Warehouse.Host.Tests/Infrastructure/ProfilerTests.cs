@@ -8,6 +8,8 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 using Amazon.SecretsManager.Model;
@@ -33,10 +35,8 @@ namespace Warehouse.Host.Infrastructure.Tests
 {
     using Core.Abstractions;
     using Core.Auth;
-    using Host.Tests;
     using Registrations;
-    using System.Net.Http;
-    using System.Net;
+    using Warehouse.Tests.Core;
 
     [ApiController]
     public sealed class ProfiledController(IDbConnection conn, IAmazonSecurityTokenService sts) : ControllerBase
@@ -112,7 +112,7 @@ namespace Warehouse.Host.Infrastructure.Tests
 
                     services
                         .AddAwsServices()
-                        .AddSessionCookieAuthentication()
+                        .AddStatelessAuthentication()
                         .AddProfiler(Configuration);
 
                     services

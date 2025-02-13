@@ -10,6 +10,7 @@ using System;
 using Amazon.SecretsManager;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -18,22 +19,39 @@ namespace Warehouse.Host.Infrastructure.Registrations
     using Auth;
     using Core.Abstractions;
     using Core.Auth;
+    using Core.Extensions;
     using Services;
 
     internal static partial class Registrations
     {
-        public static IServiceCollection AddSessionCookieAuthentication(this IServiceCollection services)
+        private static void AddAuthenticationBase(this IServiceCollection services)
         {
             services.TryAddScoped(typeof(IPasswordHasher<>), typeof(PasswordHasher<>));
             services.TryAddSingleton(TimeProvider.System);
-            services.TryAddScoped<ITokenManager, JwtManager>(); 
             services.TryAddScoped<ISessionManager, HttpSessionManager>();
-            services.TryAddAWSService<IAmazonSecretsManager>();
             services.AddHttpContextAccessor();
-            services.AddMemoryCache();
             services
                 .AddAuthentication()
-                .AddScheme<AuthenticationSchemeOptions, SessionCookieAuthenticationHandler>(WarehouseAuthentication.SCHEME, null);
+                .AddScheme<AuthenticationSchemeOptions, AuthenticationHandler>(WarehouseAuthentication.SCHEME, null);
+        }
+
+        public static IServiceCollection AddStatefulAuthentication(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddAuthenticationBase();
+            services.AddStackExchangeRedisCache(opts => opts.Configuration = configuration.GetRequiredValue<string>("WAREHOUSE_REDIS_ENDPOINT"));
+            services.TryAddScoped<ITokenManager, CachedTokenManager>();
+            return services;
+        }
+
+        /// <summary>
+        /// Not advised to use when SlidingExpiration is enabled as it may let the client create an infinite token
+        /// </summary>
+        public static IServiceCollection AddStatelessAuthentication(this IServiceCollection services)
+        {
+            services.AddAuthenticationBase();
+            services.TryAddAWSService<IAmazonSecretsManager>();
+            services.TryAddScoped<ITokenManager, JwtManager>();
+            services.AddMemoryCache();
 
             return services;
         }

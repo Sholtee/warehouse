@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Moq;
@@ -33,8 +34,10 @@ namespace Warehouse.API.Tests
     using Core.Auth;
     using DAL;
     using Host;
+    using System.Collections.Generic;
+    using Warehouse.Tests.Core;
 
-    [TestFixture]
+    [TestFixture, RequireRedis]
     internal sealed class WorkFlowTests
     {
         #region Private
@@ -83,9 +86,6 @@ namespace Warehouse.API.Tests
                 {
                     Mock<IAmazonSecretsManager> mockSecretsManager = new(MockBehavior.Strict);
                     mockSecretsManager
-                        .Setup(s => s.GetSecretValueAsync(It.Is<GetSecretValueRequest>(r => r.SecretId == "local-warehouse-jwt-secret-key"), default))
-                        .ReturnsAsync(new GetSecretValueResponse { SecretString = "very-very-very-very-very-secure-secret-key" });
-                    mockSecretsManager
                         .Setup(s => s.GetSecretValueAsync(It.Is<GetSecretValueRequest>(r => r.SecretId == "local-warehouse-root-user-password"), default))
                         .ReturnsAsync(new GetSecretValueResponse { SecretString = "password" });
 
@@ -100,7 +100,14 @@ namespace Warehouse.API.Tests
                     services.AddSingleton(mockSecretsManager.Object);
                     services.AddSingleton<IDbConnection>(_connection);
                     services.AddSingleton<IOrmLiteDialectProvider>(SqliteDialect.Provider);
-                });
+                })
+                .ConfigureAppConfiguration(configurationBuilder => configurationBuilder.AddInMemoryCollection
+                (
+                    new Dictionary<string, string?>
+                    {
+                        ["WAREHOUSE_REDIS_ENDPOINT"] = "localhost:6379"
+                    }
+                ));
         }
 
         private TestHostFactory _appFactory = null!;

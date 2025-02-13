@@ -16,6 +16,7 @@
     <ItemGroup>
       <ProjectReference Include="..\..\SRC\App\Warehouse.API\Warehouse.API.csproj" />
       <ProjectReference Include="..\..\SRC\App\Warehouse.Host\Warehouse.Host.csproj" />
+      <ProjectReference Include="..\Warehouse.Tests.Core\Warehouse.Tests.Core.csproj" />
       <ProjectReference Include="..\Warehouse.Tests.Host\Warehouse.Tests.Host.csproj" />
     </ItemGroup>
 

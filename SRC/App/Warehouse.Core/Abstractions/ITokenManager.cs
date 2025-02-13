@@ -5,9 +5,9 @@
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
+using System.Security.Claims;
 using System.Threading.Tasks;
 
-using Microsoft.IdentityModel.Tokens;
 
 namespace Warehouse.Core.Abstractions
 {
@@ -29,13 +29,13 @@ namespace Warehouse.Core.Abstractions
         Task<string> RefreshTokenAsync(string token);
 
         /// <summary>
-        /// Validates the given token.
+        /// Gets the identity associated to the given <paramref name="token"/>. Returns null if the token is invalid.
         /// </summary>
-        Task<TokenValidationResult> ValidateTokenAsync(string token);
+        Task<ClaimsIdentity?> GetIdentityAsync(string token);
 
         /// <summary>
         /// Revokes the given token.
         /// </summary>
-        Task RevokeTokenAsync(string token);
+        Task<bool> RevokeTokenAsync(string token);
     }
 }

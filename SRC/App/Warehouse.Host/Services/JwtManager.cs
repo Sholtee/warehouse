@@ -90,7 +90,7 @@ namespace Warehouse.Host.Services
             ]
         );
 
-        public async Task<TokenValidationResult> ValidateTokenAsync(string token)
+        public async Task<ClaimsIdentity?> GetIdentityAsync(string token)
         {
             TokenValidationResult result = await _handler.ValidateTokenAsync
             (
@@ -107,28 +107,30 @@ namespace Warehouse.Host.Services
                 }
             );
 
-            if (result.IsValid)
-                logger.LogInformation("Token validation completed for user: {user}", result.Claims[ClaimTypes.Name]);
-            else
+            if (!result.IsValid)
+            {
                 logger.LogInformation("Token validation failed: {reason}", result.Exception?.ToString());
+                return null;
+            }
 
-            return result;
+            logger.LogInformation("Token validation completed for user: {user}", result.Claims[ClaimTypes.Name]);
+            return result.ClaimsIdentity;
         }
 
         public async Task<string> RefreshTokenAsync(string token)
         {
-            TokenValidationResult tokenValidationResult = await ValidateTokenAsync(token);
-            if (!tokenValidationResult.IsValid)
+            ClaimsIdentity? identity = await GetIdentityAsync(token);
+            if (identity is null)
                 throw new ArgumentException("The given token is not valid", nameof(token));
 
-            return await CreateTokenAsync(((JwtSecurityToken) tokenValidationResult.SecurityToken).Claims);
+            return await CreateTokenAsync(identity.Claims);
         }
 
-        public Task RevokeTokenAsync(string token) =>
+        public Task<bool> RevokeTokenAsync(string token) =>
             //
             // JWT tokens cannot be revoked as they have no state
             //
 
-            Task.CompletedTask;
+            Task.FromResult(false);
     }
 }

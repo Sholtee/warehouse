@@ -279,7 +279,7 @@ namespace Warehouse.API.Controllers.Tests
 
             _mockTokenManager
                 .Setup(t => t.RevokeTokenAsync("token"))
-                .Returns(Task.CompletedTask);
+                .ReturnsAsync(true);
 
             IActionResult result = await _loginController.Logout();
             Assert.That(result, Is.InstanceOf<NoContentResult>());
