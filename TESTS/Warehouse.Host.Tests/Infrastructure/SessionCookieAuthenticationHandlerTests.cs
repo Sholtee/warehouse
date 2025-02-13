@@ -44,7 +44,7 @@ namespace Warehouse.Host.Infrastructure.Tests
     {
         private Mock<IOptionsMonitor<AuthenticationSchemeOptions>> _mockOptionsMonitor = null!;
         private Mock<ILoggerFactory> _mockLoggerFactory = null!;
-        private Mock<ITokenManager> _mockJwtService = null!;
+        private Mock<ITokenManager> _mockTokenManager = null!;
         private Mock<ISessionManager> _mockSessionManager = null!;
         private Mock<UrlEncoder> _mockUrlEncoder = null!;
         private Mock<ILogger> _mockLogger = null!;
@@ -66,7 +66,7 @@ namespace Warehouse.Host.Infrastructure.Tests
             _mockLoggerFactory
                 .Setup(f => f.CreateLogger(typeof(SessionCookieAuthenticationHandler).FullName!))
                 .Returns(_mockLogger.Object);
-            _mockJwtService = new Mock<ITokenManager>(MockBehavior.Strict);
+            _mockTokenManager = new Mock<ITokenManager>(MockBehavior.Strict);
             _mockSessionManager = new Mock<ISessionManager>(MockBehavior.Strict);
             _mockSessionManager
                 .SetupGet(c => c.SlidingExpiration)
@@ -80,7 +80,7 @@ namespace Warehouse.Host.Infrastructure.Tests
                 _mockOptionsMonitor.Object,
                 _mockLoggerFactory.Object,
                 _mockSessionManager.Object,
-                _mockJwtService.Object,
+                _mockTokenManager.Object,
                 _mockUrlEncoder.Object
             );
             
@@ -141,7 +141,7 @@ namespace Warehouse.Host.Infrastructure.Tests
 
             Exception failure = new Exception("Invalid token");
 
-            _mockJwtService
+            _mockTokenManager
                 .Setup(j => j.ValidateTokenAsync("token"))
                 .ReturnsAsync(new TokenValidationResult { IsValid = false, Exception = failure });
             
@@ -163,7 +163,7 @@ namespace Warehouse.Host.Infrastructure.Tests
 
             ClaimsIdentity identity = new();
 
-            _mockJwtService
+            _mockTokenManager
                 .Setup(j => j.ValidateTokenAsync("token"))
                 .ReturnsAsync(new TokenValidationResult { IsValid = true, ClaimsIdentity = identity });
 
