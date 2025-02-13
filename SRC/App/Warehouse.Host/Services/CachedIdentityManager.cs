@@ -72,7 +72,7 @@ namespace Warehouse.Host.Services
 
         public async Task<bool> RevokeTokenAsync(string token)
         {
-            await cache.RemoveAsync(token);
+            await cache.RemoveAsync(Prefix(token));
             return true;
         }
 
