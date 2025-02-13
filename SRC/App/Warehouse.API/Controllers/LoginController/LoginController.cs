@@ -20,7 +20,6 @@ namespace Warehouse.API.Controllers
 {
     using Core.Abstractions;
     using Core.Attributes;
-    using Core.Extensions;
     using DAL;
 
     /// <summary>
@@ -30,7 +29,7 @@ namespace Warehouse.API.Controllers
     public sealed class LoginController
     (
         IUserRepository userRepository,
-        IJwtService jwtService,
+        ITokenManager tokenManager,
         ISessionManager session,
         IPasswordHasher<string> passwordHasher,
         ILogger<LoginController> logger
@@ -97,7 +96,7 @@ namespace Warehouse.API.Controllers
             // Set up the session cookie
             //
 
-            session.Token = await jwtService.CreateTokenAsync(clientId, user.Roles);
+            session.Token = await tokenManager.CreateTokenAsync(clientId, user.Roles);
 
             //
             // TODO: redirect the client to its original destination
@@ -113,9 +112,13 @@ namespace Warehouse.API.Controllers
         [HttpGet("logout")]
         [ApiExplorerSessionCookieAuthorization]
         [ProducesResponseType(204)]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
-            session.Token = null;
+            if (!string.IsNullOrEmpty(session.Token))
+            {
+                await tokenManager.RevokeTokenAsync(session.Token);
+                session.Token = null;
+            }
             return NoContent();
         }
     }

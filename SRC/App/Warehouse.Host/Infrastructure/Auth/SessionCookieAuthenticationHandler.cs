@@ -5,7 +5,6 @@
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
@@ -26,7 +25,7 @@ namespace Warehouse.Host.Infrastructure.Auth
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
         ISessionManager session,
-        IJwtService jwtService,
+        ITokenManager tokenManager,
         UrlEncoder encoder
     ) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
     {
@@ -42,7 +41,7 @@ namespace Warehouse.Host.Infrastructure.Auth
                 return AuthenticateResult.Fail("Missing session cookie");
             }
 
-            TokenValidationResult validationResult = await jwtService.ValidateTokenAsync(session.Token);
+            TokenValidationResult validationResult = await tokenManager.ValidateTokenAsync(session.Token);
             if (!validationResult.IsValid)
             {
                 return AuthenticateResult.Fail(validationResult.Exception);
@@ -50,7 +49,7 @@ namespace Warehouse.Host.Infrastructure.Auth
 
             if (session.SlidingExpiration)
             {
-                session.Token = await jwtService.CreateTokenAsync((JwtSecurityToken) validationResult.SecurityToken);
+                session.Token = await tokenManager.RefreshTokenAsync(session.Token);
             }
 
             return AuthenticateResult.Success

@@ -44,7 +44,7 @@ namespace Warehouse.Host.Infrastructure.Tests
     {
         private Mock<IOptionsMonitor<AuthenticationSchemeOptions>> _mockOptionsMonitor = null!;
         private Mock<ILoggerFactory> _mockLoggerFactory = null!;
-        private Mock<IJwtService> _mockJwtService = null!;
+        private Mock<ITokenManager> _mockJwtService = null!;
         private Mock<ISessionManager> _mockSessionManager = null!;
         private Mock<UrlEncoder> _mockUrlEncoder = null!;
         private Mock<ILogger> _mockLogger = null!;
@@ -66,7 +66,7 @@ namespace Warehouse.Host.Infrastructure.Tests
             _mockLoggerFactory
                 .Setup(f => f.CreateLogger(typeof(SessionCookieAuthenticationHandler).FullName!))
                 .Returns(_mockLogger.Object);
-            _mockJwtService = new Mock<IJwtService>(MockBehavior.Strict);
+            _mockJwtService = new Mock<ITokenManager>(MockBehavior.Strict);
             _mockSessionManager = new Mock<ISessionManager>(MockBehavior.Strict);
             _mockSessionManager
                 .SetupGet(c => c.SlidingExpiration)
@@ -249,7 +249,7 @@ namespace Warehouse.Host.Infrastructure.Tests
         {
             using IServiceScope scope = _appFactory.Services.CreateScope();
 
-            IJwtService jwtService = scope.ServiceProvider.GetRequiredService<IJwtService>();
+            ITokenManager jwtService = scope.ServiceProvider.GetRequiredService<ITokenManager>();
             return await jwtService.CreateTokenAsync(user, role);
         }
 
