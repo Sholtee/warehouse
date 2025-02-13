@@ -5,10 +5,11 @@
     <PropertyGroup>
         <AssemblyName>Warehouse.Host.Tests</AssemblyName>
         <RootNamespace>Warehouse.Host.Tests</RootNamespace>
-        <NoWarn>CA1515;CA1822;CA1859;CA2000;CA2007;CA2201;CA2234;SYSLIB0026</NoWarn>
+        <NoWarn>CA1019;CA1031;CA1515;CA1822;CA1859;CA2000;CA2007;CA2201;CA2234;SYSLIB0026</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Ductus.FluentDocker" Version="2.10.*" />
       <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.*" />
       <PackageReference Include="ServiceStack.OrmLite.Sqlite.Data" Version="8.5.*" />
     </ItemGroup>

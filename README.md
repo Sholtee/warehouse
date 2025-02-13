@@ -12,6 +12,7 @@
 - Migration [DBUp](https://dbup.github.io/)
 - Logging: [Serilog](https://serilog.net/)
 - Mapping: [AutoMapper](https://automapper.org/)
+- Profiling: [MiniProfiler](https://miniprofiler.com/dotnet/)
 - API explorer: [Swashbuckle/Swagger](https://github.com/domaindrivendev/Swashbuckle.AspNetCore/)
 - Infra: [AWS](https://aws.amazon.com/), [Docker](https://www.docker.com/products/docker-desktop/), [LocalStack](https://www.localstack.cloud/)
 - Test FW: [NUnit](https://nunit.org/)
@@ -84,9 +85,13 @@ root
 │   │       │   │
 │   │       │   └───Auth [authentication handler related stuffs]
 │   │       │   │
+│   │       │   └───Config [configuration helpers]
+│   │       │   │
 │   │       │   └───Filters [ASP.NET & Swashbuckle related filters]
 │   │       │   │
 │   │       │   └───Middlewares [ASP.NET middlewares]
+│   │       │   │
+│   │       │   └───Profiling [profiling related helper classes]
 │   │       │   │
 │   │       │   └───Registrations [service registrations]
 │   │       │
@@ -190,6 +195,11 @@ To query items using cURL:
 - Available at `<base_url>/healthcheck` (defaults to [https://localhost:1986/healthcheck](https://localhost:1986/))
 - It executes [database connection](https://github.com/Sholtee/warehouse/blob/0ebba5ee75d9338dfa0810ccadf94242437d424c/SRC/App/Warehouse.Host/Services/DbConnectionHealthCheck.cs#L18) & [aws client](https://github.com/Sholtee/warehouse/blob/0ebba5ee75d9338dfa0810ccadf94242437d424c/SRC/App/Warehouse.Host/Services/AwsHealthCheck.cs#L18) checks
 - The endpoint is invoked during [container](https://github.com/Sholtee/warehouse/blob/0ebba5ee75d9338dfa0810ccadf94242437d424c/SRC/App/dockerfile#L28) and [service](https://github.com/Sholtee/warehouse/blob/0ebba5ee75d9338dfa0810ccadf94242437d424c/CloudFormation/app.yml#L90) health checks
+
+## Profiling
+- Available at `<base_url>/profiler/results-index` (defaults to [https://localhost:1986/profiler/results-index](https://localhost:1986/profiler/results-index))
+- Can be disabled from [configuration](https://github.com/Sholtee/warehouse/blob/730f3003f113bce393b899520cf610ed6c290845/SRC/App/Warehouse.Host/appsettings.json#L42)
+- By default only the [root](https://github.com/Sholtee/warehouse/blob/730f3003f113bce393b899520cf610ed6c290845/SRC/App/Warehouse.Host/appsettings.json#L44) user can access the profiling results
 
 ## Running the tests
 Simply run the `.\Run-Tests.ps1` script. It places the tests result and coverage report to the `.\Artifacts` folder
