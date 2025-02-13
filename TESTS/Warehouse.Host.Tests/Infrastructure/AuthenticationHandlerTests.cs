@@ -48,6 +48,7 @@ namespace Warehouse.Host.Infrastructure.Tests
         private Mock<ILoggerFactory> _mockLoggerFactory = null!;
         private Mock<ITokenManager> _mockTokenManager = null!;
         private Mock<ISessionManager> _mockSessionManager = null!;
+        private Mock<IConfiguration> _mockConfiguration = null!;
         private Mock<UrlEncoder> _mockUrlEncoder = null!;
         private Mock<ILogger> _mockLogger = null!;
         private Mock<TimeProvider> _mockTimeProvider = null!;
@@ -70,16 +71,15 @@ namespace Warehouse.Host.Infrastructure.Tests
                 .Returns(_mockLogger.Object);
             _mockTokenManager = new Mock<ITokenManager>(MockBehavior.Strict);
             _mockSessionManager = new Mock<ISessionManager>(MockBehavior.Strict);
-            _mockSessionManager
-                .SetupGet(c => c.SlidingExpiration)
-                .Returns(false);
             _mockUrlEncoder = new Mock<UrlEncoder>(MockBehavior.Strict);
+            _mockConfiguration = new Mock<IConfiguration>(MockBehavior.Strict);
 
             _context = new DefaultHttpContext();
 
             _handler = new AuthenticationHandler
             (
                 _mockOptionsMonitor.Object,
+                _mockConfiguration.Object,
                 _mockLoggerFactory.Object,
                 _mockSessionManager.Object,
                 _mockTokenManager.Object,
@@ -155,11 +155,20 @@ namespace Warehouse.Host.Infrastructure.Tests
         }
 
         [Test]
-        public async Task ValidToken()
+        public async Task ValidToken_NoSlidingExpiration()
         {
             _mockSessionManager
                 .SetupGet(s => s.Token)
                 .Returns("token");
+
+            Mock<IConfigurationSection> mockSection = new(MockBehavior.Strict);
+            mockSection
+                .SetupGet(s => s.Value)
+                .Returns("false");
+
+            _mockConfiguration
+                .Setup(c => c.GetSection("Auth:SlidingExpiration"))
+                .Returns(mockSection.Object);
 
             ClaimsIdentity identity = new();
 
@@ -174,6 +183,50 @@ namespace Warehouse.Host.Infrastructure.Tests
                 Assert.That(result.Succeeded);
                 Assert.That(result.Ticket?.Principal.Identity, Is.EqualTo(identity));
             });
+
+            _mockSessionManager.VerifyGet(s => s.Token, Times.AtLeast(1));
+            _mockSessionManager.VerifySet(s => s.Token = "token", Times.Never);
+            _mockTokenManager.Verify(m => m.RefreshTokenAsync(It.IsAny<string>()), Times.Never);
+        }
+
+        [Test]
+        public async Task ValidToken_SlidingExpiration()
+        {
+            _mockSessionManager
+                .SetupGet(s => s.Token)
+                .Returns("token");
+            _mockSessionManager
+                .SetupSet(s => s.Token = "token_2");
+
+            Mock<IConfigurationSection> mockSection = new(MockBehavior.Strict);
+            mockSection
+                .SetupGet(s => s.Value)
+                .Returns("true");
+
+            _mockConfiguration
+                .Setup(c => c.GetSection("Auth:SlidingExpiration"))
+                .Returns(mockSection.Object);
+
+            ClaimsIdentity identity = new();
+
+            _mockTokenManager
+                .Setup(m => m.GetIdentityAsync("token"))
+                .ReturnsAsync(identity);
+            _mockTokenManager
+                .Setup(m => m.RefreshTokenAsync("token"))
+                .ReturnsAsync("token_2");
+
+            AuthenticateResult result = await _handler.AuthenticateAsync();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Succeeded);
+                Assert.That(result.Ticket?.Principal.Identity, Is.EqualTo(identity));
+            });
+
+            _mockSessionManager.VerifyGet(s => s.Token, Times.AtLeast(1));
+            _mockSessionManager.VerifySet(s => s.Token = "token_2", Times.Once);
+            _mockTokenManager.Verify(m => m.RefreshTokenAsync("token"), Times.Once);
         }
     }
 

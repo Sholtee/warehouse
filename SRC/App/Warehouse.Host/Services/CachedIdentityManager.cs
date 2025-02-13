@@ -25,7 +25,7 @@ namespace Warehouse.Host.Services
     internal sealed class CachedIdentityManager(IDistributedCache cache, IConfiguration configuration, ILogger<CachedIdentityManager> logger, TimeProvider timeProvider) : ITokenManager
     {
         private readonly int _sessionExpirationMinutes = configuration.GetRequiredValue<int>("Auth:SessionExpirationMinutes");
-        private readonly bool _slidingExpiration = configuration.GetValue("Auth:SlidingExpiration", false);
+        private readonly bool _slidingExpiration = configuration.GetRequiredValue<bool>("Auth:SlidingExpiration");
 
         private static string Prefix(string key) => $"TOKEN::{key}";
 

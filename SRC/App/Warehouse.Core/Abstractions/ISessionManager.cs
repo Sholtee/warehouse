@@ -17,10 +17,5 @@ namespace Warehouse.Core.Abstractions
         /// </summary>
         /// <remarks>Setting the value to null will remove the session from the user context</remarks>
         string? Token { get; set; }
-
-        /// <summary>
-        /// Determines if the system should refresh the token after the validation
-        /// </summary>
-        bool SlidingExpiration { get; }
     }
 }

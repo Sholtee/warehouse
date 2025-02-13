@@ -12,16 +12,19 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Warehouse.Host.Infrastructure.Auth
 {
     using Core.Abstractions;
+    using Core.Extensions;
 
     internal sealed class AuthenticationHandler
     (
         IOptionsMonitor<AuthenticationSchemeOptions> options,
+        IConfiguration configuration,
         ILoggerFactory logger,
         ISessionManager session,
         ITokenManager tokenManager,
@@ -46,7 +49,7 @@ namespace Warehouse.Host.Infrastructure.Auth
                 return AuthenticateResult.Fail("Failed to get the identity from the token");
             }
 
-            if (session.SlidingExpiration)
+            if (configuration.GetRequiredValue<bool>("Auth:SlidingExpiration"))
             {
                 session.Token = await tokenManager.RefreshTokenAsync(session.Token);
             }
