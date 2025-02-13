@@ -39,7 +39,7 @@ namespace Warehouse.Host.Infrastructure.Registrations
         {
             services.AddAuthenticationBase();
             services.AddStackExchangeRedisCache(opts => opts.Configuration = configuration.GetRequiredValue<string>("WAREHOUSE_REDIS_ENDPOINT"));
-            services.TryAddScoped<ITokenManager, CachedTokenManager>();
+            services.TryAddScoped<ITokenManager, CachedIdentityManager>();
             return services;
         }
 

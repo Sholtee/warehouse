@@ -1,5 +1,5 @@
 /********************************************************************************
-* CachedTokenManager.cs                                                         *
+* CachedIdentityManager.cs                                                      *
 *                                                                               *
 * Author: Denes Solti                                                           *
 * Project: Warehouse API (boilerplate)                                          *
@@ -22,7 +22,7 @@ namespace Warehouse.Host.Services
     using Core.Auth;
     using Core.Extensions;
 
-    internal sealed class CachedTokenManager(IDistributedCache cache, IConfiguration configuration, ILogger<CachedTokenManager> logger, TimeProvider timeProvider) : ITokenManager
+    internal sealed class CachedIdentityManager(IDistributedCache cache, IConfiguration configuration, ILogger<CachedIdentityManager> logger, TimeProvider timeProvider) : ITokenManager
     {
         private readonly int _sessionExpirationMinutes = configuration.GetRequiredValue<int>("Auth:SessionExpirationMinutes");
         private readonly bool _slidingExpiration = configuration.GetValue("Auth:SlidingExpiration", false);
