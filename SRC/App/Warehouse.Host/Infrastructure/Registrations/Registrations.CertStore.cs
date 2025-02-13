@@ -13,7 +13,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Warehouse.Host.Infrastructure.Registrations
 {
-
     using Services;
 
     internal static partial class Registrations

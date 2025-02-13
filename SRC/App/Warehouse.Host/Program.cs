@@ -22,6 +22,7 @@ using ServiceStack.OrmLite;
 
 namespace Warehouse.Host
 {
+    using Infrastructure.Config;
 
     internal sealed class Program
     {
@@ -31,8 +32,8 @@ namespace Warehouse.Host
                 configBuilder => configBuilder
                     .AddCommandLine(args)
                     .AddEnvironmentVariables(prefix: "ASPNETCORE_")
-                    .AddEnvironmentVariables(prefix: "AWS_")
-                    .AddEnvironmentVariables(prefix: "WAREHOUSE_")
+                    .AddLiteralEnvironmentVariables(prefix: "AWS_")
+                    .AddLiteralEnvironmentVariables(prefix: "WAREHOUSE_")
             )
             .ConfigureAppConfiguration
             (

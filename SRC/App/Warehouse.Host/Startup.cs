@@ -61,7 +61,8 @@ namespace Warehouse.Host
                 .AddSessionCookieAuthentication()
                 .AddSwagger(configuration)
                 .AddRateLimiter()
-                .AddHealthCheck();
+                .AddHealthCheck()
+                .AddProfiler(configuration);
         }
 
         [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Startup methods cannot be static")]
@@ -72,6 +73,7 @@ namespace Warehouse.Host
             app
                 .UseHttpsRedirection()
                 .UseExceptionHandler(static _ => { })
+                .UseProfiling()
                 .UseRouting()
                 .UseAuthorization()
                 .UseRateLimiter()
