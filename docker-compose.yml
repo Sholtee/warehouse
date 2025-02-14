@@ -16,6 +16,7 @@ services:
       - 3306:3306
   redis:
     image: redis:7.4.2
+    restart: always
   localstack:
     image: localstack/localstack:4.0.3
     restart: always
