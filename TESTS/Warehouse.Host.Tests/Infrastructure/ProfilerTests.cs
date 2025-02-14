@@ -58,13 +58,11 @@ namespace Warehouse.Host.Infrastructure.Tests
         #region Private
         private sealed class TestHostFactory : WebApplicationFactory<Warehouse.Tests.Host.Program>
         {
-            public IConfiguration Configuration { get; set; } = null!;
-
             protected override void ConfigureWebHost(IWebHostBuilder builder) => builder
                 .UseEnvironment("local")
                 .ConfigureAppConfiguration
                 (
-                    config => Configuration = config
+                    static config => config
                         .AddJsonFile("appsettings.json")
                         .AddInMemoryCollection
                         (
@@ -113,7 +111,7 @@ namespace Warehouse.Host.Infrastructure.Tests
                     services
                         .AddAwsServices()
                         .AddStatelessAuthentication()
-                        .AddProfiler(Configuration);
+                        .AddProfiler();
 
                     services
                         .AddMvc()

@@ -39,13 +39,13 @@ namespace Warehouse.Host.Infrastructure.Registrations
         public static IServiceCollection AddStatefulAuthentication(this IServiceCollection services)
         {
             services.AddAuthenticationBase();
-
             services.AddStackExchangeRedisCache(static _ => { });
             services.AddOptions<RedisCacheOptions>().Configure<IConfiguration>
             (
                 static (opts, config) => opts.Configuration = config.GetRequiredValue<string>("WAREHOUSE_REDIS_ENDPOINT")
             );         
             services.TryAddScoped<ITokenManager, CachedIdentityManager>();
+
             return services;
         }
 

@@ -25,22 +25,16 @@ namespace Warehouse.Host.Infrastructure.Registrations
 
     internal static partial class Registrations
     {
-        public static IServiceCollection AddProfiler(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddProfiler(this IServiceCollection services)
         {
-            //
-            // Register the profiler service anyway so the clients don't have to null check when
-            // they request it (the implementation does nothing if the underlying service is not
-            // active)
-            //
-
             services.TryAddScoped<IProfiler>(static _ => new Profiler(MiniProfiler.Current!));
-
-            IConfigurationSection profilerConfiguration = configuration.GetSection("MiniProfiler");
-            if (!profilerConfiguration.Exists())
-                return services;
-
-            services.AddMiniProfiler(options =>
+            services.AddMiniProfiler();
+            services.AddOptions<MiniProfilerOptions>().Configure<IConfiguration>(static (options, configuration) =>
             {
+                IConfigurationSection profilerConfiguration = configuration.GetSection("MiniProfiler");
+                if (!profilerConfiguration.Exists())
+                    return;
+
                 options.RouteBasePath = configuration.GetRequiredValue<string>("MiniProfiler:RouteBasePath");
 
                 string? endpoint = configuration.GetValue<string>("WAREHOUSE_REDIS_ENDPOINT");

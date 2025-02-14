@@ -5,13 +5,10 @@
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Warehouse.Host
@@ -22,9 +19,9 @@ namespace Warehouse.Host
     using Infrastructure.Middlewares;
     using Infrastructure.Registrations;
 
-    internal sealed class Startup(IConfiguration configuration)
+    internal sealed class Startup
     {
-        public void ConfigureServices(IServiceCollection services)
+        public static void ConfigureServices(IServiceCollection services)
         {
             services
                 .AddMvcCore(static options =>
@@ -58,14 +55,13 @@ namespace Warehouse.Host
                 .AddRepositories()
                 .AddRootUserRegistrar()
                 .AddStatefulAuthentication()
-                .AddSwagger(configuration)
+                .AddSwagger()
                 .AddRateLimiter()
                 .AddHealthCheck()
-                .AddProfiler(configuration);
+                .AddProfiler();
         }
 
-        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Startup methods cannot be static")]
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public static void Configure(IApplicationBuilder app)
         {         
             app.AddRootUser();
 

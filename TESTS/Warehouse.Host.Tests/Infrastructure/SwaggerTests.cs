@@ -36,13 +36,11 @@ namespace Warehouse.Host.Infrastructure.Tests
     {
         private sealed class TestHostFactory(string env) : WebApplicationFactory<Warehouse.Tests.Host.Program>
         {
-            public IConfiguration Configuration { get; set; } = null!;
-
             protected override void ConfigureWebHost(IWebHostBuilder builder) => builder
                 .UseEnvironment(env)
                 .ConfigureAppConfiguration
                 (
-                    config => Configuration = config
+                    config => config
                         .AddJsonFile("appsettings.json")
                         .AddJsonFile($"appsettings.{env}.json", optional: true)
                         .Build()
@@ -57,7 +55,7 @@ namespace Warehouse.Host.Infrastructure.Tests
                             .AddApplicationPart(typeof(SwaggerExposedController).Assembly)
                             .AddControllersAsServices();
 
-                        services.AddSwagger(Configuration);
+                        services.AddSwagger();
                     }
                 )
                 .Configure(static app => app.UseSwagger());
