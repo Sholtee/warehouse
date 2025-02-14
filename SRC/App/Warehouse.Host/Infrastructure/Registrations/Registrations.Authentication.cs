@@ -10,6 +10,7 @@ using System;
 using Amazon.SecretsManager;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -35,10 +36,15 @@ namespace Warehouse.Host.Infrastructure.Registrations
                 .AddScheme<AuthenticationSchemeOptions, AuthenticationHandler>(WarehouseAuthentication.SCHEME, null);
         }
 
-        public static IServiceCollection AddStatefulAuthentication(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddStatefulAuthentication(this IServiceCollection services)
         {
             services.AddAuthenticationBase();
-            services.AddStackExchangeRedisCache(opts => opts.Configuration = configuration.GetRequiredValue<string>("WAREHOUSE_REDIS_ENDPOINT"));
+
+            services.AddStackExchangeRedisCache(static _ => { });
+            services.AddOptions<RedisCacheOptions>().Configure<IConfiguration>
+            (
+                static (opts, config) => opts.Configuration = config.GetRequiredValue<string>("WAREHOUSE_REDIS_ENDPOINT")
+            );         
             services.TryAddScoped<ITokenManager, CachedIdentityManager>();
             return services;
         }

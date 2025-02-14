@@ -40,7 +40,8 @@ namespace Warehouse.Tests.Core
                     .WithName(name)
                     .WithEnvironment(environment)
                     .ExposePort(exposePort, exposePort)
-                    .Build().Start();
+                    .Build()
+                    .Start();
 
                 for (int i = 0; i < RetryCount; i++)
                 {

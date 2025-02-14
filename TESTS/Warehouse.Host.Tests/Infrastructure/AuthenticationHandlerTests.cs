@@ -244,7 +244,7 @@ namespace Warehouse.Host.Infrastructure.Tests
 
     internal abstract class AuthenticationHandlerIntegrationTestsBase
     {
-        private sealed class TestHostFactory(Action<IServiceCollection> setupServices) : WebApplicationFactory<Warehouse.Tests.Host.Program>
+        private sealed class TestHostFactory(Action<IServiceCollection> setupServices, Action<IConfigurationBuilder> setupConfig) : WebApplicationFactory<Warehouse.Tests.Host.Program>
         {
             public DateTime Now { get; set; } = DateTime.UtcNow;
 
@@ -266,6 +266,7 @@ namespace Warehouse.Host.Infrastructure.Tests
 
                     setupServices(services);
                 })
+                .ConfigureAppConfiguration(setupConfig)
                 .Configure
                 (
                     static app => app
@@ -293,8 +294,10 @@ namespace Warehouse.Host.Infrastructure.Tests
 
         protected abstract void SetupServices(IServiceCollection services);
 
+        protected virtual void SetupConfiguration(IConfigurationBuilder configurationBuilder) { }
+
         [SetUp]
-        public void SetupTest() => _appFactory = new TestHostFactory(SetupServices);
+        public void SetupTest() => _appFactory = new TestHostFactory(SetupServices, SetupConfiguration);
 
         [TearDown]
         public void TearDownTest()
@@ -425,20 +428,14 @@ namespace Warehouse.Host.Infrastructure.Tests
             return token;
         }
 
-        protected override void SetupServices(IServiceCollection services)
-        {
-            services.AddStatefulAuthentication
+        protected override void SetupConfiguration(IConfigurationBuilder configurationBuilder) => configurationBuilder.AddInMemoryCollection
             (
-                new ConfigurationBuilder()
-                    .AddInMemoryCollection
-                    (
-                        new Dictionary<string, string?>
-                        {
-                            ["WAREHOUSE_REDIS_ENDPOINT"] = "localhost:6379"
-                        }
-                    )
-                    .Build()
+                new Dictionary<string, string?>
+                {
+                    ["WAREHOUSE_REDIS_ENDPOINT"] = "localhost:6379"
+                }
             );
-        }
+
+        protected override void SetupServices(IServiceCollection services) => services.AddStatefulAuthentication();
     }
 }

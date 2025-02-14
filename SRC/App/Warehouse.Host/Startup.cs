@@ -57,7 +57,7 @@ namespace Warehouse.Host
                 .AddDbConnection()
                 .AddRepositories()
                 .AddRootUserRegistrar()
-                .AddStatefulAuthentication(configuration)
+                .AddStatefulAuthentication()
                 .AddSwagger(configuration)
                 .AddRateLimiter()
                 .AddHealthCheck()
