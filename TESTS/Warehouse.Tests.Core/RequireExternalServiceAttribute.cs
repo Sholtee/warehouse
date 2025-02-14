@@ -61,10 +61,16 @@ namespace Warehouse.Tests.Core
         {
             if (test.IsSuite)
             {
-                CloseConnection();
+                if (FService is not null)
+                {
+                    CloseConnection();
 
-                FService?.Dispose();
-                FService = null!;
+                    FService.Stop();
+                    FService.Remove(force: true);
+
+                    FService.Dispose();
+                    FService = null!;
+                }
             }
             else TearDownTest();
         }
