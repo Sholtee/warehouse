@@ -52,7 +52,7 @@ namespace Warehouse.Host.Infrastructure.Tests
         }
     }
 
-    [TestFixture, RequireRedis, RequireLocalStack("sts")]
+    [TestFixture, NonParallelizable, RequireRedis, RequireLocalStack("sts")]
     internal sealed class ProfilerTests
     {
         #region Private

@@ -37,7 +37,7 @@ namespace Warehouse.API.Tests
     using System.Collections.Generic;
     using Warehouse.Tests.Core;
 
-    [TestFixture, RequireRedis]
+    [TestFixture, NonParallelizable, RequireRedis]
     internal sealed class WorkFlowTests
     {
         #region Private

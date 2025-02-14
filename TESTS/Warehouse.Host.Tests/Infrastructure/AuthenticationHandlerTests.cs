@@ -415,7 +415,7 @@ namespace Warehouse.Host.Infrastructure.Tests
         }
     }
 
-    [TestFixture, RequireRedis]
+    [TestFixture, NonParallelizable, RequireRedis]
     internal sealed class StatefulAuthenticationTests : AuthenticationHandlerIntegrationTestsBase
     {
         protected async override Task<string> CreateExpiredToken()
