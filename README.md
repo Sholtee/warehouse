@@ -7,8 +7,9 @@
 
 ## Stack
 - FW: ASP.NET Core, .NET 9
-- DB: MySQL
+- DB: MySQL + [MySqlConnector](https://mysqlconnector.net/)
 - ORM: [ServiceStack ORMLite](https://docs.servicestack.net/ormlite/)
+- Cache: Redis + [StackExchange Redis](https://stackexchange.github.io/StackExchange.Redis/)
 - Migration [DBUp](https://dbup.github.io/)
 - Logging: [Serilog](https://serilog.net/)
 - Mapping: [AutoMapper](https://automapper.org/)
