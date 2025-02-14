@@ -266,6 +266,50 @@ Resources:
           ToPort: 3306
           CidrIp: !GetAtt VpcPrivateSubnet2.CidrBlock
 
+###################
+# Redis
+###################
+
+  RedisReplicationGroup:
+    Type: AWS::ElastiCache::ReplicationGroup
+    Properties:
+      ReplicationGroupId: !Sub "${prefix}-warehouse-redis-cluster"
+      ReplicationGroupDescription: Redis cache
+      CacheNodeType: cache.t2.micro
+      CacheSubnetGroupName: !Ref RedisSubnetGroup
+      CacheParameterGroupName: default.redis7
+      Engine: redis
+      AutomaticFailoverEnabled: false
+      NumNodeGroups: 1
+      SecurityGroupIds:
+        - !Ref RedisSecurityGroup
+
+  RedisSubnetGroup:
+    Type: AWS::ElastiCache::SubnetGroup
+    Properties:
+      Description: Redis cache subnet group
+      SubnetIds:
+        - !Ref VpcPrivateSubnet1
+        - !Ref VpcPrivateSubnet2
+
+  RedisSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Redis cache security groups
+      VpcId: !Ref Vpc
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: "0.0.0.0/0"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 6379
+          ToPort: 6379
+          CidrIp: !GetAtt VpcPrivateSubnet1.CidrBlock
+        - IpProtocol: tcp
+          FromPort: 6379
+          ToPort: 6379
+          CidrIp: !GetAtt VpcPrivateSubnet2.CidrBlock
+
 #####################
 # App secrets
 #####################
@@ -276,7 +320,7 @@ Resources:
       Name: !Sub "${prefix}-warehouse-db-secret"
       GenerateSecretString:
         SecretStringTemplate: '{"username": "root"}'
-        GenerateStringKey: "password"
+        GenerateStringKey: password
         ExcludePunctuation: true  # DbCluster.MasterUserPassword cannot contain puncations
         PasswordLength: 20
 
@@ -299,7 +343,7 @@ Resources:
     Description: We cannot grab the private key from ACM so we store the PEM in SM
     Properties:
       Name: !Sub "${prefix}-warehouse-app-cert"
-      SecretString: "PLACEHOLDER"
+      SecretString: PLACEHOLDER
 
 #####################
 # S3
@@ -319,6 +363,10 @@ Outputs:
     Value: !Ref DbSecret
     Export:
       Name: !Sub "${prefix}-warehouse-db-secret-arn"
+  RedisEndpoint:
+    Value: !GetAtt RedisReplicationGroup.PrimaryEndPoint.Address
+    Export:
+      Name: !Sub "${prefix}-warehouse-redis-endpoint"
   JwtSecretKeyArn:
     Value: !Ref JwtSecretKey
     Export:
