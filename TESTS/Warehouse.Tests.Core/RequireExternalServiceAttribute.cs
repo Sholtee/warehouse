@@ -7,6 +7,7 @@ using System;
 using System.Threading;
 
 using Ductus.FluentDocker.Builders;
+using Ductus.FluentDocker.Common;
 using Ductus.FluentDocker.Services;
 using NUnit.Framework;
 using NUnit.Framework.Interfaces;
@@ -41,8 +42,18 @@ namespace Warehouse.Tests.Core
                     .WithEnvironment(environment)
                     .ExposePort(exposePort, exposePort)
                     .DeleteIfExists()
-                    .Build()
-                    .Start();
+                    .Build();
+
+                try
+                {
+                    FService.Start();
+                }
+                catch (FluentDockerException ex) when (ex.Message.Contains("Could not return service for docker id", StringComparison.OrdinalIgnoreCase))
+                {
+                    //
+                    // Workaround for AppVeyor
+                    //
+                }
 
                 for (int i = 0; i < RetryCount; i++)
                 {
@@ -61,16 +72,10 @@ namespace Warehouse.Tests.Core
         {
             if (test.IsSuite)
             {
-                if (FService is not null)
-                {
-                    CloseConnection();
+                CloseConnection();
 
-                    FService.Stop();
-                    FService.Remove(force: true);
-
-                    FService.Dispose();
-                    FService = null!;
-                }
+                FService?.Dispose();
+                FService = null!;
             }
             else TearDownTest();
         }
