@@ -15,7 +15,7 @@ namespace Warehouse.Tests.Core
         IConnectionMultiplexer RedisConnection { get; set; }
     }
 
-    public sealed class RequireRedisAttribute() : RequireExternalServiceAttribute("redis:7.4.1", 6379, "test_redis")
+    public sealed class RequireRedisAttribute() : RequireExternalServiceAttribute("redis:7.4.2", 6379, "test_redis")
     {
         private ConnectionMultiplexer FConnection = null!;
 
