@@ -40,6 +40,7 @@ namespace Warehouse.Tests.Core
                     .WithName(name)
                     .WithEnvironment(environment)
                     .ExposePort(exposePort, exposePort)
+                    .DeleteIfExists()
                     .Build()
                     .Start();
 
