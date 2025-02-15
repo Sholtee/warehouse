@@ -34,6 +34,7 @@ namespace Warehouse.Host.Infrastructure.Tests
     using Core.Auth;
     using Middlewares;
     using Registrations;
+    using Warehouse.Tests.Core;
 
     [ApiController, EnableRateLimiting("fixed")]
     public sealed class FixedRateLimitingTestController : ControllerBase
@@ -42,7 +43,7 @@ namespace Warehouse.Host.Infrastructure.Tests
         public IActionResult Fixed() => Ok();
     }
 
-    [TestFixture]
+    [TestFixture, RequireRedis]
     internal sealed class FixedWindowRateLimitingTests
     {
         private sealed class TestHostFactory : WebApplicationFactory<Warehouse.Tests.Host.Program>
@@ -64,6 +65,8 @@ namespace Warehouse.Host.Infrastructure.Tests
                     (
                         new Dictionary<string, string?>
                         {
+                            ["WAREHOUSE_REDIS_ENDPOINT"] = "localhost:6379",
+
                             ["RateLimiting:Fixed:PermitLimit"] = "1",
                             ["RateLimiting:Fixed:Window"] = "00:00:02" 
                         }
@@ -121,7 +124,7 @@ namespace Warehouse.Host.Infrastructure.Tests
         public IActionResult AdminAccess() => Ok();
     }
 
-    [TestFixture]
+    [TestFixture, RequireRedis]
     internal sealed class UserBoundRateLimitingTests
     {
         private sealed class TestHostFactory : WebApplicationFactory<Warehouse.Tests.Host.Program>
@@ -165,6 +168,8 @@ namespace Warehouse.Host.Infrastructure.Tests
                     (
                         new Dictionary<string, string?>
                         {
+                            ["WAREHOUSE_REDIS_ENDPOINT"] = "localhost:6379",
+
                             ["RateLimiting:UserBound:TokenLimit"] = "1",
                             ["RateLimiting:UserBound:TokensPerPeriod"] = "1",
                             ["RateLimiting:UserBound:ReplenishmentPeriod"] = "00:00:02",
