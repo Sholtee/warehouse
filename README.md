@@ -190,7 +190,8 @@ To query items using cURL:
 
 ## Throttling 
 - Login endpoints are protected by [fixed time window rate limiter](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit?view=aspnetcore-9.0#fixed-window-limiter ), set to allow [100 requests / minute](https://github.com/Sholtee/warehouse/blob/61feabed42df1d2f99d96574e89b575950d56f7a/SRC/App/Warehouse.Host/appsettings.json#L33)
-- Business logic endpoints are protected by a modified [token bucket limiter](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit?view=aspnetcore-9.0#token-bucket-limiter) where each user has its [own bucket](https://github.com/Sholtee/warehouse/blob/61feabed42df1d2f99d96574e89b575950d56f7a/SRC/App/Warehouse.Host/Infrastructure/Registrations/Registrations.RateLimiting.cs#L38 ). By default this limiter is set to allow [10 requests / minute / user](https://github.com/Sholtee/warehouse/blob/61feabed42df1d2f99d96574e89b575950d56f7a/SRC/App/Warehouse.Host/appsettings.json#L38 )
+- Business logic endpoints are protected by a modified [token bucket limiter](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit?view=aspnetcore-9.0#token-bucket-limiter) where each user has its [own bucket](https://github.com/Sholtee/warehouse/blob/b2bdd7664f0ff206b303f265e0075a8ac8fe8562/SRC/App/Warehouse.Host/Infrastructure/Registrations/Registrations.RateLimiting.cs#L50). By default this limiter is set to allow [10 requests / minute / user](https://github.com/Sholtee/warehouse/blob/61feabed42df1d2f99d96574e89b575950d56f7a/SRC/App/Warehouse.Host/appsettings.json#L38 )
+- Note that the rate-limiting is Redis based so then number of active API nodes won't mess up throttling
  
 ## Health checks
 - Available at `<base_url>/healthcheck` (defaults to [https://localhost:1986/healthcheck](https://localhost:1986/))
