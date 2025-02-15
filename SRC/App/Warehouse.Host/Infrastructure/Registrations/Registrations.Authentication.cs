@@ -37,15 +37,10 @@ namespace Warehouse.Host.Infrastructure.Registrations
 
         public static IServiceCollection AddStatefulAuthentication(this IServiceCollection services)
         {
-            services.AddAuthenticationBase();
-            services
-                .AddRedis()
-                .AddStackExchangeRedisCache(static _ => { })
-                .AddOptions<RedisCacheOptions, ConnectionMultiplexerFactory>
-                (
-                    static (opts, multiplexerFactory) => opts.ConnectionMultiplexerFactory = () => Task.FromResult(multiplexerFactory.CreateConnectionMultiplexer())
-                );         
             services.TryAddScoped<ITokenManager, CachedIdentityManager>();
+
+            services.AddAuthenticationBase();
+            services.AddRedis();
 
             return services;
         }
