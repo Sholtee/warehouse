@@ -11,9 +11,9 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace Warehouse.Host.Tests
+namespace Warehouse.Tests.Core
 {
-    internal sealed class RequireLocalStackAttribute(params string[] services) : RequireExternalServiceAttribute("localstack/localstack:4.0.3", 4566, "test_loclstack", $"SERVICES={string.Join(",", services)}")
+    public sealed class RequireLocalStackAttribute(params string[] services) : RequireExternalServiceAttribute("localstack/localstack:4.0.3", 4566, "test_loclstack", $"SERVICES={string.Join(",", services)}")
     {
         private sealed record LocalStackStatus(Dictionary<string, string> Services);
 

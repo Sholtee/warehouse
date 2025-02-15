@@ -8,6 +8,10 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using Amazon.SecretsManager.Model;
@@ -33,10 +37,8 @@ namespace Warehouse.Host.Infrastructure.Tests
 {
     using Core.Abstractions;
     using Core.Auth;
-    using Host.Tests;
     using Registrations;
-    using System.Net.Http;
-    using System.Net;
+    using Warehouse.Tests.Core;
 
     [ApiController]
     public sealed class ProfiledController(IDbConnection conn, IAmazonSecurityTokenService sts) : ControllerBase
@@ -52,19 +54,17 @@ namespace Warehouse.Host.Infrastructure.Tests
         }
     }
 
-    [TestFixture, RequireRedis, RequireLocalStack("sts")]
+    [TestFixture, NonParallelizable, RequireRedis, RequireLocalStack("sts")]
     internal sealed class ProfilerTests
     {
         #region Private
         private sealed class TestHostFactory : WebApplicationFactory<Warehouse.Tests.Host.Program>
         {
-            public IConfiguration Configuration { get; set; } = null!;
-
             protected override void ConfigureWebHost(IWebHostBuilder builder) => builder
                 .UseEnvironment("local")
                 .ConfigureAppConfiguration
                 (
-                    config => Configuration = config
+                    static config => config
                         .AddJsonFile("appsettings.json")
                         .AddInMemoryCollection
                         (
@@ -75,7 +75,7 @@ namespace Warehouse.Host.Infrastructure.Tests
                                 ["AWS_SECRET_ACCESS_KEY"] = "local",
                                 ["AWS_ENDPOINT_URL"] = "http://localhost:4566",
 
-                                ["WAREHOUSE_REDIS_ENDPOINT"] = "localhost:6379"
+                                ["WAREHOUSE_REDIS_CONNECTION"] = "localhost:6379"
                             }
                         )
                         .Build()
@@ -112,8 +112,9 @@ namespace Warehouse.Host.Infrastructure.Tests
 
                     services
                         .AddAwsServices()
-                        .AddSessionCookieAuthentication()
-                        .AddProfiler(Configuration);
+                        .AddStatelessAuthentication()
+                        .AddRedis()
+                        .AddProfiler();
 
                     services
                         .AddMvc()
@@ -137,8 +138,8 @@ namespace Warehouse.Host.Infrastructure.Tests
         {
             using IServiceScope scope = _appFactory.Services.CreateScope();
 
-            IJwtService jwtService = scope.ServiceProvider.GetRequiredService<IJwtService>();
-            return await jwtService.CreateTokenAsync(user, role);
+            ITokenManager tokenManager = scope.ServiceProvider.GetRequiredService<ITokenManager>();
+            return await tokenManager.CreateTokenAsync(user, role);
         }
         #endregion
 
@@ -153,39 +154,50 @@ namespace Warehouse.Host.Infrastructure.Tests
         }
 
         [Test]
-        public async Task OnlyRootCanAccessTheProfilerResults([Values("profiler/results-index", "profiler/results")] string resultEndpoint)
+        public async Task OnlyRootCanAccessTheProfilerResults([Values(1, 2, 5, 10)] int sessions)
         {
             //
             // Do some work
             //
 
-            HttpResponseMessage resp;
+            string[] profilerIds = await Task.WhenAll(Enumerable.Repeat(0, sessions).Select(_ => DoWork()));
+            Assert.That(profilerIds, Has.Length.EqualTo(profilerIds.Distinct().Count()));
 
-            using (HttpClient client = _appFactory.CreateClient())
+            foreach (string profilerId in profilerIds)
             {
-                resp = await client.GetAsync("foo");
+                string resultsUri = $"http://localhost/profiler/results?id={profilerId}";
+
+                //
+                // Check that no one can access the profiling results except the root
+                //
+
+                HttpResponseMessage resp;
+
+                using (HttpClient client = _appFactory.CreateClient())
+                {
+                    resp = await client.GetAsync(resultsUri);
+                    Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+                }
+
+                RequestBuilder requestBuilder = _appFactory.Server.CreateRequest(resultsUri);
+                requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("test_user", Roles.Admin, DateTimeOffset.Now.AddMinutes(5))}");
+                resp = await requestBuilder.GetAsync();
+                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+
+                requestBuilder = _appFactory.Server.CreateRequest(resultsUri);
+                requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("root", Roles.Admin, DateTimeOffset.Now.AddMinutes(5))}");
+                resp = await requestBuilder.GetAsync();
                 Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             }
 
-            //
-            // Check that no one can access the profiling results except the root
-            //
-
-            using (HttpClient client = _appFactory.CreateClient())
+            async Task<string> DoWork()
             {
-                resp = await client.GetAsync(resultEndpoint);
-                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+                using HttpClient client = _appFactory.CreateClient();
+
+                HttpResponseMessage resp = await client.GetAsync("foo");
+                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+                return JsonSerializer.Deserialize<string[]>(resp.Headers.GetValues("X-MiniProfiler-Ids").Single())!.Single();
             }
-
-            RequestBuilder requestBuilder = _appFactory.Server.CreateRequest($"http://localhost/{resultEndpoint}");
-            requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("test_user", Roles.Admin, DateTimeOffset.Now.AddMinutes(5))}");
-            resp = await requestBuilder.GetAsync();
-            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
-
-            requestBuilder = _appFactory.Server.CreateRequest($"http://localhost/{resultEndpoint}");
-            requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("root", Roles.Admin, DateTimeOffset.Now.AddMinutes(5))}");
-            resp = await requestBuilder.GetAsync();
-            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         }
     }
 }

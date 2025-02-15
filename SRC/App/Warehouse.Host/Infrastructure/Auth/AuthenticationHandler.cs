@@ -1,11 +1,10 @@
 /********************************************************************************
-* SessionCookieAuthenticationHandler.cs                                         *
+* AuthenticationHandler.cs                                                      *
 *                                                                               *
 * Author: Denes Solti                                                           *
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
@@ -13,20 +12,22 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Warehouse.Host.Infrastructure.Auth
 {
     using Core.Abstractions;
+    using Core.Extensions;
 
-    internal sealed class SessionCookieAuthenticationHandler
+    internal sealed class AuthenticationHandler
     (
         IOptionsMonitor<AuthenticationSchemeOptions> options,
+        IConfiguration configuration,
         ILoggerFactory logger,
         ISessionManager session,
-        IJwtService jwtService,
+        ITokenManager tokenManager,
         UrlEncoder encoder
     ) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
     {
@@ -39,25 +40,25 @@ namespace Warehouse.Host.Infrastructure.Auth
 
             if (string.IsNullOrEmpty(session.Token))
             {
-                return AuthenticateResult.Fail("Missing session cookie");
+                return AuthenticateResult.Fail("Missing session token");
             }
 
-            TokenValidationResult validationResult = await jwtService.ValidateTokenAsync(session.Token);
-            if (!validationResult.IsValid)
+            ClaimsIdentity? identity = await tokenManager.GetIdentityAsync(session.Token);
+            if (identity is null)
             {
-                return AuthenticateResult.Fail(validationResult.Exception);
+                return AuthenticateResult.Fail("Failed to get the identity from the token");
             }
 
-            if (session.SlidingExpiration)
+            if (configuration.GetRequiredValue<bool>("Auth:SlidingExpiration"))
             {
-                session.Token = await jwtService.CreateTokenAsync((JwtSecurityToken) validationResult.SecurityToken);
+                session.Token = await tokenManager.RefreshTokenAsync(session.Token);
             }
 
             return AuthenticateResult.Success
             (
                 new AuthenticationTicket
                 (
-                    new ClaimsPrincipal(validationResult.ClaimsIdentity),
+                    new ClaimsPrincipal(identity),
                     Scheme.Name
                 )
             );

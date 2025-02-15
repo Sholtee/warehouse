@@ -13,14 +13,9 @@ namespace Warehouse.Core.Abstractions
     public interface ISessionManager
     {
         /// <summary>
-        /// Token that represents the current session
+        /// Gets or sets the token that represents the current session
         /// </summary>
         /// <remarks>Setting the value to null will remove the session from the user context</remarks>
         string? Token { get; set; }
-
-        /// <summary>
-        /// Determines if the system should refresh the token after the validation
-        /// </summary>
-        bool SlidingExpiration { get; }
     }
 }

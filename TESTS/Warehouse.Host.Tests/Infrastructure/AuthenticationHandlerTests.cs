@@ -1,11 +1,12 @@
 /********************************************************************************
-* SessionCookieAuthenticationHandlerTests.cs                                    *
+* AuthenticationHandlerTests.cs                                                 *
 *                                                                               *
 * Author: Denes Solti                                                           *
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
@@ -23,12 +24,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using Moq;
 using NUnit.Framework;
+using StackExchange.Redis;
 
 namespace Warehouse.Host.Infrastructure.Tests
 {
@@ -37,21 +39,22 @@ namespace Warehouse.Host.Infrastructure.Tests
     using Core.Attributes;
     using Core.Auth;
     using Registrations;
-    using Services;
+    using Warehouse.Tests.Core;
 
     [TestFixture]
-    internal sealed class SessionCookieAuthenticationHandlerTests
+    internal sealed class AuthenticationHandlerTests
     {
         private Mock<IOptionsMonitor<AuthenticationSchemeOptions>> _mockOptionsMonitor = null!;
         private Mock<ILoggerFactory> _mockLoggerFactory = null!;
-        private Mock<IJwtService> _mockJwtService = null!;
+        private Mock<ITokenManager> _mockTokenManager = null!;
         private Mock<ISessionManager> _mockSessionManager = null!;
+        private Mock<IConfiguration> _mockConfiguration = null!;
         private Mock<UrlEncoder> _mockUrlEncoder = null!;
         private Mock<ILogger> _mockLogger = null!;
         private Mock<TimeProvider> _mockTimeProvider = null!;
 
         private HttpContext _context = null!;
-        private SessionCookieAuthenticationHandler _handler = null!;
+        private AuthenticationHandler _handler = null!;
 
         [SetUp]
         public async Task SetupTest()
@@ -64,23 +67,22 @@ namespace Warehouse.Host.Infrastructure.Tests
             _mockLogger = new Mock<ILogger>(MockBehavior.Loose);
             _mockLoggerFactory = new Mock<ILoggerFactory>(MockBehavior.Strict);
             _mockLoggerFactory
-                .Setup(f => f.CreateLogger(typeof(SessionCookieAuthenticationHandler).FullName!))
+                .Setup(f => f.CreateLogger(typeof(AuthenticationHandler).FullName!))
                 .Returns(_mockLogger.Object);
-            _mockJwtService = new Mock<IJwtService>(MockBehavior.Strict);
+            _mockTokenManager = new Mock<ITokenManager>(MockBehavior.Strict);
             _mockSessionManager = new Mock<ISessionManager>(MockBehavior.Strict);
-            _mockSessionManager
-                .SetupGet(c => c.SlidingExpiration)
-                .Returns(false);
             _mockUrlEncoder = new Mock<UrlEncoder>(MockBehavior.Strict);
+            _mockConfiguration = new Mock<IConfiguration>(MockBehavior.Strict);
 
             _context = new DefaultHttpContext();
 
-            _handler = new SessionCookieAuthenticationHandler
+            _handler = new AuthenticationHandler
             (
                 _mockOptionsMonitor.Object,
+                _mockConfiguration.Object,
                 _mockLoggerFactory.Object,
                 _mockSessionManager.Object,
-                _mockJwtService.Object,
+                _mockTokenManager.Object,
                 _mockUrlEncoder.Object
             );
             
@@ -90,7 +92,7 @@ namespace Warehouse.Host.Infrastructure.Tests
                 (
                     WarehouseAuthentication.SCHEME,
                     null,
-                    typeof(SessionCookieAuthenticationHandler)
+                    typeof(AuthenticationHandler)
                 ),
                 _context
             );
@@ -128,7 +130,7 @@ namespace Warehouse.Host.Infrastructure.Tests
             Assert.Multiple(() =>
             {
                 Assert.That(result.Succeeded, Is.False);
-                Assert.That(result.Failure?.Message, Is.EqualTo("Missing session cookie"));
+                Assert.That(result.Failure?.Message, Is.EqualTo("Missing session token"));
             });
         }
 
@@ -139,33 +141,40 @@ namespace Warehouse.Host.Infrastructure.Tests
                 .SetupGet(s => s.Token)
                 .Returns("token");
 
-            Exception failure = new Exception("Invalid token");
-
-            _mockJwtService
-                .Setup(j => j.ValidateTokenAsync("token"))
-                .ReturnsAsync(new TokenValidationResult { IsValid = false, Exception = failure });
+            _mockTokenManager
+                .Setup(j => j.GetIdentityAsync("token"))
+                .ReturnsAsync((ClaimsIdentity?) null);
             
             AuthenticateResult result = await _handler.AuthenticateAsync();
 
             Assert.Multiple(() =>
             {
                 Assert.That(result.Succeeded, Is.False);
-                Assert.That(result.Failure, Is.EqualTo(failure));
+                Assert.That(result.Failure?.Message, Is.EqualTo("Failed to get the identity from the token"));
             });
         }
 
         [Test]
-        public async Task ValidToken()
+        public async Task ValidToken_NoSlidingExpiration()
         {
             _mockSessionManager
                 .SetupGet(s => s.Token)
                 .Returns("token");
 
+            Mock<IConfigurationSection> mockSection = new(MockBehavior.Strict);
+            mockSection
+                .SetupGet(s => s.Value)
+                .Returns("false");
+
+            _mockConfiguration
+                .Setup(c => c.GetSection("Auth:SlidingExpiration"))
+                .Returns(mockSection.Object);
+
             ClaimsIdentity identity = new();
 
-            _mockJwtService
-                .Setup(j => j.ValidateTokenAsync("token"))
-                .ReturnsAsync(new TokenValidationResult { IsValid = true, ClaimsIdentity = identity });
+            _mockTokenManager
+                .Setup(j => j.GetIdentityAsync("token"))
+                .ReturnsAsync(identity);
 
             AuthenticateResult result = await _handler.AuthenticateAsync();
 
@@ -174,6 +183,50 @@ namespace Warehouse.Host.Infrastructure.Tests
                 Assert.That(result.Succeeded);
                 Assert.That(result.Ticket?.Principal.Identity, Is.EqualTo(identity));
             });
+
+            _mockSessionManager.VerifyGet(s => s.Token, Times.AtLeast(1));
+            _mockSessionManager.VerifySet(s => s.Token = "token", Times.Never);
+            _mockTokenManager.Verify(m => m.RefreshTokenAsync(It.IsAny<string>()), Times.Never);
+        }
+
+        [Test]
+        public async Task ValidToken_SlidingExpiration()
+        {
+            _mockSessionManager
+                .SetupGet(s => s.Token)
+                .Returns("token");
+            _mockSessionManager
+                .SetupSet(s => s.Token = "token_2");
+
+            Mock<IConfigurationSection> mockSection = new(MockBehavior.Strict);
+            mockSection
+                .SetupGet(s => s.Value)
+                .Returns("true");
+
+            _mockConfiguration
+                .Setup(c => c.GetSection("Auth:SlidingExpiration"))
+                .Returns(mockSection.Object);
+
+            ClaimsIdentity identity = new();
+
+            _mockTokenManager
+                .Setup(m => m.GetIdentityAsync("token"))
+                .ReturnsAsync(identity);
+            _mockTokenManager
+                .Setup(m => m.RefreshTokenAsync("token"))
+                .ReturnsAsync("token_2");
+
+            AuthenticateResult result = await _handler.AuthenticateAsync();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Succeeded);
+                Assert.That(result.Ticket?.Principal.Identity, Is.EqualTo(identity));
+            });
+
+            _mockSessionManager.VerifyGet(s => s.Token, Times.AtLeast(1));
+            _mockSessionManager.VerifySet(s => s.Token = "token_2", Times.Once);
+            _mockTokenManager.Verify(m => m.RefreshTokenAsync("token"), Times.Once);
         }
     }
 
@@ -189,10 +242,9 @@ namespace Warehouse.Host.Infrastructure.Tests
         public IActionResult AdminAccess() => Ok();
     }
 
-    [TestFixture]
-    internal class SessionCookieAuthenticationHandlerIntegrationTests
+    internal abstract class AuthenticationHandlerIntegrationTestsBase
     {
-        private sealed class TestHostFactory() : WebApplicationFactory<Warehouse.Tests.Host.Program>
+        private sealed class TestHostFactory(Action<IServiceCollection> setupServices, Action<IConfigurationBuilder> setupConfig) : WebApplicationFactory<Warehouse.Tests.Host.Program>
         {
             public DateTime Now { get; set; } = DateTime.UtcNow;
 
@@ -200,40 +252,21 @@ namespace Warehouse.Host.Infrastructure.Tests
                 .UseEnvironment("local")
                 .ConfigureTestServices(services =>
                 {
-                    Mock<IMemoryCache> mockMemoryCache = new(MockBehavior.Strict);
-                    mockMemoryCache
-                        .Setup(c => c.CreateEntry(It.IsAny<object>()))
-                        .Returns(() => new Mock<ICacheEntry>(MockBehavior.Loose).Object);
-
-                    object? ret;
-                    mockMemoryCache
-                        .Setup(c => c.TryGetValue(It.IsAny<object>(), out ret))
-                        .Returns(false);
-
-                    services.AddSingleton(mockMemoryCache.Object);
-
-                    Mock<IAmazonSecretsManager> mockSecretsManager = new(MockBehavior.Strict);
-                    mockSecretsManager
-                        .Setup(s => s.GetSecretValueAsync(It.Is<GetSecretValueRequest>(r => r.SecretId == "local-warehouse-jwt-secret-key"), default))
-                        .ReturnsAsync(new GetSecretValueResponse { SecretString = "very-very-very-very-very-secure-secret-key" });
-
                     Mock<TimeProvider> mockTimeProvider = new(MockBehavior.Strict);
                     mockTimeProvider
                         .Setup(p => p.GetUtcNow())
                         .Returns(() => Now);
 
                     services.AddSingleton(mockTimeProvider.Object);
-                    services.AddSingleton(mockSecretsManager.Object);
-                    services.AddScoped<ISessionManager, HttpSessionManager>();
-
-                    services.AddHttpContextAccessor();
-                    services.AddSessionCookieAuthentication();
 
                     services
                         .AddMvc()
                         .AddApplicationPart(typeof(AuthTestController).Assembly)
                         .AddControllersAsServices();
+
+                    setupServices(services);
                 })
+                .ConfigureAppConfiguration(setupConfig)
                 .Configure
                 (
                     static app => app
@@ -245,16 +278,26 @@ namespace Warehouse.Host.Infrastructure.Tests
 
         private TestHostFactory _appFactory = null!;
 
-        private async Task<string> CreateToken(string user, Roles role)
+        protected async Task<string> CreateToken(string user, Roles role)
         {
             using IServiceScope scope = _appFactory.Services.CreateScope();
 
-            IJwtService jwtService = scope.ServiceProvider.GetRequiredService<IJwtService>();
-            return await jwtService.CreateTokenAsync(user, role);
+            ITokenManager tokenManager = scope.ServiceProvider.GetRequiredService<ITokenManager>();
+            return await tokenManager.CreateTokenAsync(user, role);
         }
 
+        protected async virtual Task<string> CreateExpiredToken()
+        {
+            _appFactory.Now = DateTime.UtcNow.AddDays(-7);
+            return await CreateToken("test_user", Roles.Admin);
+        }
+
+        protected abstract void SetupServices(IServiceCollection services);
+
+        protected virtual void SetupConfiguration(IConfigurationBuilder configurationBuilder) { }
+
         [SetUp]
-        public void SetupTest() => _appFactory = new TestHostFactory();
+        public void SetupTest() => _appFactory = new TestHostFactory(SetupServices, SetupConfiguration);
 
         [TearDown]
         public void TearDownTest()
@@ -318,10 +361,8 @@ namespace Warehouse.Host.Infrastructure.Tests
         [Test]
         public async Task ExpiredToken()
         {
-            _appFactory.Now = DateTime.UtcNow.AddDays(-7);
-
             RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/adminaccess");
-            requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("test_user", Roles.Admin)}");
+            requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateExpiredToken()}");
             HttpResponseMessage resp = await requestBuilder.GetAsync();
 
             Assert.Multiple(() =>
@@ -344,5 +385,57 @@ namespace Warehouse.Host.Infrastructure.Tests
                 Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
             });
         }
+    }
+
+    [TestFixture]
+    internal sealed class StatelessAuthenticationTests : AuthenticationHandlerIntegrationTestsBase
+    {
+        protected override void SetupServices(IServiceCollection services)
+        {
+            Mock<IMemoryCache> mockMemoryCache = new(MockBehavior.Strict);
+            mockMemoryCache
+                .Setup(c => c.CreateEntry(It.IsAny<object>()))
+                .Returns(() => new Mock<ICacheEntry>(MockBehavior.Loose).Object);
+
+            object? ret;
+            mockMemoryCache
+                .Setup(c => c.TryGetValue(It.IsAny<object>(), out ret))
+                .Returns(false);
+
+            services.AddSingleton(mockMemoryCache.Object);
+
+            Mock<IAmazonSecretsManager> mockSecretsManager = new(MockBehavior.Strict);
+            mockSecretsManager
+                .Setup(s => s.GetSecretValueAsync(It.Is<GetSecretValueRequest>(r => r.SecretId == "local-warehouse-jwt-secret-key"), default))
+                .ReturnsAsync(new GetSecretValueResponse { SecretString = "very-very-very-very-very-secure-secret-key" });
+
+            services.AddSingleton(mockSecretsManager.Object);
+
+            services.AddStatelessAuthentication();
+        }
+    }
+
+    [TestFixture, NonParallelizable, RequireRedis]
+    internal sealed class StatefulAuthenticationTests : AuthenticationHandlerIntegrationTestsBase
+    {
+        protected async override Task<string> CreateExpiredToken()
+        {
+            string token = await CreateToken("test_user", Roles.Admin);
+
+            using ConnectionMultiplexer factory = await ConnectionMultiplexer.ConnectAsync("localhost");
+            await factory.GetDatabase().KeyExpireAsync($"TOKEN::{token}", DateTime.UtcNow.AddDays(-7));
+
+            return token;
+        }
+
+        protected override void SetupConfiguration(IConfigurationBuilder configurationBuilder) => configurationBuilder.AddInMemoryCollection
+            (
+                new Dictionary<string, string?>
+                {
+                    ["WAREHOUSE_REDIS_CONNECTION"] = "localhost:6379"
+                }
+            );
+
+        protected override void SetupServices(IServiceCollection services) => services.AddStatefulAuthentication();
     }
 }

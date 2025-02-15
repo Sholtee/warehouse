@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using StackExchange.Profiling;
 using StackExchange.Profiling.Storage;
+using StackExchange.Redis;
 
 namespace Warehouse.Host.Infrastructure.Registrations
 {  
@@ -25,27 +26,24 @@ namespace Warehouse.Host.Infrastructure.Registrations
 
     internal static partial class Registrations
     {
-        public static IServiceCollection AddProfiler(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddProfiler(this IServiceCollection services)
         {
-            //
-            // Register the profiler service anyway so the clients don't have to null check when
-            // they request it (the implementation does nothing if the underlying service is not
-            // active)
-            //
-
             services.TryAddScoped<IProfiler>(static _ => new Profiler(MiniProfiler.Current!));
-
-            IConfigurationSection profilerConfiguration = configuration.GetSection("MiniProfiler");
-            if (!profilerConfiguration.Exists())
-                return services;
-
-            services.AddMiniProfiler(options =>
+            services.AddMiniProfiler();
+            services.AddOptions<MiniProfilerOptions, IConfiguration, IConnectionMultiplexer>(static (options, configuration, redisConnection) =>
             {
+                IConfigurationSection profilerConfiguration = configuration.GetSection("MiniProfiler");
+                if (!profilerConfiguration.Exists())
+                    return;
+
                 options.RouteBasePath = configuration.GetRequiredValue<string>("MiniProfiler:RouteBasePath");
 
-                string? endpoint = configuration.GetValue<string>("WAREHOUSE_REDIS_ENDPOINT");
-                if (!string.IsNullOrWhiteSpace(endpoint))
-                    options.Storage = new RedisStorage(endpoint);
+                if (redisConnection is not null)
+                    //
+                    // Its safe to create a global instance (https://github.com/StackExchange/StackExchange.Redis/issues/636)
+                    //
+
+                    options.Storage = new RedisStorage(redisConnection.GetDatabase());
 
                 //
                 // Only the allowed user can see the profiling results

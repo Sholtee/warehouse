@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Moq;
@@ -33,8 +34,10 @@ namespace Warehouse.API.Tests
     using Core.Auth;
     using DAL;
     using Host;
+    using System.Collections.Generic;
+    using Warehouse.Tests.Core;
 
-    [TestFixture]
+    [TestFixture, NonParallelizable, RequireRedis]
     internal sealed class WorkFlowTests
     {
         #region Private
@@ -83,9 +86,6 @@ namespace Warehouse.API.Tests
                 {
                     Mock<IAmazonSecretsManager> mockSecretsManager = new(MockBehavior.Strict);
                     mockSecretsManager
-                        .Setup(s => s.GetSecretValueAsync(It.Is<GetSecretValueRequest>(r => r.SecretId == "local-warehouse-jwt-secret-key"), default))
-                        .ReturnsAsync(new GetSecretValueResponse { SecretString = "very-very-very-very-very-secure-secret-key" });
-                    mockSecretsManager
                         .Setup(s => s.GetSecretValueAsync(It.Is<GetSecretValueRequest>(r => r.SecretId == "local-warehouse-root-user-password"), default))
                         .ReturnsAsync(new GetSecretValueResponse { SecretString = "password" });
 
@@ -100,7 +100,14 @@ namespace Warehouse.API.Tests
                     services.AddSingleton(mockSecretsManager.Object);
                     services.AddSingleton<IDbConnection>(_connection);
                     services.AddSingleton<IOrmLiteDialectProvider>(SqliteDialect.Provider);
-                });
+                })
+                .ConfigureAppConfiguration(configurationBuilder => configurationBuilder.AddInMemoryCollection
+                (
+                    new Dictionary<string, string?>
+                    {
+                        ["WAREHOUSE_REDIS_CONNECTION"] = "localhost:6379"
+                    }
+                ));
         }
 
         private TestHostFactory _appFactory = null!;
@@ -116,6 +123,14 @@ namespace Warehouse.API.Tests
 
             return resp.Headers.GetValues("Set-Cookie").Single().Split(";")[0];
         }
+
+        private static void RunParallel(int parallelism, Func<Task> taskFactory) => Assert.DoesNotThrow
+        (
+            Task.WhenAll
+            (
+                Enumerable.Repeat(0, parallelism).Select(_ => taskFactory())
+            ).Wait
+        );
         #endregion
 
         [SetUp]
@@ -129,7 +144,7 @@ namespace Warehouse.API.Tests
         }
 
         [Test]
-        public async Task TestLoginAndGetProduct()
+        public void TestLoginAndGetProduct([Values(1, 2, 5, 10)] int parallelism) => RunParallel(parallelism, async () =>
         {
             RequestBuilder requestBuilder = _appFactory.Server.CreateRequest($"http://localhost/api/v1/product/{Guid.Empty}");
             requestBuilder.AddHeader("Cookie", await GetSessionCookie());
@@ -137,10 +152,10 @@ namespace Warehouse.API.Tests
             HttpResponseMessage resp = await requestBuilder.GetAsync();
 
             Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-        }
+        });
 
         [Test]
-        public async Task TestLoginAndQueryProducts()
+        public void TestLoginAndQueryProducts([Values(1, 2, 5, 10)] int parallelism) => RunParallel(parallelism, async () =>
         {
             RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/api/v1/products/");
             requestBuilder.AddHeader("Cookie", await GetSessionCookie());
@@ -149,52 +164,52 @@ namespace Warehouse.API.Tests
                 msg => msg.Content = new StringContent
                 (
                     """
-                    {
-                        // (Brand == "Samsung" && "Price" < 1000) || (Brand == "Sony" && "Price" < 1500)
-                        "filter": {
+                {
+                    // (Brand == "Samsung" && "Price" < 1000) || (Brand == "Sony" && "Price" < 1500)
+                    "filter": {
+                        "block": {
+                            "string": {
+                                "property": "Brand",
+                                "comparison": "equals",
+                                "value": "Samsung"
+                            },
+                            "and": {
+                                "decimal": {
+                                    "property": "Price",
+                                    "comparison": "lessThan",
+                                    "value": 1000
+                                }
+                            }
+                        },
+                        "or": {
                             "block": {
                                 "string": {
                                     "property": "Brand",
                                     "comparison": "equals",
-                                    "value": "Samsung"
+                                    "value": "Sony"
                                 },
                                 "and": {
                                     "decimal": {
                                         "property": "Price",
                                         "comparison": "lessThan",
-                                        "value": 1000
-                                    }
-                                }
-                            },
-                            "or": {
-                                "block": {
-                                    "string": {
-                                        "property": "Brand",
-                                        "comparison": "equals",
-                                        "value": "Sony"
-                                    },
-                                    "and": {
-                                        "decimal": {
-                                            "property": "Price",
-                                            "comparison": "lessThan",
-                                            "value": 1500
-                                        }
+                                        "value": 1500
                                     }
                                 }
                             }
-                        },
-                        "sortBy": {
-                            "properties": [
-                                {"property": "Brand", "kind": "ascending"},
-                                {"property": "Name", "kind": "ascending"}
-                            ]
-                        },
-                        "page": {
-                            "skip": 3,
-                            "size": 10
                         }
+                    },
+                    "sortBy": {
+                        "properties": [
+                            {"property": "Brand", "kind": "ascending"},
+                            {"property": "Name", "kind": "ascending"}
+                        ]
+                    },
+                    "page": {
+                        "skip": 3,
+                        "size": 10
                     }
-                    """,
+                }
+                """,
                     Encoding.UTF8,
                     "application/json"
                 )
@@ -204,6 +219,6 @@ namespace Warehouse.API.Tests
 
             Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(resp.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/json"));
-        }
+        });
     }
 }

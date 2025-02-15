@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Warehouse.Host.Infrastructure.Registrations
 {
@@ -27,24 +28,27 @@ namespace Warehouse.Host.Infrastructure.Registrations
         /// <summary>
         /// Set ups swagger for the application. Should be called after MVC setup
         /// </summary>
-        public static IServiceCollection AddSwagger(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddSwagger(this IServiceCollection services)
         {
-            IConfigurationSection swaggerConfig = configuration.GetSection("Swagger");
-            if (!swaggerConfig.Exists())
-                return services;
-
             string asmPrefix = Assembly.GetExecutingAssembly().GetName().Name!.Split('.', 2)[0];
 
-            Assembly[] appAssemblies = AppDomain
+            Assembly[] appAssemblies = 
+            [ 
+                ..AppDomain
                 .CurrentDomain
                 .GetAssemblies()
                 .Where(asm => asm.GetName().Name?.StartsWith(asmPrefix, StringComparison.OrdinalIgnoreCase) is true)
-                .ToArray();
+            ];
 
             return services
-                .AddEndpointsApiExplorer()    
-                .AddSwaggerGen(options =>
+                .AddEndpointsApiExplorer()
+                .AddSwaggerGen()
+                .AddOptions<SwaggerGenOptions, IConfiguration>((options, configuration) =>
                 {
+                    IConfigurationSection swaggerConfig = configuration.GetSection("Swagger");
+                    if (!swaggerConfig.Exists())
+                        return;
+
                     OpenApiInfo info = new();
                     swaggerConfig.Bind(info);
 
@@ -88,13 +92,7 @@ namespace Warehouse.Host.Infrastructure.Registrations
                     options.DocumentFilter<CustomModelDocumentFilter<HealthCheckResult>>();
                     options.ExampleFilters();
                 })
-
-                //
-                // Should not be called multiple times as it uses AddSingleton() internally instead 
-                // of TryAddSingleton()
-                //
-
-                .AddSwaggerExamplesFromAssemblies(appAssemblies);
+                .AddSwaggerExamplesFromAssemblies(appAssemblies);;
         }
 
         public static IApplicationBuilder UseSwagger(this IApplicationBuilder applicationBuilder)

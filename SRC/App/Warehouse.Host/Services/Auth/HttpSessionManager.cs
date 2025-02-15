@@ -18,10 +18,7 @@ namespace Warehouse.Host.Services
     internal sealed class HttpSessionManager(IHttpContextAccessor httpContext, IConfiguration configuration, TimeProvider timeProvider) : ISessionManager
     {
         private readonly string _sessionCookieName = configuration.GetRequiredValue<string>("Auth:SessionCookieName");
-
-        private readonly bool _slidingExpiration = configuration.GetValue("Auth:SlidingExpiration", true);
-
-        private readonly int  _sessionExpirationMinutes = configuration.GetValue("Auth:SessionExpirationMinutes", 1440);
+        private readonly int  _sessionExpirationMinutes = configuration.GetRequiredValue<int>("Auth:SessionExpirationMinutes");
 
         public string? Token
         {
@@ -59,7 +56,5 @@ namespace Warehouse.Host.Services
                 }
             }
         }
-
-        public bool SlidingExpiration => _slidingExpiration;
     }
 }

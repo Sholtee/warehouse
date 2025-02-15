@@ -31,7 +31,7 @@ namespace Warehouse.API.Controllers.Tests
         private LoginController _loginController = null!;
         private Mock<IUserRepository> _mockUserRepository = null!;
         private Mock<IConfiguration> _mockConfiguration = null!;
-        private Mock<IJwtService> _mockIJwtService = null!;
+        private Mock<ITokenManager> _mockTokenManager = null!;
         private Mock<IPasswordHasher<string>> _mockPasswordHasher = null!;
         private Mock<ILogger<LoginController>> _mockLogger = null!;
         private Mock<ISessionManager> _mockSessionManager = null!;
@@ -41,7 +41,7 @@ namespace Warehouse.API.Controllers.Tests
         {
             _mockUserRepository = new Mock<IUserRepository>(MockBehavior.Strict);
             _mockConfiguration = new Mock<IConfiguration>(MockBehavior.Strict);
-            _mockIJwtService = new Mock<IJwtService>(MockBehavior.Strict);
+            _mockTokenManager = new Mock<ITokenManager>(MockBehavior.Strict);
             _mockPasswordHasher = new Mock<IPasswordHasher<string>>(MockBehavior.Strict);
             _mockLogger = new Mock<ILogger<LoginController>>(MockBehavior.Loose);
             _mockSessionManager = new Mock<ISessionManager>(MockBehavior.Strict);
@@ -49,7 +49,7 @@ namespace Warehouse.API.Controllers.Tests
             _loginController = new LoginController
             (
                 _mockUserRepository.Object,
-                _mockIJwtService.Object,
+                _mockTokenManager.Object,
                 _mockSessionManager.Object,
                 _mockPasswordHasher.Object,
                 _mockLogger.Object
@@ -100,7 +100,7 @@ namespace Warehouse.API.Controllers.Tests
             _mockSessionManager
                 .SetupSet(s => s.Token = "token");
 
-            _mockIJwtService
+            _mockTokenManager
                 .Setup(s => s.CreateTokenAsync(CLIENT_ID, user.Roles))
                 .ReturnsAsync("token");
 
@@ -124,7 +124,7 @@ namespace Warehouse.API.Controllers.Tests
 
             _mockUserRepository.Verify(r => r.QueryUser(CLIENT_ID), Times.Once);
             _mockPasswordHasher.Verify(h => h.VerifyHashedPassword(CLIENT_ID, "hash", CLIENT_SECRET), Times.Once);
-            _mockIJwtService.Verify(s => s.CreateTokenAsync(CLIENT_ID, user.Roles), Times.Once);
+            _mockTokenManager.Verify(s => s.CreateTokenAsync(CLIENT_ID, user.Roles), Times.Once);
             _mockSessionManager.VerifySet(s => s.Token = "token", Times.Once);
         }
 
@@ -264,7 +264,7 @@ namespace Warehouse.API.Controllers.Tests
         }
 
         [Test]
-        public void Logout_ShouldRemoveTheSessionCookie()
+        public async Task Logout_ShouldRemoveTheSessionCookie()
         {
             Mock<IConfigurationSection> mockCookieName = new(MockBehavior.Strict);
             mockCookieName
@@ -272,11 +272,19 @@ namespace Warehouse.API.Controllers.Tests
                 .Returns("session-cookie");
 
             _mockSessionManager
+                .SetupGet(s => s.Token)
+                .Returns("token");
+            _mockSessionManager
                 .SetupSet(s => s.Token = null);
 
-            IActionResult result = _loginController.Logout();
+            _mockTokenManager
+                .Setup(t => t.RevokeTokenAsync("token"))
+                .ReturnsAsync(true);
+
+            IActionResult result = await _loginController.Logout();
             Assert.That(result, Is.InstanceOf<NoContentResult>());
 
+            _mockTokenManager.Verify(t => t.RevokeTokenAsync("token"), Times.Once);
             _mockSessionManager.VerifySet(s => s.Token = null, Times.Once);
         }
     }

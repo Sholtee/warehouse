@@ -7,12 +7,14 @@
 
 ## Stack
 - FW: ASP.NET Core, .NET 9
-- DB: MySQL
+- DB: MySQL + [MySqlConnector](https://mysqlconnector.net/)
 - ORM: [ServiceStack ORMLite](https://docs.servicestack.net/ormlite/)
+- Cache: Redis + [StackExchange Redis](https://stackexchange.github.io/StackExchange.Redis/)
 - Migration [DBUp](https://dbup.github.io/)
 - Logging: [Serilog](https://serilog.net/)
 - Mapping: [AutoMapper](https://automapper.org/)
 - Profiling: [MiniProfiler](https://miniprofiler.com/dotnet/)
+- Throttling: [RedisRateLimiting](https://www.nuget.org/packages/RedisRateLimiting)
 - API explorer: [Swashbuckle/Swagger](https://github.com/domaindrivendev/Swashbuckle.AspNetCore/)
 - Infra: [AWS](https://aws.amazon.com/), [Docker](https://www.docker.com/products/docker-desktop/), [LocalStack](https://www.localstack.cloud/)
 - Test FW: [NUnit](https://nunit.org/)
@@ -96,6 +98,10 @@ root
 │   │       │   └───Registrations [service registrations]
 │   │       │
 │   │       └───Services [internal services]
+│   │           │
+│   │           └───Auth [authentication related services]
+│   │           │
+│   │           └───HealthCheck [healthcheck related services]
 │   │
 │   └───Tools [tooling]
 │       │
@@ -107,11 +113,12 @@ root
 ```
 
 ## Authentication
-The API uses stateless authentication (bearer token in session cookie, having sliding expiration)
+The API can use [stateful](https://github.com/Sholtee/warehouse/blob/115339c9ff4344ad47e279c92b50795b51dfef12/SRC/App/Warehouse.Host/Infrastructure/Registrations/Registrations.Authentication.cs#L38) (session id in session cookie) or [stateless](https://github.com/Sholtee/warehouse/blob/115339c9ff4344ad47e279c92b50795b51dfef12/SRC/App/Warehouse.Host/Infrastructure/Registrations/Registrations.Authentication.cs#L51) (bearer token in session cookie) authentication.
+Sliding expiration also supported but using it together with stateless authentication is strongly not advisable as it may let the client to create an "infinite" token
 
 ![Auth flow](Assets/Auth/auth.png)
 
-Session management can be fine-tuned via [config](https://github.com/Sholtee/warehouse/blob/c710826d74083c0f76095011030431ab39579b21/SRC/App/Warehouse.Host/appsettings.json#L18)
+Session management can be fine-tuned via [config](https://github.com/Sholtee/warehouse/blob/115339c9ff4344ad47e279c92b50795b51dfef12/SRC/App/Warehouse.Host/appsettings.json#L18)
 
 ## Using the local environment
 Requirements
@@ -189,7 +196,8 @@ To query items using cURL:
 
 ## Throttling 
 - Login endpoints are protected by [fixed time window rate limiter](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit?view=aspnetcore-9.0#fixed-window-limiter ), set to allow [100 requests / minute](https://github.com/Sholtee/warehouse/blob/61feabed42df1d2f99d96574e89b575950d56f7a/SRC/App/Warehouse.Host/appsettings.json#L33)
-- Business logic endpoints are protected by a modified [token bucket limiter](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit?view=aspnetcore-9.0#token-bucket-limiter) where each user has its [own bucket](https://github.com/Sholtee/warehouse/blob/61feabed42df1d2f99d96574e89b575950d56f7a/SRC/App/Warehouse.Host/Infrastructure/Registrations/Registrations.RateLimiting.cs#L38 ). By default this limiter is set to allow [10 requests / minute / user](https://github.com/Sholtee/warehouse/blob/61feabed42df1d2f99d96574e89b575950d56f7a/SRC/App/Warehouse.Host/appsettings.json#L38 )
+- Business logic endpoints are protected by a modified [token bucket limiter](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit?view=aspnetcore-9.0#token-bucket-limiter) where each user has its [own bucket](https://github.com/Sholtee/warehouse/blob/b2bdd7664f0ff206b303f265e0075a8ac8fe8562/SRC/App/Warehouse.Host/Infrastructure/Registrations/Registrations.RateLimiting.cs#L50). By default this limiter is set to allow [10 requests / minute / user](https://github.com/Sholtee/warehouse/blob/61feabed42df1d2f99d96574e89b575950d56f7a/SRC/App/Warehouse.Host/appsettings.json#L38 )
+- Note that the rate-limiting is Redis based so then number of active API nodes won't mess up throttling
  
 ## Health checks
 - Available at `<base_url>/healthcheck` (defaults to [https://localhost:1986/healthcheck](https://localhost:1986/))

@@ -1,38 +1,41 @@
 /********************************************************************************
-* IJwtService.cs                                                                *
+* ITokenManager.cs                                                              *
 *                                                                               *
 * Author: Denes Solti                                                           *
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
-using System;
-using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
-using Microsoft.IdentityModel.Tokens;
 
 namespace Warehouse.Core.Abstractions
 {
     using Auth;
 
     /// <summary>
-    /// Service to create and validate JSON Web Tokens
+    /// Service to manage session tokens
     /// </summary>
-    public interface IJwtService
+    public interface ITokenManager
     {
         /// <summary>
-        /// Creates a new JWT
+        /// Creates a new token
         /// </summary>
         Task<string> CreateTokenAsync(string user, Roles roles);
 
         /// <summary>
-        /// Creates a new JWT
+        /// Refresh the current token by updating its expiration
         /// </summary>
-        Task<string> CreateTokenAsync(JwtSecurityToken token);
+        Task<string> RefreshTokenAsync(string token);
 
         /// <summary>
-        /// Validates the given JWT
+        /// Gets the identity associated to the given <paramref name="token"/>. Returns null if the token is invalid.
         /// </summary>
-        Task<TokenValidationResult> ValidateTokenAsync(string token);
+        Task<ClaimsIdentity?> GetIdentityAsync(string token);
+
+        /// <summary>
+        /// Revokes the given token.
+        /// </summary>
+        Task<bool> RevokeTokenAsync(string token);
     }
 }

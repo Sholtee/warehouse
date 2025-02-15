@@ -1,5 +1,5 @@
 /********************************************************************************
-* JwtService.cs                                                                 *
+* JwtManager.cs                                                                 *
 *                                                                               *
 * Author: Denes Solti                                                           *
 * Project: Warehouse API (boilerplate)                                          *
@@ -27,27 +27,27 @@ namespace Warehouse.Host.Services
     using Core.Auth;
     using Core.Extensions;
 
-    internal sealed class JwtService
+    internal sealed class JwtManager
     (
         IMemoryCache cache,
         IHostEnvironment env,
         IConfiguration configuration,
         IAmazonSecretsManager secretsManager,
-        ILogger<JwtService> logger,
+        ILogger<JwtManager> logger,
         TimeProvider timeProvider
-    ) : IJwtService
+    ) : ITokenManager
     {
         private readonly JwtSecurityTokenHandler _handler = new();
 
         private readonly string 
             _domain = $"{env.EnvironmentName}-warehouse-app",
-            _algorithm = configuration.GetValue($"{nameof(JwtService)}:Algorithm", SecurityAlgorithms.HmacSha256);
+            _algorithm = configuration.GetValue($"{nameof(JwtManager)}:Algorithm", SecurityAlgorithms.HmacSha256);
 
         private Task<SymmetricSecurityKey?> SecurityKey => cache.GetOrCreateAsync("jwt-secret-key", async entry =>
         {
             entry.AbsoluteExpiration = DateTimeOffset.UtcNow.AddMinutes
             (
-                configuration.GetValue($"{nameof(JwtService)}:CacheExpirationMinutes", 30)
+                configuration.GetValue($"{nameof(JwtManager)}:CacheExpirationMinutes", 30)
             );
 
             GetSecretValueResponse resp = await secretsManager.GetSecretValueAsync(new GetSecretValueRequest
@@ -90,9 +90,7 @@ namespace Warehouse.Host.Services
             ]
         );
 
-        public Task<string> CreateTokenAsync(JwtSecurityToken token) => CreateTokenAsync(token.Claims);
-
-        public async Task<TokenValidationResult> ValidateTokenAsync(string token)
+        public async Task<ClaimsIdentity?> GetIdentityAsync(string token)
         {
             TokenValidationResult result = await _handler.ValidateTokenAsync
             (
@@ -109,12 +107,30 @@ namespace Warehouse.Host.Services
                 }
             );
 
-            if (result.IsValid)
-                logger.LogInformation("Token validation completed for user: {user}", result.Claims[ClaimTypes.Name]);
-            else
+            if (!result.IsValid)
+            {
                 logger.LogInformation("Token validation failed: {reason}", result.Exception?.ToString());
+                return null;
+            }
 
-            return result;
+            logger.LogInformation("Token validation completed for user: {user}", result.Claims[ClaimTypes.Name]);
+            return result.ClaimsIdentity;
         }
+
+        public async Task<string> RefreshTokenAsync(string token)
+        {
+            ClaimsIdentity? identity = await GetIdentityAsync(token);
+            if (identity is null)
+                throw new ArgumentException("The given token is not valid", nameof(token));
+
+            return await CreateTokenAsync(identity.Claims);
+        }
+
+        public Task<bool> RevokeTokenAsync(string token) =>
+            //
+            // JWT tokens cannot be revoked as they have no state
+            //
+
+            Task.FromResult(false);
     }
 }

@@ -27,11 +27,13 @@ namespace Warehouse.Host.Infrastructure.Registrations
         {
             services
                 .TryAddAWSService<IAmazonSecurityTokenService>() // for AwsHealthCheck
-                .AddDbConnection();
+                .AddDbConnection()
+                .AddRedis();
 
             services.AddHealthChecks()
                 .AddCheck<AwsHealthCheck>(nameof(AwsHealthCheck))
-                .AddCheck<DbConnectionHealthCheck>(nameof(DbConnectionHealthCheck));
+                .AddCheck<DbConnectionHealthCheck>(nameof(DbConnectionHealthCheck))
+                .AddCheck<RedisHealthCheck>(nameof(RedisHealthCheck));
     
             return services;
         }

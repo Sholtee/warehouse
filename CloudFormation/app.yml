@@ -161,6 +161,9 @@ Resources:
               Value: !Ref prefix
             - Name: WAREHOUSE_SERVICE_PORT
               Value: !Ref port
+            - Name: WAREHOUSE_REDIS_CONNECTION
+              Value:
+                Fn::ImportValue: !Sub "${prefix}-warehouse-redis-endpoint"
           Image: !Join
             - ""
             - - Fn::ImportValue: !Sub "${prefix}-warehouse-ecr-repository-uri"

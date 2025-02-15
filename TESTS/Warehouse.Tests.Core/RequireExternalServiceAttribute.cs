@@ -7,14 +7,15 @@ using System;
 using System.Threading;
 
 using Ductus.FluentDocker.Builders;
+using Ductus.FluentDocker.Common;
 using Ductus.FluentDocker.Services;
 using NUnit.Framework;
 using NUnit.Framework.Interfaces;
 
-namespace Warehouse.Host.Tests
+namespace Warehouse.Tests.Core
 {
     [AttributeUsage(AttributeTargets.Class)]
-    internal abstract class RequireExternalServiceAttribute(string image, int exposePort, string name, params string[] environment) : Attribute, ITestAction
+    public abstract class RequireExternalServiceAttribute(string image, int exposePort, string name, params string[] environment) : Attribute, ITestAction
     {
         private IContainerService? FService;
 
@@ -34,13 +35,24 @@ namespace Warehouse.Host.Tests
         {
             if (test.IsSuite)
             {
-                FService = new Builder()
+                ContainerBuilder bldr = new Builder()
                     .UseContainer()
                     .UseImage(image)
                     .WithName(name)
                     .WithEnvironment(environment)
                     .ExposePort(exposePort, exposePort)
-                    .Build().Start();
+                    .DeleteIfExists();
+
+                try
+                {
+                    FService = bldr.Build().Start();
+                }
+                catch (FluentDockerException ex) when (ex.Message.Contains("Error response from daemon: Conflict.", StringComparison.OrdinalIgnoreCase))
+                {
+                    //
+                    // Workaround for AppVeyor
+                    //
+                }
 
                 for (int i = 0; i < RetryCount; i++)
                 {
