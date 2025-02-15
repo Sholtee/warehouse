@@ -24,7 +24,6 @@ namespace Warehouse.Host.Infrastructure.Config
 
             static IEnumerable<KeyValuePair<string, string?>> FromEnvironment(string prefix)
             {
-                IDictionary envVars = Environment.GetEnvironmentVariables();
                 foreach (DictionaryEntry de in Environment.GetEnvironmentVariables())
                 {
                     if (de.Key is string keyStr && keyStr.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))

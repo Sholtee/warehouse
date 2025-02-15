@@ -29,7 +29,7 @@ namespace Warehouse.Host.Infrastructure.Registrations
         {
             services.TryAddScoped<IProfiler>(static _ => new Profiler(MiniProfiler.Current!));
             services.AddMiniProfiler();
-            services.AddOptions<MiniProfilerOptions>().Configure<IConfiguration>(static (options, configuration) =>
+            services.SetOptions<MiniProfilerOptions>(static (options, configuration) =>
             {
                 IConfigurationSection profilerConfiguration = configuration.GetSection("MiniProfiler");
                 if (!profilerConfiguration.Exists())

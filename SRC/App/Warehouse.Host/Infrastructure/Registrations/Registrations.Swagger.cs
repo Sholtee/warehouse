@@ -40,10 +40,10 @@ namespace Warehouse.Host.Infrastructure.Registrations
                 .Where(asm => asm.GetName().Name?.StartsWith(asmPrefix, StringComparison.OrdinalIgnoreCase) is true)
             ];
 
-            services
+            return services
                 .AddEndpointsApiExplorer()
                 .AddSwaggerGen()
-                .AddOptions<SwaggerGenOptions>().Configure<IConfiguration>((options, configuration) =>
+                .SetOptions<SwaggerGenOptions>((options, configuration) =>
                 {
                     IConfigurationSection swaggerConfig = configuration.GetSection("Swagger");
                     if (!swaggerConfig.Exists())
@@ -91,16 +91,14 @@ namespace Warehouse.Host.Infrastructure.Registrations
                     options.DocumentFilter<CustomModelDocumentFilter<ErrorDetails>>();
                     options.DocumentFilter<CustomModelDocumentFilter<HealthCheckResult>>();
                     options.ExampleFilters();
-                });
+                })
 
-            //
-            // Should not be called multiple times as it uses AddSingleton() internally instead 
-            // of TryAddSingleton()
-            //
+                //
+                // Should not be called multiple times as it uses AddSingleton() internally instead 
+                // of TryAddSingleton()
+                //
 
-            services.AddSwaggerExamplesFromAssemblies(appAssemblies);
-
-            return services;
+                .AddSwaggerExamplesFromAssemblies(appAssemblies);;
         }
 
         public static IApplicationBuilder UseSwagger(this IApplicationBuilder applicationBuilder)
