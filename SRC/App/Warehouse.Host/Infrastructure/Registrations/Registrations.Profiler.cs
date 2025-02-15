@@ -39,6 +39,10 @@ namespace Warehouse.Host.Infrastructure.Registrations
                 options.RouteBasePath = configuration.GetRequiredValue<string>("MiniProfiler:RouteBasePath");
 
                 if (redisConnection is not null)
+                    //
+                    // Its safe to create a global instance (https://github.com/StackExchange/StackExchange.Redis/issues/636)
+                    //
+
                     options.Storage = new RedisStorage(redisConnection.GetDatabase());
 
                 //

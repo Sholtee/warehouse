@@ -8,8 +8,10 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using Amazon.SecretsManager.Model;
@@ -152,39 +154,50 @@ namespace Warehouse.Host.Infrastructure.Tests
         }
 
         [Test]
-        public async Task OnlyRootCanAccessTheProfilerResults([Values("profiler/results-index", "profiler/results")] string resultEndpoint)
+        public async Task OnlyRootCanAccessTheProfilerResults([Values(1, 2, 5, 10)] int sessions)
         {
             //
             // Do some work
             //
 
-            HttpResponseMessage resp;
+            string[] profilerIds = await Task.WhenAll(Enumerable.Repeat(0, sessions).Select(_ => DoWork()));
+            Assert.That(profilerIds, Has.Length.EqualTo(profilerIds.Distinct().Count()));
 
-            using (HttpClient client = _appFactory.CreateClient())
+            foreach (string profilerId in profilerIds)
             {
-                resp = await client.GetAsync("foo");
+                string resultsUri = $"http://localhost/profiler/results?id={profilerId}";
+
+                //
+                // Check that no one can access the profiling results except the root
+                //
+
+                HttpResponseMessage resp;
+
+                using (HttpClient client = _appFactory.CreateClient())
+                {
+                    resp = await client.GetAsync(resultsUri);
+                    Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+                }
+
+                RequestBuilder requestBuilder = _appFactory.Server.CreateRequest(resultsUri);
+                requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("test_user", Roles.Admin, DateTimeOffset.Now.AddMinutes(5))}");
+                resp = await requestBuilder.GetAsync();
+                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+
+                requestBuilder = _appFactory.Server.CreateRequest(resultsUri);
+                requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("root", Roles.Admin, DateTimeOffset.Now.AddMinutes(5))}");
+                resp = await requestBuilder.GetAsync();
                 Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             }
 
-            //
-            // Check that no one can access the profiling results except the root
-            //
-
-            using (HttpClient client = _appFactory.CreateClient())
+            async Task<string> DoWork()
             {
-                resp = await client.GetAsync(resultEndpoint);
-                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+                using HttpClient client = _appFactory.CreateClient();
+
+                HttpResponseMessage resp = await client.GetAsync("foo");
+                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+                return JsonSerializer.Deserialize<string[]>(resp.Headers.GetValues("X-MiniProfiler-Ids").Single())!.Single();
             }
-
-            RequestBuilder requestBuilder = _appFactory.Server.CreateRequest($"http://localhost/{resultEndpoint}");
-            requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("test_user", Roles.Admin, DateTimeOffset.Now.AddMinutes(5))}");
-            resp = await requestBuilder.GetAsync();
-            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
-
-            requestBuilder = _appFactory.Server.CreateRequest($"http://localhost/{resultEndpoint}");
-            requestBuilder.AddHeader("Cookie", $"warehouse-session={await CreateToken("root", Roles.Admin, DateTimeOffset.Now.AddMinutes(5))}");
-            resp = await requestBuilder.GetAsync();
-            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         }
     }
 }
