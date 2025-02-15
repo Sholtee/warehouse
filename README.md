@@ -14,6 +14,7 @@
 - Logging: [Serilog](https://serilog.net/)
 - Mapping: [AutoMapper](https://automapper.org/)
 - Profiling: [MiniProfiler](https://miniprofiler.com/dotnet/)
+- Throttling: [RedisRateLimiting](https://www.nuget.org/packages/RedisRateLimiting)
 - API explorer: [Swashbuckle/Swagger](https://github.com/domaindrivendev/Swashbuckle.AspNetCore/)
 - Infra: [AWS](https://aws.amazon.com/), [Docker](https://www.docker.com/products/docker-desktop/), [LocalStack](https://www.localstack.cloud/)
 - Test FW: [NUnit](https://nunit.org/)
@@ -97,6 +98,10 @@ root
 │   │       │   └───Registrations [service registrations]
 │   │       │
 │   │       └───Services [internal services]
+│   │           │
+│   │           └───Auth [authentication related services]
+│   │           │
+│   │           └───HealthCheck [healthcheck related services]
 │   │
 │   └───Tools [tooling]
 │       │
