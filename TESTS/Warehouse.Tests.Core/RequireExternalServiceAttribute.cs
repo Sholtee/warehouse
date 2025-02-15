@@ -47,7 +47,7 @@ namespace Warehouse.Tests.Core
                 {
                     FService = bldr.Build().Start();
                 }
-                catch (FluentDockerException ex) when (ex.Message.Contains("Could not return service for docker id", StringComparison.OrdinalIgnoreCase))
+                catch (FluentDockerException ex) when (ex.Message.Contains("Error response from daemon: Conflict.", StringComparison.OrdinalIgnoreCase))
                 {
                     //
                     // Workaround for AppVeyor
