@@ -18,16 +18,15 @@ using System.Threading.Tasks;
 
 using Amazon.SecurityToken;
 using Amazon.SecurityToken.Model;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
-
 using Moq;
 using NUnit.Framework;
 using ServiceStack.OrmLite;
+using StackExchange.Redis;
 
 namespace Warehouse.Host.Infrastructure.Tests
 {
@@ -39,16 +38,19 @@ namespace Warehouse.Host.Infrastructure.Tests
     {
         private sealed class TestHostFactory : WebApplicationFactory<Warehouse.Tests.Host.Program>
         {
-            public IDbConnection Connection { get; set; } = null!;
+            public IDbConnection DbConnection { get; set; } = null!;
 
             public IAmazonSecurityTokenService Sts { get; set; } = null!;
+
+            public IConnectionMultiplexer RedisConnection { get; set; } = null!;
 
             protected override void ConfigureWebHost(IWebHostBuilder builder) => builder
                 .UseEnvironment("local")
                 .ConfigureTestServices(services =>
                 {
-                    services.AddScoped(_ => Connection);
+                    services.AddScoped(_ => DbConnection);
                     services.AddSingleton(_ => Sts);
+                    services.AddSingleton(_ => RedisConnection);
 
                     services
                         .AddHealthCheck()
@@ -56,9 +58,7 @@ namespace Warehouse.Host.Infrastructure.Tests
                 })
                 .Configure
                 (
-                    static app => app
-                        .UseExceptionHandler(static _ => { })
-                        .UseHealthCheck()
+                    static app => app.UseHealthCheck()
                 );
         }
 
@@ -77,8 +77,10 @@ namespace Warehouse.Host.Infrastructure.Tests
         [Test]
         public async Task TestHealthCheckOk()
         {
-            _appFactory.Connection = new SqliteConnection("DataSource=:memory:");
-            _appFactory.Connection.Open();
+            _appFactory.DbConnection = new SqliteConnection("DataSource=:memory:");
+            _appFactory.DbConnection.Open();
+
+            OrmLiteConfig.DialectProvider = SqliteDialect.Provider;
 
             Mock<IAmazonSecurityTokenService> mockSts = new(MockBehavior.Strict);
             mockSts
@@ -89,7 +91,20 @@ namespace Warehouse.Host.Infrastructure.Tests
 
             _appFactory.Sts = mockSts.Object;
 
-            OrmLiteConfig.DialectProvider = SqliteDialect.Provider;
+            Mock<IDatabase> mockDb = new(MockBehavior.Strict);
+            mockDb
+                .Setup(d => d.PingAsync(CommandFlags.None))
+                .ReturnsAsync(TimeSpan.Zero);
+
+            Mock<IConnectionMultiplexer> mockRedisConnection = new(MockBehavior.Strict);
+            mockRedisConnection
+                .Setup(c => c.GetDatabase(-1, null))
+                .Returns(mockDb.Object);
+            mockRedisConnection
+                .Setup(c => c.DisposeAsync())
+                .Returns(ValueTask.CompletedTask);
+
+            _appFactory.RedisConnection = mockRedisConnection.Object;
 
             using HttpClient client = _appFactory.CreateClient();
             using HttpResponseMessage resp = await client.GetAsync("/healthcheck");
@@ -116,7 +131,9 @@ namespace Warehouse.Host.Infrastructure.Tests
             mockConnection
                 .Setup(s => s.Dispose());
 
-            _appFactory.Connection = mockConnection.Object;
+            OrmLiteConfig.DialectProvider = SqliteDialect.Provider;
+
+            _appFactory.DbConnection = mockConnection.Object;
 
             Mock<IAmazonSecurityTokenService> mockSts = new(MockBehavior.Strict);
             mockSts
@@ -127,8 +144,16 @@ namespace Warehouse.Host.Infrastructure.Tests
 
             _appFactory.Sts = mockSts.Object;
 
-            OrmLiteConfig.DialectProvider = SqliteDialect.Provider;
+            Mock<IConnectionMultiplexer> mockRedisConnection = new(MockBehavior.Strict);
+            mockRedisConnection
+                .Setup(c => c.GetDatabase(-1, null))
+                .Throws(new Exception("Redis exception"));
+            mockRedisConnection
+                .Setup(c => c.DisposeAsync())
+                .Returns(ValueTask.CompletedTask);
 
+            _appFactory.RedisConnection = mockRedisConnection.Object;
+     
             using HttpClient client = _appFactory.CreateClient();
             using HttpResponseMessage resp = await client.GetAsync("/healthcheck");
 
@@ -143,9 +168,10 @@ namespace Warehouse.Host.Infrastructure.Tests
                 Assert.That(result!.Details, Is.Not.Null);
 
                 List<IDictionary<string, object>>? details = JsonSerializer.Deserialize<List<IDictionary<string, object>>>(result!.Details!.ToString()!);
-                Assert.That(details!.Count, Is.EqualTo(2));
+                Assert.That(details!.Count, Is.EqualTo(3));
                 Assert.That(details.Any(d => d["name"].ToString() == "AwsHealthCheck" && d["exception"].ToString() == "STS exception"));
                 Assert.That(details.Any(d => d["name"].ToString() == "DbConnectionHealthCheck" && d["exception"].ToString() == "DB exception"));
+                Assert.That(details.Any(d => d["name"].ToString() == "RedisHealthCheck" && d["exception"].ToString() == "Redis exception"));
             });
         }
     }

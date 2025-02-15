@@ -6,6 +6,7 @@
 * License: MIT                                                                  *
 ********************************************************************************/
 using System;
+using System.Threading.Tasks;
 
 using Amazon.SecretsManager;
 using Microsoft.AspNetCore.Authentication;
@@ -13,13 +14,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using StackExchange.Redis;
 
 namespace Warehouse.Host.Infrastructure.Registrations
 {
     using Auth;
     using Core.Abstractions;
     using Core.Auth;
-    using Core.Extensions;
     using Services;
 
     internal static partial class Registrations
@@ -39,8 +40,17 @@ namespace Warehouse.Host.Infrastructure.Registrations
         {
             services.AddAuthenticationBase();
             services
+                .AddRedis()
                 .AddStackExchangeRedisCache(static _ => { })
-                .SetOptions<RedisCacheOptions>(static (opts, config) => opts.Configuration = config.GetRequiredValue<string>("WAREHOUSE_REDIS_ENDPOINT"));         
+                .AddOptions<RedisCacheOptions, IConnectionMultiplexer>
+                (
+                    //
+                    // IConnectionMultiplexer is a thread-safe singleton object so it's safe to
+                    // reuse it
+                    //
+
+                    static (opts, connection) => opts.ConnectionMultiplexerFactory = () => Task.FromResult(connection)
+                );         
             services.TryAddScoped<ITokenManager, CachedIdentityManager>();
 
             return services;

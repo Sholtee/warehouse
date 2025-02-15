@@ -136,26 +136,31 @@ namespace Warehouse.API.Tests
         }
 
         [Test]
-        public async Task TestLoginAndGetProduct()
+        public async Task TestLoginAndGetProduct([Values(1, 2)] int callCount)
         {
-            RequestBuilder requestBuilder = _appFactory.Server.CreateRequest($"http://localhost/api/v1/product/{Guid.Empty}");
-            requestBuilder.AddHeader("Cookie", await GetSessionCookie());
+            for (int i = 0; i < callCount; i++)
+            {
+                RequestBuilder requestBuilder = _appFactory.Server.CreateRequest($"http://localhost/api/v1/product/{Guid.Empty}");
+                requestBuilder.AddHeader("Cookie", await GetSessionCookie());
 
-            HttpResponseMessage resp = await requestBuilder.GetAsync();
+                HttpResponseMessage resp = await requestBuilder.GetAsync();
 
-            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            }
         }
 
         [Test]
-        public async Task TestLoginAndQueryProducts()
+        public async Task TestLoginAndQueryProducts([Values(1, 2)] int callCount)
         {
-            RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/api/v1/products/");
-            requestBuilder.AddHeader("Cookie", await GetSessionCookie());
-            requestBuilder.And
-            (
-                msg => msg.Content = new StringContent
+            for (int i = 0; i < callCount; i++)
+            {
+                RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/api/v1/products/");
+                requestBuilder.AddHeader("Cookie", await GetSessionCookie());
+                requestBuilder.And
                 (
-                    """
+                    msg => msg.Content = new StringContent
+                    (
+                        """
                     {
                         // (Brand == "Samsung" && "Price" < 1000) || (Brand == "Sony" && "Price" < 1500)
                         "filter": {
@@ -202,15 +207,16 @@ namespace Warehouse.API.Tests
                         }
                     }
                     """,
-                    Encoding.UTF8,
-                    "application/json"
-                )
-            );
+                        Encoding.UTF8,
+                        "application/json"
+                    )
+                );
 
-            HttpResponseMessage resp = await requestBuilder.PostAsync();
+                HttpResponseMessage resp = await requestBuilder.PostAsync();
 
-            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            Assert.That(resp.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/json"));
+                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+                Assert.That(resp.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/json"));
+            }
         }
     }
 }

@@ -43,7 +43,7 @@ namespace Warehouse.Host.Infrastructure.Registrations
             return services
                 .AddEndpointsApiExplorer()
                 .AddSwaggerGen()
-                .SetOptions<SwaggerGenOptions>((options, configuration) =>
+                .AddOptions<SwaggerGenOptions, IConfiguration>((options, configuration) =>
                 {
                     IConfigurationSection swaggerConfig = configuration.GetSection("Swagger");
                     if (!swaggerConfig.Exists())
@@ -92,12 +92,6 @@ namespace Warehouse.Host.Infrastructure.Registrations
                     options.DocumentFilter<CustomModelDocumentFilter<HealthCheckResult>>();
                     options.ExampleFilters();
                 })
-
-                //
-                // Should not be called multiple times as it uses AddSingleton() internally instead 
-                // of TryAddSingleton()
-                //
-
                 .AddSwaggerExamplesFromAssemblies(appAssemblies);;
         }
 

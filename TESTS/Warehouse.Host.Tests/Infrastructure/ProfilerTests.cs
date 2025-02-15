@@ -111,6 +111,7 @@ namespace Warehouse.Host.Infrastructure.Tests
                     services
                         .AddAwsServices()
                         .AddStatelessAuthentication()
+                        .AddRedis()
                         .AddProfiler();
 
                     services

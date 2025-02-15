@@ -7,17 +7,18 @@
 ********************************************************************************/
 using System;
 
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 
 namespace Warehouse.Host.Infrastructure.Registrations
 {
     internal static class OptionsExtensions
     {
-        public static IServiceCollection SetOptions<TOptions>(this IServiceCollection services, Action<TOptions, IConfiguration> configurator) where TOptions: class => services
-            .RemoveAll<IOptions<TOptions>>()
+        public static IServiceCollection AddOptions<TOptions, TDependency>(this IServiceCollection services, Action<TOptions, TDependency> configurator) where TOptions : class where TDependency: class => services
+            .AddOptions<TOptions>()
+            .Configure(configurator)
+            .Services;
+
+        public static IServiceCollection AddOptions<TOptions, TDependency1, TDependency2>(this IServiceCollection services, Action<TOptions, TDependency1, TDependency2> configurator) where TOptions : class where TDependency1 : class where TDependency2 : class => services
             .AddOptions<TOptions>()
             .Configure(configurator)
             .Services;

@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using StackExchange.Profiling;
 using StackExchange.Profiling.Storage;
+using StackExchange.Redis;
 
 namespace Warehouse.Host.Infrastructure.Registrations
 {  
@@ -29,7 +30,7 @@ namespace Warehouse.Host.Infrastructure.Registrations
         {
             services.TryAddScoped<IProfiler>(static _ => new Profiler(MiniProfiler.Current!));
             services.AddMiniProfiler();
-            services.SetOptions<MiniProfilerOptions>(static (options, configuration) =>
+            services.AddOptions<MiniProfilerOptions, IConfiguration, IConnectionMultiplexer>(static (options, configuration, redisConnection) =>
             {
                 IConfigurationSection profilerConfiguration = configuration.GetSection("MiniProfiler");
                 if (!profilerConfiguration.Exists())
@@ -37,9 +38,8 @@ namespace Warehouse.Host.Infrastructure.Registrations
 
                 options.RouteBasePath = configuration.GetRequiredValue<string>("MiniProfiler:RouteBasePath");
 
-                string? endpoint = configuration.GetValue<string>("WAREHOUSE_REDIS_ENDPOINT");
-                if (!string.IsNullOrWhiteSpace(endpoint))
-                    options.Storage = new RedisStorage(endpoint);
+                if (redisConnection is not null)
+                    options.Storage = new RedisStorage(redisConnection.GetDatabase());
 
                 //
                 // Only the allowed user can see the profiling results
