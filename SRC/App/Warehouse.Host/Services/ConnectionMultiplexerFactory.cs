@@ -19,7 +19,7 @@ namespace Warehouse.Host.Services
         {
             ConfigurationOptions opts = ConfigurationOptions.Parse
             (
-                configuration.GetRequiredValue<string>("WAREHOUSE_REDIS_ENDPOINT")
+                configuration.GetRequiredValue<string>("WAREHOUSE_REDIS_CONNECTION")
             );
             opts.LoggerFactory = loggerFactory;
 

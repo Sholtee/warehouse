@@ -65,7 +65,7 @@ namespace Warehouse.Host.Infrastructure.Tests
                     (
                         new Dictionary<string, string?>
                         {
-                            ["WAREHOUSE_REDIS_ENDPOINT"] = "localhost:6379",
+                            ["WAREHOUSE_REDIS_CONNECTION"] = "localhost:6379",
 
                             ["RateLimiting:Fixed:PermitLimit"] = "1",
                             ["RateLimiting:Fixed:Window"] = "00:00:02" 
@@ -168,7 +168,7 @@ namespace Warehouse.Host.Infrastructure.Tests
                     (
                         new Dictionary<string, string?>
                         {
-                            ["WAREHOUSE_REDIS_ENDPOINT"] = "localhost:6379",
+                            ["WAREHOUSE_REDIS_CONNECTION"] = "localhost:6379",
 
                             ["RateLimiting:UserBound:TokenLimit"] = "1",
                             ["RateLimiting:UserBound:TokensPerPeriod"] = "1",

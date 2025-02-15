@@ -73,7 +73,7 @@ namespace Warehouse.Host.Infrastructure.Tests
                                 ["AWS_SECRET_ACCESS_KEY"] = "local",
                                 ["AWS_ENDPOINT_URL"] = "http://localhost:4566",
 
-                                ["WAREHOUSE_REDIS_ENDPOINT"] = "localhost:6379"
+                                ["WAREHOUSE_REDIS_CONNECTION"] = "localhost:6379"
                             }
                         )
                         .Build()

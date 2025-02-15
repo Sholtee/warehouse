@@ -105,7 +105,7 @@ namespace Warehouse.API.Tests
                 (
                     new Dictionary<string, string?>
                     {
-                        ["WAREHOUSE_REDIS_ENDPOINT"] = "localhost:6379"
+                        ["WAREHOUSE_REDIS_CONNECTION"] = "localhost:6379"
                     }
                 ));
         }
