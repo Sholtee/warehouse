@@ -197,17 +197,19 @@ To query items using cURL:
 ## Throttling 
 - Login endpoints are protected by [fixed time window rate limiter](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit?view=aspnetcore-9.0#fixed-window-limiter ), set to allow [100 requests / minute](https://github.com/Sholtee/warehouse/blob/61feabed42df1d2f99d96574e89b575950d56f7a/SRC/App/Warehouse.Host/appsettings.json#L33)
 - Business logic endpoints are protected by a modified [token bucket limiter](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit?view=aspnetcore-9.0#token-bucket-limiter) where each user has its [own bucket](https://github.com/Sholtee/warehouse/blob/b2bdd7664f0ff206b303f265e0075a8ac8fe8562/SRC/App/Warehouse.Host/Infrastructure/Registrations/Registrations.RateLimiting.cs#L50). By default this limiter is set to allow [10 requests / minute / user](https://github.com/Sholtee/warehouse/blob/61feabed42df1d2f99d96574e89b575950d56f7a/SRC/App/Warehouse.Host/appsettings.json#L38 )
-- Note that the rate-limiting is Redis based so then number of active API nodes won't mess up throttling
+- Note that the rate-limiting is Redis based so the number of active API nodes won't mess up the throttling
  
 ## Health checks
 - Available at `<base_url>/healthcheck` (defaults to [https://localhost:1986/healthcheck](https://localhost:1986/))
-- It executes [database connection](https://github.com/Sholtee/warehouse/blob/0ebba5ee75d9338dfa0810ccadf94242437d424c/SRC/App/Warehouse.Host/Services/DbConnectionHealthCheck.cs#L18) & [aws client](https://github.com/Sholtee/warehouse/blob/0ebba5ee75d9338dfa0810ccadf94242437d424c/SRC/App/Warehouse.Host/Services/AwsHealthCheck.cs#L18) checks
+- It executes [database connection](https://github.com/Sholtee/warehouse/blob/6aefec85f1fe7aa28c5f7d3097f16d40b2742b7d/SRC/App/Warehouse.Host/Services/HealthCheck/DbConnectionHealthCheck.cs#L18), [Redis](https://github.com/Sholtee/warehouse/blob/6aefec85f1fe7aa28c5f7d3097f16d40b2742b7d/SRC/App/Warehouse.Host/Services/HealthCheck/RedisHealthCheck.cs#L17) and [aws client](https://github.com/Sholtee/warehouse/blob/6aefec85f1fe7aa28c5f7d3097f16d40b2742b7d/SRC/App/Warehouse.Host/Services/HealthCheck/AwsHealthCheck.cs#L18) checks
 - The endpoint is invoked during [container](https://github.com/Sholtee/warehouse/blob/0ebba5ee75d9338dfa0810ccadf94242437d424c/SRC/App/dockerfile#L28) and [service](https://github.com/Sholtee/warehouse/blob/0ebba5ee75d9338dfa0810ccadf94242437d424c/CloudFormation/app.yml#L90) health checks
+- The endpoint is NOT authenticated therefore should not be exposed to clients
 
 ## Profiling
 - Available at `<base_url>/profiler/results-index` (defaults to [https://localhost:1986/profiler/results-index](https://localhost:1986/profiler/results-index))
 - Can be disabled from [configuration](https://github.com/Sholtee/warehouse/blob/730f3003f113bce393b899520cf610ed6c290845/SRC/App/Warehouse.Host/appsettings.json#L42)
 - By default only the [root](https://github.com/Sholtee/warehouse/blob/730f3003f113bce393b899520cf610ed6c290845/SRC/App/Warehouse.Host/appsettings.json#L44) user can access the profiling results
+- Every response from the API includes a header containing a tracking id `X-MiniProfiler-Ids` which can be used to query specific profiling data (`<base_url>/profiler/results?id=...`)
 
 ## Running the tests
 Simply run the `.\Run-Tests.ps1` script. It places the tests result and coverage report to the `.\Artifacts` folder
