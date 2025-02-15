@@ -35,18 +35,17 @@ namespace Warehouse.Tests.Core
         {
             if (test.IsSuite)
             {
-                FService = new Builder()
+                ContainerBuilder bldr = new Builder()
                     .UseContainer()
                     .UseImage(image)
                     .WithName(name)
                     .WithEnvironment(environment)
                     .ExposePort(exposePort, exposePort)
-                    .DeleteIfExists()
-                    .Build();
+                    .DeleteIfExists();
 
                 try
                 {
-                    FService.Start();
+                    FService = bldr.Build().Start();
                 }
                 catch (FluentDockerException ex) when (ex.Message.Contains("Could not return service for docker id", StringComparison.OrdinalIgnoreCase))
                 {
