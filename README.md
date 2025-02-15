@@ -113,11 +113,12 @@ root
 ```
 
 ## Authentication
-The API uses stateless authentication (bearer token in session cookie, having sliding expiration)
+The API can use [stateful](https://github.com/Sholtee/warehouse/blob/115339c9ff4344ad47e279c92b50795b51dfef12/SRC/App/Warehouse.Host/Infrastructure/Registrations/Registrations.Authentication.cs#L38) (session id in session cookie) or [stateless](https://github.com/Sholtee/warehouse/blob/115339c9ff4344ad47e279c92b50795b51dfef12/SRC/App/Warehouse.Host/Infrastructure/Registrations/Registrations.Authentication.cs#L51) (bearer token in session cookie) authentication.
+Sliding expiration also supported but using it together with stateless authentication is strongly not advisable as it may let the client to create an "infinite" token
 
 ![Auth flow](Assets/Auth/auth.png)
 
-Session management can be fine-tuned via [config](https://github.com/Sholtee/warehouse/blob/c710826d74083c0f76095011030431ab39579b21/SRC/App/Warehouse.Host/appsettings.json#L18)
+Session management can be fine-tuned via [config](https://github.com/Sholtee/warehouse/blob/115339c9ff4344ad47e279c92b50795b51dfef12/SRC/App/Warehouse.Host/appsettings.json#L18)
 
 ## Using the local environment
 Requirements
