@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using StackExchange.Redis;
 
 namespace Warehouse.Host.Infrastructure.Registrations
 {
@@ -42,14 +41,9 @@ namespace Warehouse.Host.Infrastructure.Registrations
             services
                 .AddRedis()
                 .AddStackExchangeRedisCache(static _ => { })
-                .AddOptions<RedisCacheOptions, IConnectionMultiplexer>
+                .AddOptions<RedisCacheOptions, ConnectionMultiplexerFactory>
                 (
-                    //
-                    // IConnectionMultiplexer is a thread-safe singleton object so it's safe to
-                    // reuse it
-                    //
-
-                    static (opts, connection) => opts.ConnectionMultiplexerFactory = () => Task.FromResult(connection)
+                    static (opts, multiplexerFactory) => opts.ConnectionMultiplexerFactory = () => Task.FromResult(multiplexerFactory.CreateConnectionMultiplexer())
                 );         
             services.TryAddScoped<ITokenManager, CachedIdentityManager>();
 
