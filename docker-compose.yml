@@ -60,4 +60,4 @@ services:
       - AWS_REGION=local
       - AWS_ACCESS_KEY_ID=local
       - AWS_SECRET_ACCESS_KEY=local
-      - WAREHOUSE_REDIS_ENDPOINT=redis:6379 
+      - WAREHOUSE_REDIS_CONNECTION=redis:6379 
