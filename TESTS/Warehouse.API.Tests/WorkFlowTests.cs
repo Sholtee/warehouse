@@ -123,6 +123,14 @@ namespace Warehouse.API.Tests
 
             return resp.Headers.GetValues("Set-Cookie").Single().Split(";")[0];
         }
+
+        private static void RunParallel(int parallelism, Func<Task> taskFactory) => Assert.DoesNotThrow
+        (
+            Task.WhenAll
+            (
+                Enumerable.Repeat(0, parallelism).Select(_ => taskFactory())
+            ).Wait
+        );
         #endregion
 
         [SetUp]
@@ -136,87 +144,81 @@ namespace Warehouse.API.Tests
         }
 
         [Test]
-        public async Task TestLoginAndGetProduct([Values(1, 2)] int callCount)
+        public void TestLoginAndGetProduct([Values(1, 2, 5, 10)] int parallelism) => RunParallel(parallelism, async () =>
         {
-            for (int i = 0; i < callCount; i++)
-            {
-                RequestBuilder requestBuilder = _appFactory.Server.CreateRequest($"http://localhost/api/v1/product/{Guid.Empty}");
-                requestBuilder.AddHeader("Cookie", await GetSessionCookie());
+            RequestBuilder requestBuilder = _appFactory.Server.CreateRequest($"http://localhost/api/v1/product/{Guid.Empty}");
+            requestBuilder.AddHeader("Cookie", await GetSessionCookie());
 
-                HttpResponseMessage resp = await requestBuilder.GetAsync();
+            HttpResponseMessage resp = await requestBuilder.GetAsync();
 
-                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            }
-        }
+            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        });
 
         [Test]
-        public async Task TestLoginAndQueryProducts([Values(1, 2)] int callCount)
+        public void TestLoginAndQueryProducts([Values(1, 2, 5, 10)] int parallelism) => RunParallel(parallelism, async () =>
         {
-            for (int i = 0; i < callCount; i++)
-            {
-                RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/api/v1/products/");
-                requestBuilder.AddHeader("Cookie", await GetSessionCookie());
-                requestBuilder.And
+            RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/api/v1/products/");
+            requestBuilder.AddHeader("Cookie", await GetSessionCookie());
+            requestBuilder.And
+            (
+                msg => msg.Content = new StringContent
                 (
-                    msg => msg.Content = new StringContent
-                    (
-                        """
-                    {
-                        // (Brand == "Samsung" && "Price" < 1000) || (Brand == "Sony" && "Price" < 1500)
-                        "filter": {
+                    """
+                {
+                    // (Brand == "Samsung" && "Price" < 1000) || (Brand == "Sony" && "Price" < 1500)
+                    "filter": {
+                        "block": {
+                            "string": {
+                                "property": "Brand",
+                                "comparison": "equals",
+                                "value": "Samsung"
+                            },
+                            "and": {
+                                "decimal": {
+                                    "property": "Price",
+                                    "comparison": "lessThan",
+                                    "value": 1000
+                                }
+                            }
+                        },
+                        "or": {
                             "block": {
                                 "string": {
                                     "property": "Brand",
                                     "comparison": "equals",
-                                    "value": "Samsung"
+                                    "value": "Sony"
                                 },
                                 "and": {
                                     "decimal": {
                                         "property": "Price",
                                         "comparison": "lessThan",
-                                        "value": 1000
-                                    }
-                                }
-                            },
-                            "or": {
-                                "block": {
-                                    "string": {
-                                        "property": "Brand",
-                                        "comparison": "equals",
-                                        "value": "Sony"
-                                    },
-                                    "and": {
-                                        "decimal": {
-                                            "property": "Price",
-                                            "comparison": "lessThan",
-                                            "value": 1500
-                                        }
+                                        "value": 1500
                                     }
                                 }
                             }
-                        },
-                        "sortBy": {
-                            "properties": [
-                                {"property": "Brand", "kind": "ascending"},
-                                {"property": "Name", "kind": "ascending"}
-                            ]
-                        },
-                        "page": {
-                            "skip": 3,
-                            "size": 10
                         }
+                    },
+                    "sortBy": {
+                        "properties": [
+                            {"property": "Brand", "kind": "ascending"},
+                            {"property": "Name", "kind": "ascending"}
+                        ]
+                    },
+                    "page": {
+                        "skip": 3,
+                        "size": 10
                     }
-                    """,
-                        Encoding.UTF8,
-                        "application/json"
-                    )
-                );
+                }
+                """,
+                    Encoding.UTF8,
+                    "application/json"
+                )
+            );
 
-                HttpResponseMessage resp = await requestBuilder.PostAsync();
+            HttpResponseMessage resp = await requestBuilder.PostAsync();
 
-                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-                Assert.That(resp.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/json"));
-            }
-        }
+            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(resp.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/json"));
+        });
     }
 }
