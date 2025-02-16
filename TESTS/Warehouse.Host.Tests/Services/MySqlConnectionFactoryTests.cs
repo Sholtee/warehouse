@@ -5,7 +5,6 @@
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
-using System.Data;
 using System.Data.Common;
 using System.Text.Json;
 

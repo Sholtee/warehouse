@@ -124,7 +124,7 @@ namespace Warehouse.Host.Infrastructure.Tests
         [Test]
         public async Task TestHealthCheckFailed()
         {
-            Mock<IDbConnection> mockConnection = new Mock<IDbConnection>(MockBehavior.Strict);
+            Mock<IDbConnection> mockConnection = new(MockBehavior.Strict);
             mockConnection
                 .Setup(s => s.CreateCommand())
                 .Throws(new Exception("DB exception"));

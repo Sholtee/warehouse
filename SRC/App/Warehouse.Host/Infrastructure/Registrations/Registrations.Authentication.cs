@@ -6,12 +6,10 @@
 * License: MIT                                                                  *
 ********************************************************************************/
 using System;
-using System.Threading.Tasks;
 
 using Amazon.SecretsManager;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 

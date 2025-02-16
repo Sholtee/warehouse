@@ -109,9 +109,10 @@ namespace Warehouse.Host.Services.Tests
                 _mockHttpContextAccessor.Object,
                 _configuration,
                 _mockTimeProvider.Object
-            );
-
-            sessionManager.Token = "token";
+            )
+            {
+                Token = "token"
+            };
 
             Assert.That(_context.Response.Headers.SetCookie.ToString(), Is.EqualTo("session-cookie=token; expires=Mon, 27 Oct 1986 00:00:00 GMT; path=/; secure; samesite=strict; httponly"));
         }
