@@ -7,7 +7,6 @@
 ********************************************************************************/
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Threading.Tasks;
 
 using AutoMapper;
@@ -26,7 +25,8 @@ namespace Warehouse.API.Controllers
     /// <summary>
     /// TODO: finish implementation
     /// </summary>
-    [ApiController, Consumes("application/json"), Produces("application/json"), Route("api/v1"), Authorize(AuthenticationSchemes = WarehouseAuthentication.SCHEME), EnableRateLimiting("userBound"), ApiExplorerSessionCookieAuthorization]
+    [ApiController, Consumes("application/json"), Produces("application/json"), Route("api/v1"), Authorize(AuthenticationSchemes = WarehouseAuthentication.SCHEME), EnableRateLimiting("userBound")]
+    [ApiExplorerSessionCookieAuthorization]
     public sealed class WarehouseController(IWarehouseRepository warehouseRepository, IMapper mapper) : ControllerBase
     {
         /// <summary>
