@@ -23,6 +23,16 @@ Parameters:
   dbClusterMaxCapacity:
     Type: Number
     Description: Maximum ACUs to apply
+  certificateArn:
+    Type: String
+    Description: Certificte to be used
+    Default: ""
+
+Conditions:
+  hasCertificate: !Not
+    - !Equals
+      - !Ref certificateArn
+      - ""
 
 Mappings:
   AZsByIndex:
@@ -174,12 +184,22 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       LoadBalancerArn: !Ref LoadBalancer
-      # Port: 443
-      # Protocol: HTTPS
-      # Certificates:
-      #   - CertificateArn: !Ref certificateArn
-      Port: 80
-      Protocol: HTTP
+      Port:
+        !If
+          - hasCertificate
+          - 443
+          - 80
+      Protocol:
+        !If
+          - hasCertificate
+          - HTTPS
+          - HTTP
+      Certificates:
+        !If
+          - hasCertificate
+          -
+            - CertificateArn: !Ref certificateArn
+          - !Ref AWS::NoValue
       DefaultActions:
         - Type: fixed-response
           FixedResponseConfig:

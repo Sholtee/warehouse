@@ -1,5 +1,6 @@
 {
     "prefix": "dev",
     "dbClusterMinCapacity": 0.5,
-    "dbClusterMaxCapacity": 1
+    "dbClusterMaxCapacity": 1,
+    "certificateArn": ""
 }
