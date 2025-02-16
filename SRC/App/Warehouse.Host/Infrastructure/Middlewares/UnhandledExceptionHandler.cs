@@ -29,34 +29,33 @@ namespace Warehouse.Host.Infrastructure.Middlewares
             {
                 logger.LogInformation(new EventId(exception.HResult), "Request exception occurred: [{status}] {details}", requestException.HttpStatus, requestException.Errors);
 
-                await HandleCore(requestException.HttpStatus, requestException.Errors, requestException.DeveloperMessage);
+                requestException.PrepareResponse(httpContext.Response);
+
+                await WriteDetailsAsync(requestException.Errors, requestException.DeveloperMessage);
             }
             else
             {
-                logger.LogError(new EventId(exception.HResult), "Unhandled exception occurred: {exception}", exception);
+                logger.LogError(new EventId(exception.HResult), exception, "Unhandled exception occurred");
 
-                await HandleCore(StatusCodes.Status500InternalServerError, null, exception.ToString());
+                httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
+                await WriteDetailsAsync(null, exception.ToString());
             }
 
             return true;
 
-            async Task HandleCore(int statusCode, object? errors, object? developerMessage)
-            {
-                httpContext.Response.StatusCode = statusCode;
-
-                await httpContext.Response.WriteAsJsonAsync
-                (
-                    new ErrorDetails()
-                    {
-                        Title = ReasonPhrases.GetReasonPhrase(statusCode),
-                        Status = statusCode,
-                        TraceId = httpContext.TraceIdentifier,
-                        Errors = errors,
-                        DeveloperMessage = env.IsLocal() || env.IsDev() ? developerMessage : null
-                    },
-                    cancellationToken
-                );
-            }
+            Task WriteDetailsAsync(object? errors, object? developerMessage) => httpContext.Response.WriteAsJsonAsync
+            (
+                new ErrorDetails()
+                {
+                    Title = ReasonPhrases.GetReasonPhrase(httpContext.Response.StatusCode),
+                    Status = httpContext.Response.StatusCode,
+                    TraceId = httpContext.TraceIdentifier,
+                    Errors = errors,
+                    DeveloperMessage = env.IsLocal() || env.IsDev() ? developerMessage : null
+                },
+                cancellationToken
+            );
         }
     }
 }

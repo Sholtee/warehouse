@@ -6,14 +6,13 @@
 * License: MIT                                                                  *
 ********************************************************************************/
 using System;
-using System.Net;
 
 using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Warehouse.Core.Attributes
 {
     [AttributeUsage(AttributeTargets.Method)]
-    public sealed class ResponseCodeAttribute(HttpStatusCode statusCode) : Attribute, IResultFilter
+    public sealed class ResponseCodeAttribute(int statusCode) : Attribute, IResultFilter
     {
         public void OnResultExecuted(ResultExecutedContext context)
         {
@@ -21,7 +20,7 @@ namespace Warehouse.Core.Attributes
 
             if (context.Exception is null && !context.Canceled)
             {
-                context.HttpContext.Response.StatusCode = (int) statusCode;
+                context.HttpContext.Response.StatusCode = statusCode;
             }
         }
 

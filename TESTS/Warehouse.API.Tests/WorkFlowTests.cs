@@ -6,6 +6,7 @@
 * License: MIT                                                                  *
 ********************************************************************************/
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Net;
@@ -27,6 +28,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Moq;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 using ServiceStack.OrmLite;
 
 namespace Warehouse.API.Tests
@@ -34,7 +36,6 @@ namespace Warehouse.API.Tests
     using Core.Auth;
     using DAL;
     using Host;
-    using System.Collections.Generic;
     using Warehouse.Tests.Core;
 
     [TestFixture, NonParallelizable, RequireRedis]
@@ -142,6 +143,57 @@ namespace Warehouse.API.Tests
             _appFactory?.Dispose();
             _appFactory = null!;
         }
+
+        [Test]
+        public void TestLoginLogout([Values(1, 2, 5, 10)] int parallelism) => RunParallel(parallelism, async () =>
+        {
+            RequestBuilder requestBuilder = _appFactory.Server.CreateRequest("http://localhost/api/v1/login");
+
+            await CheckUnauthorized();
+
+            requestBuilder = _appFactory.Server.CreateRequest("http://localhost/api/v1/login");
+            requestBuilder.AddHeader("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes($"unknown:password"))}");
+
+            await CheckUnauthorized();
+
+            requestBuilder = _appFactory.Server.CreateRequest("http://localhost/api/v1/login");
+            requestBuilder.AddHeader("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes($"root:badpw"))}");
+
+            await CheckUnauthorized();
+
+            requestBuilder = _appFactory.Server.CreateRequest("http://localhost/api/v1/login");
+            requestBuilder.AddHeader("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes($"root:password"))}");
+
+            string session = await CheckCookieExpiration(Is.GreaterThan(DateTime.Now));
+
+            requestBuilder = _appFactory.Server.CreateRequest("http://localhost/api/v1/logout");
+            requestBuilder.AddHeader("Cookie", session);
+
+            await CheckCookieExpiration(Is.LessThan(DateTime.Now));
+
+            async Task<string> CheckCookieExpiration(IConstraint constraint)
+            {
+                using HttpResponseMessage resp = await requestBuilder.GetAsync();
+
+                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+
+                string[] cookieData = resp.Headers.GetValues("Set-Cookie").Single().Split(";");
+
+                Assert.That(cookieData[0].Trim(), Does.StartWith("warehouse-session"));
+                Assert.That(cookieData[1].Trim(), Does.StartWith("expires"));
+                Assert.That(DateTime.Parse(cookieData[1].Split("=")[1], null), constraint);
+
+                return cookieData[0];
+            }
+
+            async Task CheckUnauthorized()
+            {
+                using HttpResponseMessage resp = await requestBuilder.GetAsync();
+
+                Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+                Assert.That(resp.Headers.GetValues("WWW-Authenticate").Single(), Is.EqualTo("Basic"));
+            }
+        });
 
         [Test]
         public void TestLoginAndGetProduct([Values(1, 2, 5, 10)] int parallelism) => RunParallel(parallelism, async () =>

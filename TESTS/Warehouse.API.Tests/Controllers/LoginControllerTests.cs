@@ -8,11 +8,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
@@ -23,6 +21,7 @@ namespace Warehouse.API.Controllers.Tests
 {
     using Core.Abstractions;
     using Core.Auth;
+    using Core.Exceptions;
     using DAL;
 
     [TestFixture]
@@ -58,7 +57,7 @@ namespace Warehouse.API.Controllers.Tests
         }
 
         [Test]
-        public async Task Login_ShouldCreateANewSessionCookie()
+        public void Login_ShouldCreateANewSessionCookie()
         {
             const string
                 CLIENT_ID = "test_user",
@@ -119,8 +118,7 @@ namespace Warehouse.API.Controllers.Tests
                 )
             );
 
-            IActionResult result = await _loginController.Login();
-            Assert.That(result, Is.InstanceOf<NoContentResult>());
+            Assert.DoesNotThrowAsync(_loginController.Login);
 
             _mockUserRepository.Verify(r => r.QueryUser(CLIENT_ID), Times.Once);
             _mockPasswordHasher.Verify(h => h.VerifyHashedPassword(CLIENT_ID, "hash", CLIENT_SECRET), Times.Once);
@@ -192,17 +190,15 @@ namespace Warehouse.API.Controllers.Tests
         }
 
         [TestCaseSource(nameof(InvalidLoginHeaders))]
-        public async Task Login_ShouldReturnUnauthorizedOnInvalidLoginRequest(KeyValuePair<string, StringValues> header)
+        public void Login_ShouldReturnUnauthorizedOnInvalidLoginRequest(KeyValuePair<string, StringValues> header)
         {
             _loginController.Request.Headers.Add(header);
 
-            IActionResult result = await _loginController.Login();
-
-            Assert.That(result, Is.InstanceOf<UnauthorizedResult>());
+            Assert.ThrowsAsync<UnauthorizedException>(_loginController.Login);
         }
 
         [Test]
-        public async Task Login_ShouldReturnUnauthorizedOnMissingUser()
+        public void Login_ShouldReturnUnauthorizedOnMissingUser()
         {
             _mockUserRepository
                 .Setup(r => r.QueryUser("user"))
@@ -223,14 +219,12 @@ namespace Warehouse.API.Controllers.Tests
                 )
             );
 
-            IActionResult result = await _loginController.Login();
-
-            Assert.That(result, Is.InstanceOf<UnauthorizedResult>());
+            Assert.ThrowsAsync<UnauthorizedException>(_loginController.Login);
             _mockUserRepository.Verify(r => r.QueryUser("user"), Times.Once);
         }
 
         [Test]
-        public async Task Login_ShouldReturnUnauthorizedOnInvalidCreds()
+        public void Login_ShouldReturnUnauthorizedOnInvalidCreds()
         {
             _mockUserRepository
                 .Setup(r => r.QueryUser("user"))
@@ -255,16 +249,14 @@ namespace Warehouse.API.Controllers.Tests
                 )
             );
 
-            IActionResult result = await _loginController.Login();
-
-            Assert.That(result, Is.InstanceOf<UnauthorizedResult>());
+            Assert.ThrowsAsync<UnauthorizedException>(_loginController.Login);
 
             _mockUserRepository.Verify(r => r.QueryUser("user"), Times.Once);
             _mockPasswordHasher.Verify(h => h.VerifyHashedPassword("user", "hash", "pass"), Times.Once);
         }
 
         [Test]
-        public async Task Logout_ShouldRemoveTheSessionCookie()
+        public void Logout_ShouldRemoveTheSessionCookie()
         {
             Mock<IConfigurationSection> mockCookieName = new(MockBehavior.Strict);
             mockCookieName
@@ -281,8 +273,7 @@ namespace Warehouse.API.Controllers.Tests
                 .Setup(t => t.RevokeTokenAsync("token"))
                 .ReturnsAsync(true);
 
-            IActionResult result = await _loginController.Logout();
-            Assert.That(result, Is.InstanceOf<NoContentResult>());
+            Assert.DoesNotThrowAsync(_loginController.Logout);
 
             _mockTokenManager.Verify(t => t.RevokeTokenAsync("token"), Times.Once);
             _mockSessionManager.VerifySet(s => s.Token = null, Times.Once);

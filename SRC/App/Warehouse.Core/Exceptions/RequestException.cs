@@ -7,10 +7,12 @@
 ********************************************************************************/
 using System;
 
+using Microsoft.AspNetCore.Http;
+
 namespace Warehouse.Core.Exceptions
 {
     /// <summary>
-    /// Base class of request exceptions. Transformed to HTTP response using the given <see cref="RequestException.HttpStatus"/>
+    /// Base class of request exceptions. Transformed to HTTP response using the given <see cref="HttpStatus"/>
     /// </summary>
     public abstract class RequestException() : Exception("Request exception occurred")
     {
@@ -28,5 +30,15 @@ namespace Warehouse.Core.Exceptions
         /// The HTTP status code
         /// </summary>
         public abstract int HttpStatus { get; }
+
+        /// <summary>
+        /// Prepares the HTTP response. Content should not be written here.
+        /// </summary>
+        public virtual void PrepareResponse(HttpResponse response)
+        {
+            ArgumentNullException.ThrowIfNull(response, nameof(response));
+
+            response.StatusCode = HttpStatus;
+        }
     }
 }
