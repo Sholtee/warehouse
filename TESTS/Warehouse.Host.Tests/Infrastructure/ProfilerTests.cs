@@ -14,6 +14,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 
+using Amazon.Runtime;
 using Amazon.SecretsManager.Model;
 using Amazon.SecretsManager;
 using Amazon.SecurityToken;
@@ -70,11 +71,6 @@ namespace Warehouse.Host.Infrastructure.Tests
                         (
                             new Dictionary<string, string?>
                             {
-                                ["AWS_REGION"] = "local",
-                                ["AWS_ACCESS_KEY_ID"] = "local",
-                                ["AWS_SECRET_ACCESS_KEY"] = "local",
-                                ["AWS_ENDPOINT_URL"] = "http://localhost:4566",
-
                                 ["WAREHOUSE_REDIS_CONNECTION"] = "localhost:6379"
                             }
                         )
@@ -111,7 +107,11 @@ namespace Warehouse.Host.Infrastructure.Tests
                     });
 
                     services
-                        .AddAwsServices()
+                        .AddAwsServices((_, opts) =>
+                        {
+                            opts.Credentials = new BasicAWSCredentials("local", "local");
+                            opts.DefaultClientConfig.ServiceURL = "http://localhost:4566";
+                        })
                         .AddStatelessAuthentication()
                         .AddRedis()
                         .AddProfiler();

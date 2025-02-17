@@ -32,7 +32,6 @@ namespace Warehouse.Host
                 configBuilder => configBuilder
                     .AddCommandLine(args)
                     .AddEnvironmentVariables(prefix: "ASPNETCORE_")
-                    .AddLiteralEnvironmentVariables(prefix: "AWS_")
                     .AddLiteralEnvironmentVariables(prefix: "WAREHOUSE_")
             )
             .ConfigureAppConfiguration

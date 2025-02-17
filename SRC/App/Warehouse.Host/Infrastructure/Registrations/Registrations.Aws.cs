@@ -5,25 +5,22 @@
 * Project: Warehouse API (boilerplate)                                          *
 * License: MIT                                                                  *
 ********************************************************************************/
+using System;
+
 using Amazon.Extensions.NETCore.Setup;
-using Amazon.Runtime;
 using Amazon.SecretsManager;
 using Amazon.SecurityToken;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Warehouse.Host.Infrastructure.Registrations
 {
-    using Core.Extensions;
     using Profiling;
 
     internal static partial class Registrations
     {
-        public static IServiceCollection AddAwsServices(this IServiceCollection services) => services
-            .AddDefaultAWSOptions(static sp =>
+        public static IServiceCollection AddAwsServices(this IServiceCollection services, Action<IServiceProvider, AWSOptions>? tweakOptions = null) => services
+            .AddDefaultAWSOptions(sp =>
             {
-                IConfiguration configuration = sp.GetRequiredService<IConfiguration>();
-
                 AWSOptions opts = new();
 
                 //
@@ -32,19 +29,8 @@ namespace Warehouse.Host.Infrastructure.Registrations
                 //
 
                 opts.DefaultClientConfig.HttpClientFactory = new ProfiledHttpClientFactory();
-                opts.Credentials = new BasicAWSCredentials
-                (
-                    //
-                    // Always read the creds from config to prevent accidental AWS invocations
-                    //
 
-                    configuration.GetRequiredValue<string>("AWS_ACCESS_KEY_ID"),
-                    configuration.GetRequiredValue<string>("AWS_SECRET_ACCESS_KEY")
-                );
-
-                string? serviceUrl = configuration.GetValue<string>("AWS_ENDPOINT_URL");
-                if (!string.IsNullOrEmpty(serviceUrl))
-                    opts.DefaultClientConfig.ServiceURL = serviceUrl;
+                tweakOptions?.Invoke(sp, opts);
 
                 return opts;
             })
