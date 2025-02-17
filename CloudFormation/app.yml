@@ -87,7 +87,7 @@ Resources:
   ServiceTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      HealthCheckPath: '/api/v1/healthcheck'
+      HealthCheckPath: '/healthcheck'
       HealthCheckIntervalSeconds: !Ref healthCheckInterval
       VpcId:
         Fn::ImportValue: !Sub "${prefix}-warehouse-vpc-id"
