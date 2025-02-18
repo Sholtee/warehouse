@@ -35,6 +35,7 @@ namespace Warehouse.Tests.Core
         {
             if (test.IsSuite)
             {
+                again:
                 ContainerBuilder bldr = new Builder()
                     .UseContainer()
                     .UseImage(image)
@@ -52,6 +53,10 @@ namespace Warehouse.Tests.Core
                     //
                     // Workaround for AppVeyor
                     //
+
+                    Console.WriteLine("Container deletion in progress...");
+                    Thread.Sleep(TimeSpan.FromSeconds(30));
+                    goto again;
                 }
 
                 for (int i = 0; i < RetryCount; i++)

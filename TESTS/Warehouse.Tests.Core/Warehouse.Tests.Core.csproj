@@ -10,7 +10,7 @@
       <Optimize>false</Optimize>
       <AnalysisMode>AllEnabledByDefault</AnalysisMode>
       <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-      <NoWarn>CA1019;CA1031;CA1033;CA1812;CA2007;CA2234</NoWarn>
+      <NoWarn>CA1019;CA1031;CA1033;CA1303;CA1812;CA2007;CA2234</NoWarn>
   </PropertyGroup>
     
   <ItemGroup>
