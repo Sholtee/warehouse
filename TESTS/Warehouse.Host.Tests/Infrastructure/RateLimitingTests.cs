@@ -104,7 +104,7 @@ namespace Warehouse.Host.Infrastructure.Tests
             resp = await client.GetAsync("fixed");
             Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.TooManyRequests));
 
-            await Task.Delay(2500);
+            await Task.Delay(3500);
 
             resp = await client.GetAsync("fixed");
             Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
@@ -221,7 +221,7 @@ namespace Warehouse.Host.Infrastructure.Tests
             resp = await client.GetAsync("anon");
             Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.TooManyRequests));
 
-            await Task.Delay(2500);
+            await Task.Delay(3500);
 
             resp = await client.GetAsync("anon");
             Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
@@ -236,7 +236,7 @@ namespace Warehouse.Host.Infrastructure.Tests
             resp = await SendRequest();
             Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.TooManyRequests));
 
-            await Task.Delay(2500);
+            await Task.Delay(3500);
 
             resp = await SendRequest();
             Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
