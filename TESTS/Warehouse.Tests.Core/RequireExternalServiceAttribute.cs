@@ -35,7 +35,6 @@ namespace Warehouse.Tests.Core
         {
             if (test.IsSuite)
             {
-                again:
                 ContainerBuilder bldr = new Builder()
                     .UseContainer()
                     .UseImage(image)
@@ -44,19 +43,22 @@ namespace Warehouse.Tests.Core
                     .ExposePort(exposePort, exposePort)
                     .DeleteIfExists();
 
-                try
+                for (int i = 0; ; )
                 {
-                    FService = bldr.Build().Start();
-                }
-                catch (FluentDockerException ex) when (ex.Message.Contains("Error response from daemon: Conflict.", StringComparison.OrdinalIgnoreCase))
-                {
-                    //
-                    // Workaround for AppVeyor
-                    //
+                    try
+                    {
+                        FService = bldr.Build().Start();
+                        break;
+                    }
+                    catch (FluentDockerException ex) when (ex.Message.Contains("Error response from daemon: Conflict.", StringComparison.OrdinalIgnoreCase) && i++ < RetryCount)
+                    {
+                        //
+                        // Workaround for AppVeyor
+                        //
 
-                    Console.WriteLine("Container deletion in progress...");
-                    Thread.Sleep(TimeSpan.FromSeconds(30));
-                    goto again;
+                        Console.WriteLine("Container deletion in progress...");
+                        Thread.Sleep(TimeSpan.FromSeconds(30));
+                    }
                 }
 
                 for (int i = 0; i < RetryCount; i++)
