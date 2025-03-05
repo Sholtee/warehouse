@@ -133,59 +133,59 @@ Launching the app
 To query items using cURL:
 - `curl --location 'https://localhost:1986/api/v1/login' --header 'Authorization: Basic cm9vdDptZWR2ZWRpc3pub2VtYmVy'`
 - Grab the session token from the `Set-Cookie` header 
-- List the 3rd page of items satisfying the following filter: `(Brand == "Samsung" && "Price" < 1000) || (Brand == "Sony" && "Price" < 1500)`
+- List the 1st page of items satisfying the following filter: `(Brand == "Samsung" && "Price" < 1000) || (Brand == "Sony" && "Price" < 1500)`
   ```
   curl --location 'https://localhost:1986/api/v1/products' \
     --header 'Content-Type: application/json' \
     --header 'Cookie: warehouse-session=eyJhbGc...' \
     --data '{
       "filter": {
-	    "block": {
-	      "string": {
-	  	    "property": "Brand",
-		    "comparison": "equals",
-		    "value": "Samsung"
-	      },
-	      "and": {
-		    "decimal": {
-		      "property": "Price",
-		      "value": 1000,
-		      "comparison": "lessThan"
-		    }
-	      }
-	    },
-	    "or": {
-	      "block": {
-		    "string": {
-		      "property": "Brand",
-		      "comparison": "equals",
-		      "value": "Sony"
-		    },
-		    "and": {
-		      "decimal": {
-			    "property": "Price",
-			    "value": 1500,
-			    "comparison": "lessThan"
-		      }
-		    }
-	      }
-	    }
+        "block": {
+          "string": {
+            "property": "Brand",
+            "comparison": "equals",
+            "value": "Samsung"
+          },
+          "and": {
+            "decimal": {
+              "property": "Price",
+              "value": 1000,
+              "comparison": "lessThan"
+            }
+          }
+        },
+        "or": {
+          "block": {
+            "string": {
+              "property": "Brand",
+              "comparison": "equals",
+              "value": "Sony"
+            },
+            "and": {
+              "decimal": {
+                "property": "Price",
+                "value": 1500,
+                "comparison": "lessThan"
+              }
+            }
+          }
+        }
       },
       "sortBy": {
-	    "properties": [
-	      {
-		    "property": "Name",
-		    "kind": "ascending"
-	      },
-	      {
-		    "property": "Price",
-		    "kind": "descending"
-	      }
-	    ]
+        "properties": [
+          {
+            "property": "Name",
+            "kind": "ascending"
+          },
+          {
+            "property": "Price",
+            "kind": "descending"
+          }
+        ]
       },
       "page": {
-	    "skip": 3,
-	    "size": 5
+        "skip": 0,
+        "size": 5
       }
     }'
   ```
