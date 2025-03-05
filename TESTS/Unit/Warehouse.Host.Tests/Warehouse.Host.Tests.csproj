@@ -3,9 +3,9 @@
     <Import Project="..\Common.targets" />
 
     <PropertyGroup>
-        <AssemblyName>Warehouse.API.Tests</AssemblyName>
-        <RootNamespace>Warehouse.API.Tests</RootNamespace>
-        <NoWarn>CA2007;CA2234</NoWarn>
+        <AssemblyName>Warehouse.Host.Tests</AssemblyName>
+        <RootNamespace>Warehouse.Host.Tests</RootNamespace>
+        <NoWarn>CA1019;CA1031;CA1515;CA1822;CA1859;CA2000;CA2007;CA2201;CA2234;SYSLIB0026</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
@@ -14,8 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\SRC\App\Warehouse.API\Warehouse.API.csproj" />
-      <ProjectReference Include="..\..\SRC\App\Warehouse.Host\Warehouse.Host.csproj" />
+      <ProjectReference Include="..\..\..\SRC\App\Warehouse.Host\Warehouse.Host.csproj" />
       <ProjectReference Include="..\Warehouse.Tests.Core\Warehouse.Tests.Core.csproj" />
       <ProjectReference Include="..\Warehouse.Tests.Host\Warehouse.Tests.Host.csproj" />
     </ItemGroup>

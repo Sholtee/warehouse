@@ -3,7 +3,7 @@
         <Configurations>Debug</Configurations>
         <TargetFrameworks>net9.0</TargetFrameworks>
         <LangVersion>13</LangVersion>
-        <OutputPath>..\..\BIN\$(Configuration)</OutputPath>
+        <OutputPath>..\..\..\BIN\$(Configuration)</OutputPath>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>

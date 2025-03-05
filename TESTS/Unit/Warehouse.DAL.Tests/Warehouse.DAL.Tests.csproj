@@ -14,7 +14,7 @@
   </ItemGroup>
     
   <ItemGroup>
-    <ProjectReference Include="..\..\SRC\App\Warehouse.DAL\Warehouse.DAL.csproj" />
+    <ProjectReference Include="..\..\..\SRC\App\Warehouse.DAL\Warehouse.DAL.csproj" />
   </ItemGroup>
 
 </Project>
