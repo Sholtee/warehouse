@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Warehouse.Tests.Core
 {
-    public sealed class RequireLocalStackAttribute(params string[] services) : RequireExternalServiceAttribute("localstack/localstack:4.0.3", 4566, "test_loclstack", $"SERVICES={string.Join(",", services)}")
+    public sealed class RequireLocalStackAttribute(params string[] services) : RequireExternalServiceAttribute("localstack/localstack:4.0.3", 4566, "test_localstack", $"SERVICES={string.Join(",", services)}")
     {
         private sealed record LocalStackStatus(Dictionary<string, string> Services);
 
