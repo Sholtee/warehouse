@@ -65,17 +65,21 @@ namespace Warehouse.Host
             (
                 static webBuilder => webBuilder.UseStartup<Startup>().ConfigureKestrel
                 (
-                    static (context, serverOpts) => serverOpts.Listen
-                    (
-                        IPAddress.Any,
-                        context.Configuration.GetValue("WAREHOUSE_SERVICE_PORT", 1986),
-                        static listenOpts => listenOpts.UseHttps
+                    static (context, serverOpts) =>
+                    {
+                        serverOpts.AddServerHeader = false;
+                        serverOpts.Listen
                         (
-                            listenOpts
-                                .ApplicationServices
-                                .GetRequiredKeyedService<X509Certificate2>("warehouse-app-cert")
-                        )
-                    )
+                            IPAddress.Any,
+                            context.Configuration.GetValue("WAREHOUSE_SERVICE_PORT", 1986),
+                            static listenOpts => listenOpts.UseHttps
+                            (
+                                listenOpts
+                                    .ApplicationServices
+                                    .GetRequiredKeyedService<X509Certificate2>("warehouse-app-cert")
+                            )
+                        );
+                    }
                 )    
             )
             .Build()
